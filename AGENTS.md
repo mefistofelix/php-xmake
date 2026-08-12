@@ -2,13 +2,14 @@
 
 ## Goal
 
-Build PHP on Windows with a minimal `xmake.lua`. The finished build must be static and use parallel compilation.
+Build PHP on Windows with a minimal `xmake.lua`. The finished build must be static, use the statically linked multithreaded MSVC CRT, and use parallel compilation.
 
 Keep this file and `TODO.md` clear, organized, written in English, and synchronized with the implementation.
 
 ## Supported Environment
 
 - Support Windows only for now; do not add cross-platform branches prematurely.
+- Select the static multithreaded MSVC runtime globally with `set_runtimes("MT")`; verify that MSVC compile commands use `/MT`. `set_kind("static")` only selects a static archive and does not select the CRT. Library-level threading options such as `ZSTD_MULTITHREAD` and the eventual PHP ZTS/NTS choice are separate concerns.
 - Prefer relative paths throughout the build.
 - Prefer Xmake built-in placeholders and platform/toolchain queries for architecture-dependent values such as `x64`, Windows paths, type sizes, and compiler properties.
 - The supported workflow is:
@@ -65,12 +66,12 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 
 | Target | Build state | Kind | Source inputs | Output | Purpose | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| `zlib` | Disabled | Static library | `in/deps/zlib/*.c` | `out/zlib.lib` | First compression dependency | Build validated on MSVC x64 |
-| `brotli` | Disabled | Static library | `in/deps/brotli/c/common/*.c`, `in/deps/brotli/c/dec/*.c`, `in/deps/brotli/c/enc/*.c` | `out/brotli.lib` | Complete Brotli common, decoder, and encoder implementation | One target; three compilation units; build validated on MSVC x64 |
-| `zstd` | Enabled (current priority) | Static library | `in/deps/zstd/lib/{common,compress,decompress,dictBuilder,legacy}/*.c` | `out/zstd.lib` | Multithreaded zstd library with level-5 legacy decoding | One main unity group; FastCover and legacy sources isolated; rebuild pending |
+| `zlib` | Disabled | Static library | `in/deps/zlib/*.c` | `out/zlib.lib` | First compression dependency | Source/unity layout validated on MSVC x64; `/MT` revalidation pending |
+| `brotli` | Disabled | Static library | `in/deps/brotli/c/common/*.c`, `in/deps/brotli/c/dec/*.c`, `in/deps/brotli/c/enc/*.c` | `out/brotli.lib` | Complete Brotli common, decoder, and encoder implementation | One target; three compilation units; `/MT` revalidation pending |
+| `zstd` | Enabled (current priority) | Static library | `in/deps/zstd/lib/{common,compress,decompress,dictBuilder,legacy}/*.c` | `out/zstd.lib` | Multithreaded zstd library with level-5 legacy decoding | Source/unity layout validated with `/MD`; `/MT` rebuild pending |
 | `minilua` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/dynasm/minilua.c` | `out/minilua.exe` | Runs DynASM for the PHP JIT IR emitter | Defined; build validation pending |
 | `gen_ir_fold_hash` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c` | `out/gen_ir_fold_hash.exe` | Generates the JIT IR fold hash header | Defined; build validation pending |
-| `php` | Disabled | Object prototype | `in/php-src/Zend/zend.c`, `in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm` | `out/` | Becomes the static PHP build after dependency, configuration, codegen, and source integration | Prototype only; callback is a placeholder |
+| `php` | Disabled | Object prototype | `in/php-src/Zend/zend.c`, `in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm` | `out/` | Becomes the static PHP build after dependency, configuration, codegen, and source integration | Prototype only; real codegen callback pending |
 
 The `prepare` task fetches dependencies. Each library must receive its own Xmake static-library target as it is integrated; downloaded or prebuilt archives are not yet build targets.
 

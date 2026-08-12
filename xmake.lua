@@ -1,4 +1,5 @@
 set_toolchains("msvc")
+set_runtimes("MT")
 set_config("sdk", path.join(os.scriptdir(),[[in\msvc]]))
 -- set_config("vs_toolset", "14.44.35207")
 -- set_config("vs_sdkver", "10.0.22621.0")

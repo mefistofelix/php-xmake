@@ -16,6 +16,8 @@ Last updated: 2026-08-12
 - [x] Build and archive the complete single-target `out/brotli.lib` successfully with MSVC x64.
 - [ ] Validate the current Xmake configuration and helper targets.
 - [x] Remove empty and placeholder callbacks; only targets with real codegen/configuration work may attach a `cb` callback.
+- [x] Select the static multithreaded MSVC CRT globally with `set_runtimes("MT")`.
+- [ ] Verify a forced build uses `/MT`, then revalidate previously completed dependency targets under the selected CRT.
 - [ ] Replace the object-only `php` prototype and add its real `cb` callback when PHP codegen is implemented.
 
 ## Completed Target: zlib
@@ -47,7 +49,8 @@ Integrate zstd as one dependency target:
 - [x] Keep common, compression, decompression, dictionary-builder, and legacy modules in one `zstd` target.
 - [x] Add broad source patterns and no `cb` callback because the upstream library has no build-time codegen.
 - [x] Keep 29 current sources in one unity group; isolate FastCover because `cover.h` is unguarded, and isolate the seven legacy sources whose inspected private symbols collide across historical versions.
-- [ ] Build and record the validation result before moving to bzip2.
+- [x] Build the complete target once and validate its source/unity layout.
+- [ ] Rebuild with `/MT`, verify the compiler command, and record the final validation result before moving to bzip2.
 
 ## Dependency Targets
 
@@ -77,13 +80,16 @@ Every library must receive its own static target. Integrate and validate them on
 
 - [ ] Add broad Zend, main, TSRM, SAPI, extension, and selected external source patterns.
 - [ ] Keep PHP extensions inside the PHP target rather than creating extension targets.
-- [ ] Define the intended static, multithreaded build flags and runtime linkage.
+- [x] Select the statically linked multithreaded MSVC CRT globally with `set_runtimes("MT")`.
+- [ ] Decide and configure PHP ZTS versus NTS independently of the MSVC CRT selection.
 - [ ] Add the widest safe unity-build groups and document necessary exclusions.
 - [ ] Connect all dependency targets in correct link order.
 - [ ] Produce the final PHP executable/library artifacts.
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-12 — `xmake -r -v` at commit `b270cd4`: built `out/zstd.lib` successfully in 0.922 seconds, validating the one-target source list and the minimal unity exclusions. The verbose MSVC commands exposed Xmake's default `/MD` runtime, so the target must be rebuilt after selecting `set_runtimes("MT")` globally.
 
 - 2026-08-12 — `xmake -r` at commit `a05d138`: confirmed that broad `add_files` plus narrower repeated file config deduplicates correctly; all seven legacy files compiled separately. The main zstd unity unit then failed because `cover.c` and `fastcover.c` both include the unguarded `cover.h`. FastCover was isolated for the next test.
 - 2026-08-12 — `xmake -r` at commit `17a93d0`: forced a complete `brotli` rebuild after removing empty callbacks; `out/brotli.lib` built without warnings or errors in 0.906 seconds.
