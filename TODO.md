@@ -9,18 +9,19 @@ Last updated: 2026-08-12
 - [x] Add the `cb` rule skeleton for target-owned code generation.
 - [x] Define the `minilua` and `gen_ir_fold_hash` helper targets.
 - [x] Record the known PHP code-generation inventory in `AGENTS.md`.
+- [x] Disable non-priority targets by default so focused builds only exercise the target under integration.
 - [ ] Validate the current Xmake configuration and helper targets.
-- [ ] Normalize every target to the intended declarative form with one target-specific `cb` callback and no unrelated Lua helpers or state.
+- [x] Normalize every current target to the intended declarative form with one target-specific `cb` callback and no unrelated Lua helpers or state.
 - [ ] Replace the placeholder callback and object-only `php` prototype.
 
 ## Next Target
 
 Integrate `zlib` as the first dependency target:
 
-- [ ] Inspect its Windows source/configuration requirements and source exclusions.
-- [ ] Add one static-library target with the broadest safe source pattern.
-- [ ] Attach any configuration generation to one target-owned `cb` callback.
-- [ ] Enable a safe unity-build batch and resolve symbol collisions explicitly.
+- [x] Inspect its Windows source/configuration requirements and source exclusions.
+- [x] Add one static-library target with the broadest safe source pattern.
+- [x] Attach its target-owned `cb` callback to `zutil.c`; no zlib code generation is currently required.
+- [x] Enable an initial four-file C unity-build batch; adjust only if validation exposes collisions.
 - [ ] Build and record the validation result before moving to the next dependency.
 
 ## Dependency Targets
@@ -59,4 +60,5 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-12 — `xmake prepare` at commit `fec296f`: stopped after the initial dependency downloads because the configured `ngtcp2` ref `v1.69.0` does not exist. Official release tags are `ngtcp2` `v1.25.0` and `nghttp3` `v1.18.0`; the pins were corrected for the next test.
 - 2026-08-12 — `xmake` at commit `bc16350`: MSVC x64 detection succeeded and the `php` callback ran. The build stopped while compiling `Zend/zend.c` because `Zend/zend_config.h` has not been generated yet. The helper targets remain unvalidated by an isolated target build.

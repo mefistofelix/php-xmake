@@ -40,8 +40,8 @@ task("prepare")
         os.run("hx github://google/brotli?ref=v1.2.0 in/deps/brotli")
         os.run("hx github://facebook/zstd?ref=v1.5.7 in/deps/zstd")
         os.run("hx github://nghttp2/nghttp2?ref=v1.69.0 in/deps/nghttp2")
-        os.run("hx github://ngtcp2/ngtcp2?ref=v1.69.0 in/deps/ngtcp2")
-        os.run("hx github://ngtcp2/nghttp3?ref=v1.69.0 in/deps/nghttp3")
+        os.run("hx github://ngtcp2/ngtcp2?ref=v1.25.0 in/deps/ngtcp2")
+        os.run("hx github://ngtcp2/nghttp3?ref=v1.18.0 in/deps/nghttp3")
         os.run("hx github://openssl/openssl?ref=openssl-3.5 in/deps/openssl")
         os.run("hx github://libuv/libuv?ref=v1.52.1 in/deps/libuv")
 
@@ -89,17 +89,41 @@ task("prepare")
     end)
 
 target("minilua")
+    set_enabled(false)
     set_kind("binary")
     set_targetdir(get_config("builddir"))
-    add_files("in/php-src/ext/opcache/jit/ir/dynasm/minilua.c")
+    add_files("in/php-src/ext/opcache/jit/ir/dynasm/minilua.c", {
+        rules = "cb",
+        cb = function ()
+        end
+    })
 
 target("gen_ir_fold_hash")
+    set_enabled(false)
     set_kind("binary")
     set_targetdir(get_config("builddir"))
-    add_files("in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c")
+    add_files("in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c", {
+        rules = "cb",
+        cb = function ()
+        end
+    })
     add_defines("IR_TARGET_X86_64")
 
+target("zlib")
+    set_kind("static")
+    set_targetdir(get_config("builddir"))
+    add_includedirs("in/deps/zlib", {public = true})
+    add_defines("_CRT_SECURE_NO_DEPRECATE", "_CRT_NONSTDC_NO_DEPRECATE")
+    add_rules("c.unity_build", {batchsize = 4})
+    add_files("in/deps/zlib/zutil.c", {
+        rules = "cb",
+        cb = function ()
+        end
+    })
+    add_files("in/deps/zlib/*.c|zutil.c")
+
 target("php")
+    set_enabled(false)
     set_kind("object")
     set_targetdir(get_config("builddir"))
     add_files("in/php-src/Zend/zend.c", {
