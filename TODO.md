@@ -62,7 +62,7 @@ Integrate zstd as one dependency target:
 - [x] Build all seven sources in one unity translation unit and record the validation result before moving to liblzma.
 - [x] Revalidate that broad `add_files("*.c")` plus declarative `remove_files` selects the same seven library sources and still builds one unity unit.
 
-## Next Target: liblzma
+## Completed Target: liblzma
 
 - [x] Confirm that the authoritative `tukaani-project/xz` GitHub repository provides tag `v5.8.3`, matching the version selected by the PHP SDK dependency inventory.
 - [x] Replace the prebuilt PHP SDK `liblzma` archive download with the pinned official XZ source repository.
@@ -74,6 +74,16 @@ Integrate zstd as one dependency target:
 - [x] Verify that only the standard liblzma public interface is exposed: propagate only `LZMA_API_STATIC`, keep implementation defines private, and inspect the resulting symbol surface.
 - [x] Derive a five-unit minimum unity partition from the observed liblzma private-symbol conflict graph; do not use arbitrary batch sizes.
 - [x] Build and record the validation result before moving to the next dependency group.
+
+## Next Target: OpenSSL
+
+- [x] Replace the moving official `openssl-3.5` branch with the pinned official `openssl-3.5.7` LTS release tag.
+- [ ] Remove `in/deps/openssl` and validate the pinned source fetch from a clean absence.
+- [ ] Repeat `xmake prepare` with every input present to validate idempotence.
+- [ ] Inspect upstream Configure/build metadata and Windows notes for the exact crypto/SSL source set, generated files, assembly, public/private defines, providers, and system libraries.
+- [ ] Add one static OpenSSL dependency target unless upstream constraints prove that separate archives are technically required.
+- [ ] Validate the standard public OpenSSL interface and inspect the resulting archive symbol/directive surface.
+- [ ] Build and record the validation result before moving to libcurl/libssh2/libsodium.
 
 ## Dependency Targets
 

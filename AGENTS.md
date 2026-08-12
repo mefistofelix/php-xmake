@@ -136,6 +136,11 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 - The final archive inspection confirms static-interface intent: its COFF directives contain no `/EXPORT:` entry, its linker members contain no `__imp_lzma*` import thunk, and representative standard APIs such as `lzma_version_number`, `lzma_easy_encoder`, and `lzma_stream_decoder` are present. All five objects request `MSVCRT` and none requests `LIBCMT`, confirming `/MD`. Internal cross-object symbols in a static archive are implementation linkage, not DLL exports; the final PHP DLL must still control its own export list.
 - Upstream 5.8.3 now names the MSVC static archive `lzma.lib`, while the PHP SDK package and PHP build probes use `liblzma_a.lib` or `liblzma.lib`. The final PHP target will depend directly on this Xmake target, so the project keeps the logical target-derived `liblzma.lib`.
 
+### OpenSSL upstream build analysis
+
+- Use the official `openssl/openssl` GitHub repository pinned to release tag `openssl-3.5.7`, the current supported 3.5 LTS security release. Do not use the moving `openssl-3.5` branch: it had already advanced to unreleased `3.5.8-dev`, making clean preparations non-reproducible.
+- Treat upstream `Configure`, `Configurations/*.conf`, `build.info`, generated build metadata, and the Windows platform notes as the authority for source selection, generated headers/sources/assembly, defines, system libraries, and public API configuration. Complete this analysis before declaring the Xmake target.
+
 ## PHP Code-generation Inventory
 
 All paths below are relative to `in/php-src` unless prefixed with `out/`. Entries marked "planned" reproduce the known PHP generation commands but are not yet wired into the `php` target callback.

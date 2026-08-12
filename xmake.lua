@@ -40,7 +40,7 @@ task("prepare")
         os.run("hx github://nghttp2/nghttp2?ref=v1.69.0 in/deps/nghttp2")
         os.run("hx github://ngtcp2/ngtcp2?ref=v1.25.0 in/deps/ngtcp2")
         os.run("hx github://ngtcp2/nghttp3?ref=v1.18.0 in/deps/nghttp3")
-        os.run("hx github://openssl/openssl?ref=openssl-3.5 in/deps/openssl")
+        os.run("hx github://openssl/openssl?ref=openssl-3.5.7 in/deps/openssl")
         os.run("hx github://libuv/libuv?ref=v1.52.1 in/deps/libuv")
 
         local bp = "https://downloads.php.net/~windows/php-sdk/deps/vs18/x64"
