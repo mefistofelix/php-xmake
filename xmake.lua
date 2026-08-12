@@ -216,110 +216,7 @@ target("openssl")
     add_asflags("-Ox", "-f", "win64", "-DNEAR", "-g", {force = true})
     add_syslinks("ws2_32", "gdi32", "advapi32", "crypt32", "user32", {public = true})
     add_rules("c.unity_build")
-    add_files("in/deps/openssl/crypto/**.c", "in/deps/openssl/ssl/**.c",
-        "in/deps/openssl/providers/**.c")
-    add_files("in/deps/openssl/engines/e_capi.c", "in/deps/openssl/engines/e_padlock.c")
-    remove_files("in/deps/openssl/crypto/bn/asm/*.c", "in/deps/openssl/crypto/chacha/*.c",
-        "in/deps/openssl/crypto/md2/*.c", "in/deps/openssl/crypto/rc4/*.c",
-        "in/deps/openssl/crypto/rc5/*.c", "in/deps/openssl/providers/fips/**.c")
-    remove_files("in/deps/openssl/crypto/aes/aes_cbc.c", "in/deps/openssl/crypto/aes/aes_core.c",
-        "in/deps/openssl/crypto/aes/aes_x86core.c", "in/deps/openssl/crypto/*cap.c",
-        "in/deps/openssl/crypto/bn/bn_ppc.c", "in/deps/openssl/crypto/bn/bn_s390x.c",
-        "in/deps/openssl/crypto/bn/bn_sparc.c", "in/deps/openssl/crypto/camellia/camellia.c",
-        "in/deps/openssl/crypto/camellia/cmll_cbc.c", "in/deps/openssl/crypto/des/ncbc_enc.c",
-        "in/deps/openssl/crypto/dllmain.c", "in/deps/openssl/crypto/ec/ecp_nistp*.c",
-        "in/deps/openssl/crypto/ec/ecp_nistz256_table.c", "in/deps/openssl/crypto/ec/ecp_ppc.c",
-        "in/deps/openssl/crypto/ec/ecp_s390x_nistp.c", "in/deps/openssl/crypto/ec/ecp_sm2p256*.c",
-        "in/deps/openssl/crypto/ec/ecx_s390x.c", "in/deps/openssl/crypto/evp/legacy_md2.c",
-        "in/deps/openssl/crypto/hmac/hmac_s390x.c", "in/deps/openssl/crypto/LPdir_*.c",
-        "in/deps/openssl/crypto/mem_clr.c", "in/deps/openssl/crypto/poly1305/poly1305_base2_44.c",
-        "in/deps/openssl/crypto/poly1305/poly1305_ieee754.c",
-        "in/deps/openssl/crypto/poly1305/poly1305_ppc.c", "in/deps/openssl/crypto/rand/rand_egd.c",
-        "in/deps/openssl/crypto/rsa/rsa_acvp_test_params.c", "in/deps/openssl/crypto/sha/keccak1600.c",
-        "in/deps/openssl/crypto/sha/sha_ppc.c", "in/deps/openssl/crypto/sha/sha_riscv.c",
-        "in/deps/openssl/crypto/sm3/sm3_riscv.c", "in/deps/openssl/crypto/whrlpool/wp_block.c",
-        "in/deps/openssl/providers/common/securitycheck_fips.c",
-        "in/deps/openssl/providers/implementations/ciphers/cipher_rc5.c",
-        "in/deps/openssl/providers/implementations/ciphers/cipher_rc5_hw.c",
-        "in/deps/openssl/providers/implementations/digests/md2_prov.c",
-        "in/deps/openssl/providers/implementations/kem/template_kem.c",
-        "in/deps/openssl/providers/implementations/keymgmt/template_kmgmt.c",
-        "in/deps/openssl/providers/implementations/macs/blake2_mac_impl.c",
-        "in/deps/openssl/providers/implementations/rands/fips_crng_test.c",
-        "in/deps/openssl/providers/implementations/rands/seeding/rand_cpu_arm64.c",
-        "in/deps/openssl/providers/implementations/rands/seeding/rand_vms.c",
-        "in/deps/openssl/providers/implementations/rands/seeding/rand_vxworks.c",
-        "in/deps/openssl/ssl/record/methods/ktls_meth.c")
-    add_files("in/deps/openssl/crypto/asn1/a_gentm.c", "in/deps/openssl/crypto/async/arch/async_null.c",
-        {unity_group = "conflict_1"})
-    add_files("in/deps/openssl/crypto/asn1/a_int.c", "in/deps/openssl/crypto/async/arch/async_posix.c",
-        {unity_group = "conflict_2"})
-    add_files("in/deps/openssl/crypto/asn1/a_object.c", "in/deps/openssl/crypto/async/arch/async_win.c",
-        {unity_group = "conflict_3"})
-    add_files("in/deps/openssl/crypto/asn1/a_time.c", "in/deps/openssl/crypto/async/async_wait.c",
-        {unity_group = "conflict_4"})
-    add_files("in/deps/openssl/crypto/asn1/a_type.c", {unity_group = "conflict_5"})
-    add_files("in/deps/openssl/crypto/asn1/a_utctm.c", {unity_group = "conflict_6"})
-    add_files("in/deps/openssl/crypto/asn1/asn_mime.c", {unity_group = "conflict_7"})
-    add_files("in/deps/openssl/crypto/asn1/asn1_lib.c", {unity_group = "conflict_8"})
-    add_files("in/deps/openssl/crypto/asn1/tasn_dec.c", {unity_group = "conflict_9"})
-    add_files("in/deps/openssl/crypto/asn1/tasn_enc.c", {unity_group = "conflict_10"})
-    add_files("in/deps/openssl/crypto/asn1/tasn_fre.c", {unity_group = "conflict_11"})
-    add_files("in/deps/openssl/crypto/asn1/tasn_new.c", {unity_group = "conflict_12"})
-    add_files("in/deps/openssl/crypto/asn1/tasn_prn.c", {unity_group = "conflict_13"})
-    add_files("in/deps/openssl/crypto/asn1/tasn_scn.c", {unity_group = "conflict_14"})
-    add_files("in/deps/openssl/crypto/asn1/tasn_utl.c", {unity_group = "conflict_15"})
-    add_files("in/deps/openssl/crypto/asn1/x_int64.c", {unity_group = "conflict_16"})
-    add_files("in/deps/openssl/crypto/params_idx.c",
-        "in/deps/openssl/providers/common/der/der_digests_gen.c",
-        "in/deps/openssl/providers/common/der/der_dsa_gen.c",
-        "in/deps/openssl/providers/common/der/der_ec_gen.c",
-        "in/deps/openssl/providers/common/der/der_ecx_gen.c",
-        "in/deps/openssl/providers/common/der/der_ml_dsa_gen.c",
-        "in/deps/openssl/providers/common/der/der_rsa_gen.c",
-        "in/deps/openssl/providers/common/der/der_slh_dsa_gen.c",
-        "in/deps/openssl/providers/common/der/der_sm2_gen.c",
-        "in/deps/openssl/providers/common/der/der_wrap_gen.c")
-    add_files("in/deps/openssl/crypto/aes/aes-x86_64.asm",
-        "in/deps/openssl/crypto/aes/aesni-mb-x86_64.asm",
-        "in/deps/openssl/crypto/aes/aesni-sha1-x86_64.asm",
-        "in/deps/openssl/crypto/aes/aesni-sha256-x86_64.asm",
-        "in/deps/openssl/crypto/aes/aesni-x86_64.asm",
-        "in/deps/openssl/crypto/aes/aesni-xts-avx512.asm",
-        "in/deps/openssl/crypto/aes/bsaes-x86_64.asm",
-        "in/deps/openssl/crypto/aes/vpaes-x86_64.asm",
-        "in/deps/openssl/crypto/bn/rsaz-2k-avx512.asm",
-        "in/deps/openssl/crypto/bn/rsaz-2k-avxifma.asm",
-        "in/deps/openssl/crypto/bn/rsaz-3k-avx512.asm",
-        "in/deps/openssl/crypto/bn/rsaz-3k-avxifma.asm",
-        "in/deps/openssl/crypto/bn/rsaz-4k-avx512.asm",
-        "in/deps/openssl/crypto/bn/rsaz-4k-avxifma.asm",
-        "in/deps/openssl/crypto/bn/rsaz-avx2.asm",
-        "in/deps/openssl/crypto/bn/rsaz-x86_64.asm",
-        "in/deps/openssl/crypto/bn/x86_64-gf2m.asm",
-        "in/deps/openssl/crypto/bn/x86_64-mont.asm",
-        "in/deps/openssl/crypto/bn/x86_64-mont5.asm",
-        "in/deps/openssl/crypto/camellia/cmll-x86_64.asm",
-        "in/deps/openssl/crypto/chacha/chacha-x86_64.asm",
-        "in/deps/openssl/crypto/ec/ecp_nistz256-x86_64.asm",
-        "in/deps/openssl/crypto/ec/x25519-x86_64.asm",
-        "in/deps/openssl/crypto/md5/md5-x86_64.asm",
-        "in/deps/openssl/crypto/modes/aes-gcm-avx512.asm",
-        "in/deps/openssl/crypto/modes/aesni-gcm-x86_64.asm",
-        "in/deps/openssl/crypto/modes/ghash-x86_64.asm",
-        "in/deps/openssl/crypto/poly1305/poly1305-x86_64.asm",
-        "in/deps/openssl/crypto/rc4/rc4-md5-x86_64.asm",
-        "in/deps/openssl/crypto/rc4/rc4-x86_64.asm",
-        "in/deps/openssl/crypto/sha/keccak1600-x86_64.asm",
-        "in/deps/openssl/crypto/sha/sha1-mb-x86_64.asm",
-        "in/deps/openssl/crypto/sha/sha1-x86_64.asm",
-        "in/deps/openssl/crypto/sha/sha256-mb-x86_64.asm",
-        "in/deps/openssl/crypto/sha/sha256-x86_64.asm",
-        "in/deps/openssl/crypto/sha/sha512-x86_64.asm",
-        "in/deps/openssl/crypto/whrlpool/wp-x86_64.asm",
-        "in/deps/openssl/crypto/x86_64cpuid.asm",
-        "in/deps/openssl/engines/e_padlock-x86_64.asm")
-    add_files("in/deps/openssl/crypto/init.c", {rules = {"cb"}, cb = function (target, sourcefile, opt, depend, runv)
+    add_files("in/deps/openssl/crypto/params_idx.c.in", {rules = {"cb"}, cb = function (target, sourcefile, opt, depend, runv)
         local root = path.join(os.projectdir(), "in/deps/openssl")
         local perl = path.join(os.projectdir(), "in/perl/perl/bin/perl.exe")
         local runenvs = {PATH = path.join(os.projectdir(), "in/perl/c/bin") .. ";" .. os.getenv("PATH")}
@@ -446,7 +343,135 @@ for my $output (@ARGV) {
             changed = missing or target:is_rebuilt()
         })
     end})
-
+    add_files("in/deps/openssl/crypto/bio/bf_buff.c")
+    add_files("in/deps/openssl/crypto/bio/bf_lbuf.c", {unity_group = "conflict_1"})
+    add_files("in/deps/openssl/crypto/bio/bf_nbio.c", {unity_group = "conflict_2"})
+    add_files("in/deps/openssl/crypto/bio/bf_null.c", {unity_group = "conflict_3"})
+    add_files("in/deps/openssl/crypto/bio/bf_prefix.c", {unity_group = "conflict_4"})
+    add_files("in/deps/openssl/crypto/bio/bf_readbuff.c", {unity_group = "conflict_5"})
+    add_files("in/deps/openssl/crypto/bio/bio_addr.c", {unity_group = "conflict_6"})
+    add_files("in/deps/openssl/crypto/bio/bio_cb.c", {unity_group = "conflict_7"})
+    add_files("in/deps/openssl/crypto/bio/bio_dump.c", {unity_group = "conflict_8"})
+    add_files("in/deps/openssl/crypto/bio/bio_lib.c", {unity_group = "conflict_9"})
+    add_files("in/deps/openssl/crypto/bio/bio_meth.c", {unity_group = "conflict_10"})
+    add_files("in/deps/openssl/crypto/bio/bio_sock.c", {unity_group = "conflict_11"})
+    add_files("in/deps/openssl/crypto/bio/bio_sock2.c", {unity_group = "conflict_12"})
+    add_files("in/deps/openssl/crypto/bio/bss_acpt.c", {unity_group = "conflict_13"})
+    add_files("in/deps/openssl/crypto/bio/bss_bio.c", {unity_group = "conflict_14"})
+    add_files("in/deps/openssl/crypto/bio/bss_conn.c", {unity_group = "conflict_15"})
+    add_files("in/deps/openssl/crypto/bio/bss_core.c", {unity_group = "conflict_16"})
+    add_files("in/deps/openssl/crypto/bio/bss_dgram.c", {unity_group = "conflict_17"})
+    add_files("in/deps/openssl/crypto/bio/bss_dgram_pair.c", {unity_group = "conflict_18"})
+    add_files("in/deps/openssl/crypto/bio/bss_fd.c", {unity_group = "conflict_19"})
+    add_files("in/deps/openssl/crypto/bio/bss_file.c", {unity_group = "conflict_20"})
+    add_files("in/deps/openssl/crypto/bio/bss_log.c", {unity_group = "conflict_21"})
+    add_files("in/deps/openssl/crypto/bio/bss_mem.c", {unity_group = "conflict_22"})
+    add_files("in/deps/openssl/crypto/bio/bss_null.c", {unity_group = "conflict_23"})
+    add_files("in/deps/openssl/crypto/bio/bss_sock.c", {unity_group = "conflict_24"})
+    add_files("in/deps/openssl/crypto/bio/ossl_core_bio.c", {unity_group = "conflict_25"})
+    add_files("in/deps/openssl/crypto/**.c", "in/deps/openssl/ssl/**.c",
+        "in/deps/openssl/providers/**.c")
+    add_files("in/deps/openssl/engines/e_capi.c", "in/deps/openssl/engines/e_padlock.c")
+    remove_files("in/deps/openssl/crypto/bn/asm/*.c", "in/deps/openssl/crypto/chacha/*.c",
+        "in/deps/openssl/crypto/md2/*.c", "in/deps/openssl/crypto/rc4/*.c",
+        "in/deps/openssl/crypto/rc5/*.c", "in/deps/openssl/providers/fips/**.c")
+    remove_files("in/deps/openssl/crypto/aes/aes_cbc.c", "in/deps/openssl/crypto/aes/aes_core.c",
+        "in/deps/openssl/crypto/aes/aes_x86core.c", "in/deps/openssl/crypto/*cap.c",
+        "in/deps/openssl/crypto/bn/bn_ppc.c", "in/deps/openssl/crypto/bn/bn_s390x.c",
+        "in/deps/openssl/crypto/bn/bn_sparc.c", "in/deps/openssl/crypto/camellia/camellia.c",
+        "in/deps/openssl/crypto/camellia/cmll_cbc.c", "in/deps/openssl/crypto/des/ncbc_enc.c",
+        "in/deps/openssl/crypto/dllmain.c", "in/deps/openssl/crypto/ec/ecp_nistp*.c",
+        "in/deps/openssl/crypto/ec/ecp_nistz256_table.c", "in/deps/openssl/crypto/ec/ecp_ppc.c",
+        "in/deps/openssl/crypto/ec/ecp_s390x_nistp.c", "in/deps/openssl/crypto/ec/ecp_sm2p256*.c",
+        "in/deps/openssl/crypto/ec/ecx_s390x.c", "in/deps/openssl/crypto/evp/legacy_md2.c",
+        "in/deps/openssl/crypto/hmac/hmac_s390x.c", "in/deps/openssl/crypto/LPdir_*.c",
+        "in/deps/openssl/crypto/mem_clr.c", "in/deps/openssl/crypto/poly1305/poly1305_base2_44.c",
+        "in/deps/openssl/crypto/poly1305/poly1305_ieee754.c",
+        "in/deps/openssl/crypto/poly1305/poly1305_ppc.c", "in/deps/openssl/crypto/rand/rand_egd.c",
+        "in/deps/openssl/crypto/rsa/rsa_acvp_test_params.c", "in/deps/openssl/crypto/sha/keccak1600.c",
+        "in/deps/openssl/crypto/sha/sha_ppc.c", "in/deps/openssl/crypto/sha/sha_riscv.c",
+        "in/deps/openssl/crypto/sm3/sm3_riscv.c", "in/deps/openssl/crypto/whrlpool/wp_block.c",
+        "in/deps/openssl/providers/common/securitycheck_fips.c",
+        "in/deps/openssl/providers/implementations/ciphers/cipher_rc5.c",
+        "in/deps/openssl/providers/implementations/ciphers/cipher_rc5_hw.c",
+        "in/deps/openssl/providers/implementations/digests/md2_prov.c",
+        "in/deps/openssl/providers/implementations/kem/template_kem.c",
+        "in/deps/openssl/providers/implementations/keymgmt/template_kmgmt.c",
+        "in/deps/openssl/providers/implementations/macs/blake2_mac_impl.c",
+        "in/deps/openssl/providers/implementations/rands/fips_crng_test.c",
+        "in/deps/openssl/providers/implementations/rands/seeding/rand_cpu_arm64.c",
+        "in/deps/openssl/providers/implementations/rands/seeding/rand_vms.c",
+        "in/deps/openssl/providers/implementations/rands/seeding/rand_vxworks.c",
+        "in/deps/openssl/ssl/record/methods/ktls_meth.c")
+    add_files("in/deps/openssl/crypto/asn1/a_gentm.c", "in/deps/openssl/crypto/async/arch/async_null.c",
+        {unity_group = "conflict_1"})
+    add_files("in/deps/openssl/crypto/asn1/a_int.c", "in/deps/openssl/crypto/async/arch/async_posix.c",
+        {unity_group = "conflict_2"})
+    add_files("in/deps/openssl/crypto/asn1/a_object.c", "in/deps/openssl/crypto/async/arch/async_win.c",
+        {unity_group = "conflict_3"})
+    add_files("in/deps/openssl/crypto/asn1/a_time.c", "in/deps/openssl/crypto/async/async_wait.c",
+        {unity_group = "conflict_4"})
+    add_files("in/deps/openssl/crypto/asn1/a_type.c", {unity_group = "conflict_5"})
+    add_files("in/deps/openssl/crypto/asn1/a_utctm.c", {unity_group = "conflict_6"})
+    add_files("in/deps/openssl/crypto/asn1/asn_mime.c", {unity_group = "conflict_7"})
+    add_files("in/deps/openssl/crypto/asn1/asn1_lib.c", {unity_group = "conflict_8"})
+    add_files("in/deps/openssl/crypto/asn1/tasn_dec.c", {unity_group = "conflict_9"})
+    add_files("in/deps/openssl/crypto/asn1/tasn_enc.c", {unity_group = "conflict_10"})
+    add_files("in/deps/openssl/crypto/asn1/tasn_fre.c", {unity_group = "conflict_11"})
+    add_files("in/deps/openssl/crypto/asn1/tasn_new.c", {unity_group = "conflict_12"})
+    add_files("in/deps/openssl/crypto/asn1/tasn_prn.c", {unity_group = "conflict_13"})
+    add_files("in/deps/openssl/crypto/asn1/tasn_scn.c", {unity_group = "conflict_14"})
+    add_files("in/deps/openssl/crypto/asn1/tasn_utl.c", {unity_group = "conflict_15"})
+    add_files("in/deps/openssl/crypto/asn1/x_int64.c", {unity_group = "conflict_16"})
+    add_files("in/deps/openssl/crypto/params_idx.c",
+        "in/deps/openssl/providers/common/der/der_digests_gen.c",
+        "in/deps/openssl/providers/common/der/der_dsa_gen.c",
+        "in/deps/openssl/providers/common/der/der_ec_gen.c",
+        "in/deps/openssl/providers/common/der/der_ecx_gen.c",
+        "in/deps/openssl/providers/common/der/der_ml_dsa_gen.c",
+        "in/deps/openssl/providers/common/der/der_rsa_gen.c",
+        "in/deps/openssl/providers/common/der/der_slh_dsa_gen.c",
+        "in/deps/openssl/providers/common/der/der_sm2_gen.c",
+        "in/deps/openssl/providers/common/der/der_wrap_gen.c")
+    add_files("in/deps/openssl/crypto/aes/aes-x86_64.asm",
+        "in/deps/openssl/crypto/aes/aesni-mb-x86_64.asm",
+        "in/deps/openssl/crypto/aes/aesni-sha1-x86_64.asm",
+        "in/deps/openssl/crypto/aes/aesni-sha256-x86_64.asm",
+        "in/deps/openssl/crypto/aes/aesni-x86_64.asm",
+        "in/deps/openssl/crypto/aes/aesni-xts-avx512.asm",
+        "in/deps/openssl/crypto/aes/bsaes-x86_64.asm",
+        "in/deps/openssl/crypto/aes/vpaes-x86_64.asm",
+        "in/deps/openssl/crypto/bn/rsaz-2k-avx512.asm",
+        "in/deps/openssl/crypto/bn/rsaz-2k-avxifma.asm",
+        "in/deps/openssl/crypto/bn/rsaz-3k-avx512.asm",
+        "in/deps/openssl/crypto/bn/rsaz-3k-avxifma.asm",
+        "in/deps/openssl/crypto/bn/rsaz-4k-avx512.asm",
+        "in/deps/openssl/crypto/bn/rsaz-4k-avxifma.asm",
+        "in/deps/openssl/crypto/bn/rsaz-avx2.asm",
+        "in/deps/openssl/crypto/bn/rsaz-x86_64.asm",
+        "in/deps/openssl/crypto/bn/x86_64-gf2m.asm",
+        "in/deps/openssl/crypto/bn/x86_64-mont.asm",
+        "in/deps/openssl/crypto/bn/x86_64-mont5.asm",
+        "in/deps/openssl/crypto/camellia/cmll-x86_64.asm",
+        "in/deps/openssl/crypto/chacha/chacha-x86_64.asm",
+        "in/deps/openssl/crypto/ec/ecp_nistz256-x86_64.asm",
+        "in/deps/openssl/crypto/ec/x25519-x86_64.asm",
+        "in/deps/openssl/crypto/md5/md5-x86_64.asm",
+        "in/deps/openssl/crypto/modes/aes-gcm-avx512.asm",
+        "in/deps/openssl/crypto/modes/aesni-gcm-x86_64.asm",
+        "in/deps/openssl/crypto/modes/ghash-x86_64.asm",
+        "in/deps/openssl/crypto/poly1305/poly1305-x86_64.asm",
+        "in/deps/openssl/crypto/rc4/rc4-md5-x86_64.asm",
+        "in/deps/openssl/crypto/rc4/rc4-x86_64.asm",
+        "in/deps/openssl/crypto/sha/keccak1600-x86_64.asm",
+        "in/deps/openssl/crypto/sha/sha1-mb-x86_64.asm",
+        "in/deps/openssl/crypto/sha/sha1-x86_64.asm",
+        "in/deps/openssl/crypto/sha/sha256-mb-x86_64.asm",
+        "in/deps/openssl/crypto/sha/sha256-x86_64.asm",
+        "in/deps/openssl/crypto/sha/sha512-x86_64.asm",
+        "in/deps/openssl/crypto/whrlpool/wp-x86_64.asm",
+        "in/deps/openssl/crypto/x86_64cpuid.asm",
+        "in/deps/openssl/engines/e_padlock-x86_64.asm")
 target("php")
     set_enabled(false)
     set_kind("object")
