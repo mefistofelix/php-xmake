@@ -59,4 +59,4 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
-No Xmake test has been run from the documented repository state yet. Commit the current changes before the first test, as required by `AGENTS.md`.
+- 2026-08-12 — `xmake` at commit `bc16350`: MSVC x64 detection succeeded and the `php` callback ran. The build stopped while compiling `Zend/zend.c` because `Zend/zend_config.h` has not been generated yet. The helper targets remain unvalidated by an isolated target build.
