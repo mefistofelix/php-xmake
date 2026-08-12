@@ -86,7 +86,7 @@ Integrate zstd as one dependency target:
 - [x] Add one static OpenSSL dependency target; the configured closure contains no source compiled with incompatible duplicate settings.
 - [x] Validate that the Xmake source declaration matches the configured 1,100-C plus 39-assembly upstream closure exactly.
 - [ ] Resolve only observed unity-build conflicts and retain the fewest widest groups.
-- [ ] Validate the standard public OpenSSL interface and inspect the resulting archive symbol/directive surface.
+- [x] Validate the standard public OpenSSL interface and inspect the resulting archive symbol/directive surface.
 - [ ] Build and record the validation result before moving to libcurl/libssh2/libsodium.
 
 ## Dependency Targets
@@ -126,6 +126,7 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-12 — clean `.\xmake.exe clean openssl` plus `.\xmake.exe -vD -j1 openssl` at commit `e870f8c`: all 39 NASM inputs and all 109 C unity/direct units rebuilt successfully and Xmake archived `out/openssl.lib`. No C4090 diagnostic remains. The C4133 sites match the official upstream `nmake` log, while the only Xmake-only diagnostics are C4005 macro redefinitions in CT colors 53–58 and 60; clean those seven unity boundaries before completing OpenSSL.
 - 2026-08-12 — read-only archive validation after commit `c93e394`: `out/openssl.lib` contains 148 members, exactly 109 C unity/direct objects plus 39 NASM objects, and all 148 report x64 COFF headers. The 109 C members request `MSVCRT`; none requests `LIBCMT`. No `/EXPORT:` directive or OpenSSL-family `__imp_` thunk is present. Representative crypto, TLS, default/legacy provider, and assembly symbols are present. The official `openssl_build.txt` contains 77 C4133 warnings at the same atomic/refcount sites and no C4005/C4090 warning; run one clean serial Xmake build to review every remaining Xmake-only C4005 occurrence.
 - 2026-08-12 — `.\xmake.exe -vD -j1 openssl` at commit `f2e7a21`: successful build and archive of `openssl.lib`. Terminal colors 107 and 108 removed the RSA/AES/DES failures and macro warnings, color 71 passed, and serial traversal completed every remaining unity group through 106. The build still reports MSVC C4133 warnings in upstream atomic/refcount sites; compare them with `openssl_build.txt`, then inspect archive CRT directives, exports/import thunks, representative crypto/TLS/provider symbols, and object count before declaring the target fully validated. The previously observed equivalent CT/common C4005 boundary warnings require a clean-build review because their objects were cached in this incremental success.
 - 2026-08-12 — `.\xmake.exe -vD -j1 openssl` at commit `99ed6d0`: colors 11–70 compiled, reaching 74%. Color 71 failed because `rsa_sign.c` leaves ASN.1 tag macros defined before `extensions_clnt.c` includes X.509. Move `rsa_sign.c` and the compatible AES-local trio into terminal color 107, and move the DES unity set into terminal color 108 to remove its analogous `c2l`/`l2c` warning; the selected partition becomes 109 units. CT/common macro warnings in colors 53–60 are semantically equivalent boundary redefinitions and remain queued for final warning review.
