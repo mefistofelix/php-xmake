@@ -551,6 +551,7 @@ for my $output (@ARGV) {
     add_files("in/deps/openssl/crypto/modes/cfb128.c", {unity_group = "conflict_14"})
     add_files("in/deps/openssl/crypto/modes/ccm128.c", {unity_group = "conflict_15"})
     add_files("in/deps/openssl/crypto/modes/cbc128.c", {unity_group = "conflict_16"})
+    add_files("in/deps/openssl/crypto/objects/o_names.c", {unity_group = "conflict_48"})
     add_files("in/deps/openssl/crypto/params_idx.c",
         "in/deps/openssl/providers/common/der/der_digests_gen.c",
         "in/deps/openssl/providers/common/der/der_dsa_gen.c",
