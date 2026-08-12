@@ -324,17 +324,17 @@ target("openssl")
             runv(perl, {"util/mkbuildinf.pl", "cl /MD /O2", "VC-WIN64A"},
                 {curdir = root, stdout = path.join(root, "crypto/buildinf.h")})
             local perlasm = [[
-use strict;
-use warnings;
-for my $output (@ARGV) {
-    (my $source = $output) =~ s/[.]asm$/.s/;
-    my $generators = $configdata::unified_info{generate}{$source};
-    die "No unique perlasm generator for $output\n"
-        unless ref($generators) eq "ARRAY" && @$generators == 1;
-    system($^X, $generators->[0], "nasm", $output) == 0
-        or die "Perlasm generation failed for $output\n";
-}
-]]
+                use strict;
+                use warnings;
+                for my $output (@ARGV) {
+                    (my $source = $output) =~ s/[.]asm$/.s/;
+                    my $generators = $configdata::unified_info{generate}{$source};
+                    die "No unique perlasm generator for $output\n"
+                        unless ref($generators) eq "ARRAY" && @$generators == 1;
+                    system($^X, $generators->[0], "nasm", $output) == 0
+                        or die "Perlasm generation failed for $output\n";
+                }
+            ]]
             local argv = {"-I.", "-Mconfigdata", "-e", perlasm}
             table.join2(argv, assembly_outputs)
             runv(perl, argv, {curdir = root})
@@ -909,6 +909,7 @@ for my $output (@ARGV) {
         "in/deps/openssl/crypto/whrlpool/wp-x86_64.asm",
         "in/deps/openssl/crypto/x86_64cpuid.asm",
         "in/deps/openssl/engines/e_padlock-x86_64.asm")
+
 target("php")
     set_enabled(false)
     set_kind("object")
@@ -917,3 +918,75 @@ target("php")
 
     add_asflags("/DBOOST_CONTEXT_EXPORT=EXPORT", {force = true})
     add_files("in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm")
+
+target("openssl_test")
+    -- set_enabled(false)
+    set_kind("static")
+    set_targetdir(get_config("builddir"))
+    set_toolset("as", "nasm@$(projectdir)/in/perl/c/bin/nasm.exe")
+    -- add_rules("c.unity_build")
+    add_files("in/deps/openssl/crypto/params_idx.c.in", {rules = {"cb"}, cb = function (target, sourcefile, opt, depend, runv)
+        local root = path.join(os.projectdir(), "in/deps/openssl")
+        local perl = path.join(os.projectdir(), "in/perl/perl/bin/perl.exe")
+        local envs = {PATH = path.join(os.projectdir(), "in/perl/c/bin") .. ";" .. os.getenv("PATH")}
+
+        runv(perl, {"Configure", "VC-WIN64A", "no-shared", "no-module", "no-apps", "no-tests", "no-docs"},
+            {curdir = root, envs = envs})
+
+        for _, input in ipairs(os.files(path.join(root, "**/*.in"))) do
+            local output = input:sub(1, -4)
+            if output:match("%.[ch]$") then
+                local template = io.readfile(input)
+                local args = {"-I.", "-Mconfigdata"}
+                if template:find("OpenSSL::paramnames", 1, true) then
+                    table.insert(args, 2, "-Iutil/perl")
+                    table.insert(args, "-MOpenSSL::paramnames")
+                elseif template:find("oids_to_c::", 1, true) then
+                    table.insert(args, 2, "-Iproviders/common/der")
+                    table.insert(args, "-Moids_to_c")
+                end
+                table.insert(args, "util/dofile.pl")
+                table.insert(args, "-omakefile")
+                table.insert(args, path.relative(input, root))
+                runv(perl, args, {curdir = root, envs = envs, stdout = output})
+            end
+        end
+
+        runv(perl, {"util/mkbuildinf.pl", "cl /MD /O2", "VC-WIN64A"},
+            {curdir = root, envs = envs, stdout = path.join(root, "crypto/buildinf.h")})
+
+        for _, generator in ipairs(os.files(path.join(root, "**/*x86_64*.pl"))) do
+            local relative = path.relative(generator, root):gsub("\\", "/")
+            if not relative:startswith("crypto/perlasm/") and not relative:startswith("ms/") then
+                local output = relative:gsub("/asm/", "/"):gsub("%.pl$", ".asm")
+                runv(perl, {relative, "nasm", output}, {curdir = root, envs = envs})
+            end
+        end
+    end})
+    add_files("in/deps/openssl/**/*.c")
+
+    add_asflags("-Ox", "-f", "win64", "-DNEAR", "-g", {force = true})
+    add_files("in/deps/openssl/**/*x86_64*.asm")
+
+    add_includedirs(
+        "in/deps/openssl/apps/include",
+        "in/deps/openssl/include"
+    )
+
+    -- add_includedirs("in/deps/openssl", "in/deps/openssl/crypto",
+    --     "in/deps/openssl/providers/common/include", "in/deps/openssl/providers/common/include/prov",
+    --     "in/deps/openssl/providers/implementations/include", "in/deps/openssl/providers/fips/include")
+    add_defines("L_ENDIAN", "OPENSSL_PIC", "OPENSSL_BUILDING_OPENSSL", "OPENSSL_SUPPRESS_DEPRECATED=",
+        "OPENSSL_SYS_WIN32",
+        "WIN32_LEAN_AND_MEAN", "UNICODE", "_UNICODE", "_CRT_SECURE_NO_DEPRECATE",
+        "_WINSOCK_DEPRECATED_NO_WARNINGS", "NDEBUG", "STATIC_LEGACY",
+        "AES_ASM", "BSAES_ASM", "CMLL_ASM", "ECP_NISTZ256_ASM", "GHASH_ASM",
+        "KECCAK1600_ASM", "MD5_ASM", "OPENSSL_BN_ASM_GF2m", "OPENSSL_BN_ASM_MONT",
+        "OPENSSL_BN_ASM_MONT5", "OPENSSL_CPUID_OBJ", "OPENSSL_IA32_SSE2", "PADLOCK_ASM",
+        "POLY1305_ASM", "RC4_ASM", "SHA1_ASM", "SHA256_ASM", "SHA512_ASM", "VPAES_ASM",
+        "WHIRLPOOL_ASM", "X25519_ASM", [[OPENSSLDIR="C:\\Program Files\\Common Files\\SSL"]],
+        [[ENGINESDIR="C:\\Program Files\\OpenSSL\\lib\\engines-3"]],
+        [[MODULESDIR="C:\\Program Files\\OpenSSL\\lib\\ossl-modules"]])
+    -- add_cflags("/Gs0", "/GF", "/Gy", "/W3", "/wd4090", {force = true})
+
+    -- add_syslinks("ws2_32", "gdi32", "advapi32", "crypt32", "user32", {public = true})
