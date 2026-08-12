@@ -210,9 +210,9 @@ target("openssl")
         "KECCAK1600_ASM", "MD5_ASM", "OPENSSL_BN_ASM_GF2m", "OPENSSL_BN_ASM_MONT",
         "OPENSSL_BN_ASM_MONT5", "OPENSSL_CPUID_OBJ", "OPENSSL_IA32_SSE2", "PADLOCK_ASM",
         "POLY1305_ASM", "RC4_ASM", "SHA1_ASM", "SHA256_ASM", "SHA512_ASM", "VPAES_ASM",
-        "WHIRLPOOL_ASM", "X25519_ASM", [[OPENSSLDIR="C:\Program Files\Common Files\SSL"]],
-        [[ENGINESDIR="C:\Program Files\OpenSSL\lib\engines-3"]],
-        [[MODULESDIR="C:\Program Files\OpenSSL\lib\ossl-modules"]])
+        "WHIRLPOOL_ASM", "X25519_ASM", [[OPENSSLDIR="C:\\Program Files\\Common Files\\SSL"]],
+        [[ENGINESDIR="C:\\Program Files\\OpenSSL\\lib\\engines-3"]],
+        [[MODULESDIR="C:\\Program Files\\OpenSSL\\lib\\ossl-modules"]])
     add_cflags("/Gs0", "/GF", "/Gy", "/W3", "/wd4090", {force = true})
     add_asflags("-Ox", "-f", "win64", "-DNEAR", "-g", {force = true})
     add_syslinks("ws2_32", "gdi32", "advapi32", "crypt32", "user32", {public = true})
