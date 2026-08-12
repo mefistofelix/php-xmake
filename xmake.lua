@@ -716,6 +716,19 @@ for my $output (@ARGV) {
     add_files("in/deps/openssl/crypto/slh_dsa/slh_xmss.c", {unity_group = "conflict_91"})
     add_files("in/deps/openssl/crypto/slh_dsa/slh_adrs.c", {unity_group = "conflict_92"})
     add_files("in/deps/openssl/crypto/slh_dsa/slh_params.c", {unity_group = "conflict_93"})
+    add_files("in/deps/openssl/crypto/ct/ct_b64.c", {unity_group = "conflict_60"})
+    add_files("in/deps/openssl/crypto/store/store_lib.c", {unity_group = "conflict_94"})
+    add_files("in/deps/openssl/crypto/store/store_meth.c", {unity_group = "conflict_95"})
+    add_files("in/deps/openssl/crypto/store/store_register.c", {unity_group = "conflict_96"})
+    add_files("in/deps/openssl/crypto/store/store_result.c", {unity_group = "conflict_97"})
+    add_files("in/deps/openssl/crypto/ts/ts_lib.c", {unity_group = "conflict_94"})
+    add_files("in/deps/openssl/crypto/ts/ts_req_print.c", {unity_group = "conflict_95"})
+    add_files("in/deps/openssl/crypto/ts/ts_req_utils.c", {unity_group = "conflict_96"})
+    add_files("in/deps/openssl/crypto/ts/ts_rsp_print.c", {unity_group = "conflict_97"})
+    add_files("in/deps/openssl/crypto/ts/ts_rsp_sign.c", {unity_group = "conflict_98"})
+    add_files("in/deps/openssl/crypto/ts/ts_rsp_utils.c", {unity_group = "conflict_99"})
+    add_files("in/deps/openssl/crypto/ts/ts_rsp_verify.c", {unity_group = "conflict_100"})
+    add_files("in/deps/openssl/crypto/ts/ts_verify_ctx.c", {unity_group = "conflict_101"})
     add_files("in/deps/openssl/crypto/params_idx.c",
         "in/deps/openssl/providers/common/der/der_digests_gen.c",
         "in/deps/openssl/providers/common/der/der_dsa_gen.c",
