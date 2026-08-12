@@ -71,15 +71,15 @@ Integrate zstd as one dependency target:
 - [x] Remove the current `in/deps/xz` tree and obsolete prebuilt `in/deps/liblzma` tree, then validate the official XZ fetch again from a clean absence.
 - [x] Inspect upstream CMake and Windows configuration for the exact liblzma sources, generated headers, feature defines, threading backend, and link requirements.
 - [x] Add one `liblzma` static target with all upstream-default features and one initial maximal unity group.
-- [ ] Verify that only the standard liblzma public interface is exposed: propagate only `LZMA_API_STATIC`, keep implementation defines private, and inspect the resulting symbol surface.
+- [x] Verify that only the standard liblzma public interface is exposed: propagate only `LZMA_API_STATIC`, keep implementation defines private, and inspect the resulting symbol surface.
 - [x] Derive a five-unit minimum unity partition from the observed liblzma private-symbol conflict graph; do not use arbitrary batch sizes.
-- [ ] Build and record the validation result before moving to the next dependency group.
+- [x] Build and record the validation result before moving to the next dependency group.
 
 ## Dependency Targets
 
 Every library must receive its own static target. Integrate and validate them one at a time in dependency order.
 
-- [ ] Foundation compression: zlib, Brotli, zstd, bzip2, liblzma.
+- [x] Foundation compression: zlib, Brotli, zstd, bzip2, liblzma.
 - [ ] Cryptography and transport: OpenSSL, libcurl, libssh2, libsodium.
 - [ ] HTTP/async: libuv, nghttp2, nghttp3, ngtcp2.
 - [ ] Data/text: ICU, libiconv, libintl, libxml2, libxslt, Oniguruma, SQLite, LMDB, QDBM.
@@ -112,6 +112,7 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-12 — `.\xmake.exe -r -v` at commit `9955073`: built `out/liblzma.lib` successfully in 1.172 seconds from the upstream-default 79 sources in exactly five minimum unity units of 55, 10, 4, 3, and 7 sources, all with `/MD /O2`. COFF inspection found zero `/EXPORT:` directives, zero `__imp_lzma*` members, five `MSVCRT` directives, no `LIBCMT`, and the expected standard API symbols.
 - 2026-08-12 — `.\xmake.exe -r -v` at commit `a335cb4`: all five units again compiled with `/MD /O2`; the default and fourth encoder-compatible groups passed, exposing the same internal header-type conflict inside group 1 between encoder users `lz_encoder.c`/`lzma2_encoder.c` and `lzma_decoder.c`. The latter has no private-name conflict with group 2 and can move there. `lzma2_decoder.c` cannot join that wider setting because it overlaps group 2 on `SEQ_PROPERTIES` and `SEQ_COPY`.
 - 2026-08-12 — `.\xmake.exe -r -v` at commit `d717c1b`: generated and compiled the same five unity units with `/MD /O2`, but the default unit still combined `lz_decoder.h` and `lz_encoder.h`. Inspection of the generated unit found the remaining encoder-header users: direct user `lz/lz_encoder_mf.c` and indirect users `lzma_encoder_optimum_fast.c` and `lzma_encoder_optimum_normal.c` through `lzma_encoder_private.h`. They must join `lzma_encoder.c` in the existing encoder-compatible fourth group.
 - 2026-08-12 — `xmake -r -v` at commit `8035fb6`: PowerShell could not resolve the bare `xmake` command, so the build did not start and produced no compiler result. The repository-local ignored `xmake.exe` is present; subsequent validation must invoke it explicitly as `.\xmake.exe`.
