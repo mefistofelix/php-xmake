@@ -62,7 +62,7 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 
 | Target | Build state | Kind | Source inputs | Output | Purpose | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| `zlib` | Enabled (current priority) | Static library | `in/deps/zlib/*.c` | `out/zlib.lib` | First compression dependency | One maximal core unity group; incompatible internal sources isolated; rebuild pending |
+| `zlib` | Enabled | Static library | `in/deps/zlib/*.c` | `out/zlib.lib` | First compression dependency | Build validated on MSVC x64 |
 | `minilua` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/dynasm/minilua.c` | `out/minilua.exe` | Runs DynASM for the PHP JIT IR emitter | Defined; build validation pending |
 | `gen_ir_fold_hash` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c` | `out/gen_ir_fold_hash.exe` | Generates the JIT IR fold hash header | Defined; build validation pending |
 | `php` | Disabled | Object prototype | `in/php-src/Zend/zend.c`, `in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm` | `out/` | Becomes the static PHP build after dependency, configuration, codegen, and source integration | Prototype only; callback is a placeholder |

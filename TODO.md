@@ -12,19 +12,30 @@ Last updated: 2026-08-12
 - [x] Define the `minilua` and `gen_ir_fold_hash` helper targets.
 - [x] Record the known PHP code-generation inventory in `AGENTS.md`.
 - [x] Disable non-priority targets by default so focused builds only exercise the target under integration.
+- [x] Build and archive `out/zlib.lib` successfully with MSVC x64.
 - [ ] Validate the current Xmake configuration and helper targets.
 - [x] Normalize every current target to the intended declarative form with one target-specific `cb` callback and no unrelated Lua helpers or state.
 - [ ] Replace the placeholder callback and object-only `php` prototype.
 
-## Next Target
+## Completed Target: zlib
 
-Integrate `zlib` as the first dependency target:
+`zlib` is the first validated dependency target:
 
 - [x] Inspect upstream `CMakeLists.txt` and `win32/Makefile.msc` for exact sources, Windows defines, output naming, configuration, and optional assembly.
 - [x] Add one static-library target with the broadest safe source pattern.
 - [x] Attach its target-owned `cb` callback to `zutil.c`; no zlib code generation is currently required.
 - [x] Use one maximal explicit unity group for compatible core sources; isolate only `zutil.c`, `gz*.c`, and `inf*.c`, whose unguarded internal headers and macros require separate translation units.
-- [ ] Build and record the validation result before moving to the next dependency.
+- [x] Build and record the validation result before moving to the next dependency.
+
+## Next Target
+
+Integrate Brotli after analyzing its upstream build structure:
+
+- [ ] Inspect upstream CMake/Bazel build files for component libraries, exact sources, generated inputs, defines, include paths, and dependencies.
+- [ ] Decide how the upstream common, decoder, and encoder components map to this project's one-target-per-library policy.
+- [ ] Add the broadest safe source patterns and one target-specific `cb` callback.
+- [ ] Attempt one unity translation unit first; split only on demonstrated incompatibility.
+- [ ] Build and record the validation result before moving to zstd.
 
 ## Dependency Targets
 
@@ -62,6 +73,7 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-12 — `xmake` at commit `8e0d4f8`: built `out/zlib.lib` successfully with MSVC x64 in 0.656 seconds. The explicit core unity group and isolated internal implementation sources compiled without warnings or errors.
 - 2026-08-12 — `xmake` at commit `f48875c`: the separately compiled inflate sources succeeded, but the next arbitrary four-file batch combined `deflate.c` and multiple `gz*.c` files and failed on `GZIP`/`gz_state` redefinitions. Arbitrary batching was removed in favor of one explicit maximal compatible group.
 - 2026-08-12 — `xmake` at commit `af8b0a4`: correctly selected only `zlib`, then failed in `unity_3.c`. `gzwrite.c` brings in a `COPY` macro that collides with the `inflate.h` enum; the three inflate implementation sources were excluded from unity batches for the next test.
 - 2026-08-12 — `xmake prepare` at commit `0d2bf4c`: completed successfully after correcting the `ngtcp2` and `nghttp3` release refs. A repeat run is still required to prove idempotence.
