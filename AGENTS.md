@@ -1,4 +1,6 @@
 il progetto verte a creare un xmake.lua minimale per compilare php
+tieni il file agents.md aggiornato ben organizzato oltre che chiaro e scritto in inglese
+fatti un file TODO.md anchesso aggiornato e ben organizzato per tenere lo stato delle cose da fare al fine di raggiungere lo scopo del progetto
 
 la compilazione sarà statica e multithread
 ogni codegen necessaria dovrà essere eseguita dentro un acallback fornita dalla rule cb
