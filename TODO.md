@@ -75,7 +75,7 @@ Integrate zstd as one dependency target:
 - [x] Derive a five-unit minimum unity partition from the observed liblzma private-symbol conflict graph; do not use arbitrary batch sizes.
 - [x] Build and record the validation result before moving to the next dependency group.
 
-## Next Target: OpenSSL
+## Completed Target: OpenSSL
 
 - [x] Replace the moving official `openssl-3.5` branch with the pinned official `openssl-3.5.7` LTS release tag.
 - [x] Remove `in/deps/openssl` and validate the pinned source fetch from a clean absence.
@@ -85,9 +85,9 @@ Integrate zstd as one dependency target:
 - [x] Declare all selected C and generated assembly sources directly in Xmake and let Xmake perform compilation, NASM assembly, and archiving.
 - [x] Add one static OpenSSL dependency target; the configured closure contains no source compiled with incompatible duplicate settings.
 - [x] Validate that the Xmake source declaration matches the configured 1,100-C plus 39-assembly upstream closure exactly.
-- [ ] Resolve only observed unity-build conflicts and retain the fewest widest groups.
+- [x] Resolve only observed unity-build conflicts and retain the fewest widest groups.
 - [x] Validate the standard public OpenSSL interface and inspect the resulting archive symbol/directive surface.
-- [ ] Build and record the validation result before moving to libcurl/libssh2/libsodium.
+- [x] Build and record the validation result before moving to libcurl/libssh2/libsodium.
 
 ## Dependency Targets
 
@@ -126,6 +126,7 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-12 — final clean `.\xmake.exe clean openssl` plus `.\xmake.exe -vD -j1 openssl` at commit `3cd23c7`: direct compilation, NASM assembly, and archive creation passed with no errors. The warning set is exactly C4133/C4244/C4267/C4319/C4334, matching the captured official `nmake` build; unity-only C4005/C4090/C4129/C4996/C5332 are absent. Fresh archive inspection reports 148 x64 members, 109 `MSVCRT` and zero `LIBCMT` directives, no exports or OpenSSL-family import thunks, and all representative crypto, TLS, default/legacy provider, and assembly symbols.
 - 2026-08-12 — clean `.\xmake.exe clean openssl` plus `.\xmake.exe -vD -j1 openssl` at commit `8dc8e23`: build and archive succeeded with zero C4005, C4090, and C4996. The remaining warning-code delta against the official log is 25 C4129 plus two C5332 diagnostics; both indicate that Xmake's configured Windows path string literals contain single backslashes interpreted as C escape introducers. Encode literal doubled backslashes in `OPENSSLDIR`, `ENGINESDIR`, and `MODULESDIR` before final validation.
 - 2026-08-12 — clean `.\xmake.exe clean openssl` plus `.\xmake.exe -vD -j1 openssl` at commit `3245381`: the target still builds and archives, and unity-only C4996 is gone, but Xmake's value-less `add_defines("OPENSSL_SUPPRESS_DEPRECATED")` emits a command-line definition with implicit value `1`. That differs from upstream's empty source-local definitions and causes 80 C4005 diagnostics, so this form is rejected; express the macro with an explicitly empty replacement before the next full test.
 - 2026-08-12 — clean `.\xmake.exe clean openssl` plus `.\xmake.exe -vD -j1 openssl` at commit `6864988`: the 109-unit CT recoloring rebuilt and archived successfully with zero C4005 and zero C4090. It exposed C4996 diagnostics absent from the official build because unity header caching can precede the source-local `OPENSSL_SUPPRESS_DEPRECATED` definitions used throughout upstream OpenSSL. Apply that attribute-only suppression privately and uniformly to the target, then repeat the clean warning comparison.
