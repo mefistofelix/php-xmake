@@ -71,7 +71,8 @@ Integrate zstd as one dependency target:
 - [x] Remove the current `in/deps/xz` tree and obsolete prebuilt `in/deps/liblzma` tree, then validate the official XZ fetch again from a clean absence.
 - [x] Inspect upstream CMake and Windows configuration for the exact liblzma sources, generated headers, feature defines, threading backend, and link requirements.
 - [x] Add one `liblzma` static target with all upstream-default features and one initial maximal unity group.
-- [ ] Derive the minimum unity partition from the observed liblzma private-symbol conflict graph; do not use arbitrary batch sizes.
+- [ ] Verify that only the standard liblzma public interface is exposed: propagate only `LZMA_API_STATIC`, keep implementation defines private, and inspect the resulting symbol surface.
+- [x] Derive a five-unit minimum unity partition from the observed liblzma private-symbol conflict graph; do not use arbitrary batch sizes.
 - [ ] Build and record the validation result before moving to the next dependency group.
 
 ## Dependency Targets

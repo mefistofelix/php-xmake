@@ -173,6 +173,22 @@ target("liblzma")
         "in/deps/xz/src/liblzma/check/crc64_fast.c", "in/deps/xz/src/liblzma/check/sha256.c")
     add_files("in/deps/xz/src/liblzma/lzma/*.c|*tablegen.c",
         "in/deps/xz/src/liblzma/rangecoder/price_table.c")
+    add_files("in/deps/xz/src/common/tuklib_physmem.c", "in/deps/xz/src/liblzma/check/crc64_fast.c",
+        "in/deps/xz/src/liblzma/common/block_encoder.c", "in/deps/xz/src/liblzma/common/filter_encoder.c",
+        "in/deps/xz/src/liblzma/common/microlzma_encoder.c",
+        "in/deps/xz/src/liblzma/common/stream_buffer_encoder.c",
+        "in/deps/xz/src/liblzma/common/stream_decoder_mt.c",
+        "in/deps/xz/src/liblzma/delta/delta_decoder.c", "in/deps/xz/src/liblzma/lz/lz_encoder.c",
+        "in/deps/xz/src/liblzma/lzma/lzma_decoder.c",
+        "in/deps/xz/src/liblzma/lzma/lzma2_encoder.c", {unity_group = "conflict_1"})
+    add_files("in/deps/xz/src/liblzma/common/alone_decoder.c",
+        "in/deps/xz/src/liblzma/common/index_hash.c",
+        "in/deps/xz/src/liblzma/common/stream_decoder.c", {unity_group = "conflict_2"})
+    add_files("in/deps/xz/src/liblzma/common/auto_decoder.c",
+        "in/deps/xz/src/liblzma/common/index_decoder.c",
+        "in/deps/xz/src/liblzma/common/stream_encoder.c", {unity_group = "conflict_3"})
+    add_files("in/deps/xz/src/liblzma/common/alone_encoder.c",
+        "in/deps/xz/src/liblzma/common/index_encoder.c", {unity_group = "conflict_4"})
 
 target("php")
     set_enabled(false)
