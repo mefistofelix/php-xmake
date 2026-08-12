@@ -202,7 +202,8 @@ target("openssl")
     add_includedirs("in/deps/openssl", "in/deps/openssl/crypto",
         "in/deps/openssl/providers/common/include", "in/deps/openssl/providers/common/include/prov",
         "in/deps/openssl/providers/implementations/include", "in/deps/openssl/providers/fips/include")
-    add_defines("L_ENDIAN", "OPENSSL_PIC", "OPENSSL_BUILDING_OPENSSL", "OPENSSL_SYS_WIN32",
+    add_defines("L_ENDIAN", "OPENSSL_PIC", "OPENSSL_BUILDING_OPENSSL", "OPENSSL_SUPPRESS_DEPRECATED",
+        "OPENSSL_SYS_WIN32",
         "WIN32_LEAN_AND_MEAN", "UNICODE", "_UNICODE", "_CRT_SECURE_NO_DEPRECATE",
         "_WINSOCK_DEPRECATED_NO_WARNINGS", "NDEBUG", "STATIC_LEGACY",
         "AES_ASM", "BSAES_ASM", "CMLL_ASM", "ECP_NISTZ256_ASM", "GHASH_ASM",
