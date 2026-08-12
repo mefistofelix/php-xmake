@@ -250,6 +250,26 @@ target("openssl")
         "in/deps/openssl/providers/implementations/rands/seeding/rand_vms.c",
         "in/deps/openssl/providers/implementations/rands/seeding/rand_vxworks.c",
         "in/deps/openssl/ssl/record/methods/ktls_meth.c")
+    add_files("in/deps/openssl/crypto/asn1/a_gentm.c", "in/deps/openssl/crypto/async/arch/async_null.c",
+        {unity_group = "conflict_1"})
+    add_files("in/deps/openssl/crypto/asn1/a_int.c", "in/deps/openssl/crypto/async/arch/async_posix.c",
+        {unity_group = "conflict_2"})
+    add_files("in/deps/openssl/crypto/asn1/a_object.c", "in/deps/openssl/crypto/async/arch/async_win.c",
+        {unity_group = "conflict_3"})
+    add_files("in/deps/openssl/crypto/asn1/a_time.c", "in/deps/openssl/crypto/async/async_wait.c",
+        {unity_group = "conflict_4"})
+    add_files("in/deps/openssl/crypto/asn1/a_type.c", {unity_group = "conflict_5"})
+    add_files("in/deps/openssl/crypto/asn1/a_utctm.c", {unity_group = "conflict_6"})
+    add_files("in/deps/openssl/crypto/asn1/asn_mime.c", {unity_group = "conflict_7"})
+    add_files("in/deps/openssl/crypto/asn1/asn1_lib.c", {unity_group = "conflict_8"})
+    add_files("in/deps/openssl/crypto/asn1/tasn_dec.c", {unity_group = "conflict_9"})
+    add_files("in/deps/openssl/crypto/asn1/tasn_enc.c", {unity_group = "conflict_10"})
+    add_files("in/deps/openssl/crypto/asn1/tasn_fre.c", {unity_group = "conflict_11"})
+    add_files("in/deps/openssl/crypto/asn1/tasn_new.c", {unity_group = "conflict_12"})
+    add_files("in/deps/openssl/crypto/asn1/tasn_prn.c", {unity_group = "conflict_13"})
+    add_files("in/deps/openssl/crypto/asn1/tasn_scn.c", {unity_group = "conflict_14"})
+    add_files("in/deps/openssl/crypto/asn1/tasn_utl.c", {unity_group = "conflict_15"})
+    add_files("in/deps/openssl/crypto/asn1/x_int64.c", {unity_group = "conflict_16"})
     add_files("in/deps/openssl/crypto/params_idx.c",
         "in/deps/openssl/providers/common/der/der_digests_gen.c",
         "in/deps/openssl/providers/common/der/der_dsa_gen.c",
