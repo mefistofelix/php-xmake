@@ -1,53 +1,89 @@
-il progetto verte a creare un xmake.lua minimale per compilare php
-tieni il file agents.md aggiornato ben organizzato oltre che chiaro e scritto in inglese
-fatti un file TODO.md anchesso aggiornato e ben organizzato per tenere lo stato delle cose da fare al fine di raggiungere lo scopo del progetto
+# Project Guidance
 
-la compilazione sarà statica e multithread
-ogni codegen necessaria dovrà essere eseguita dentro un acallback fornita dalla rule cb
-possibilmente una cb per target
-se la cb codegen del target dipende da comandi esterni (minilua, perl, etc) bisogna preparare i binari nel task prepare (es per perl) che verrà eseguito manualmente prima del build generale, oppure se i binari richiesti sono generati da alri target (es minilua) andranno chiamati programmaticamente tali target nella cb con le funzioni builtin di xmake
+## Goal
 
-per ogni target battezziamo un singolo add_files, sul sorgente più "sensato" per fungere da cb di preparazione codegen e file di conf in c con define e parametri (es per php config.w32.h) per l'intero target, no più codegen cb per singolo target
+Build PHP on Windows with a minimal `xmake.lua`. The finished build must be static and use parallel compilation.
 
-ogni lib dipendenza avrà un suo target, non consideriamo lib separate le estensioni php, quindi non usiamo target separati per le estensioni
+Keep this file and `TODO.md` clear, organized, written in English, and synchronized with the implementation.
 
-gli add dei source dovranno essere il più ampie possibili, idealmente es: add(in/deps/openssl/**/*.c) add(in/php-src/**/*.c), ottimizziamo la compilazione usando unity build (unità di compilazione) per gruppi di file più ampi possibili al netto dei conflitti di simboli
+## Supported Environment
 
-per ora ci concentriamo solo su build windows no multiplat
-per ogni define o altro che richiede parametri di piattaform es dimensione long etc usiamo le funzioni builtin di xmake
+- Support Windows only for now; do not add cross-platform branches prematurely.
+- Prefer relative paths throughout the build.
+- Prefer Xmake built-in placeholders and platform/toolchain queries for architecture-dependent values such as `x64`, Windows paths, type sizes, and compiler properties.
+- The supported workflow is:
 
+  ```text
+  xmake prepare
+  xmake
+  ```
 
-documentiamo dentro al readme in una tabella tutti i target e per ogni target i path di origine e destinazione relativi di ogni codegen richiesto il tool e i parametri usati per l'azione e cose particolari es utilizzo si compilazioni asm, dipendenze intrecciate
+- `xmake prepare` is run manually before the main build and must be idempotent. It downloads and extracts source trees, prebuilt dependencies, and required external tools.
 
-portiamo il build finale di tutto gradualmente a conclusione, partendo ovviamente dalle dipendenze, un target alla volta
+## Target Model
 
-usiamo sempre path relativi e placeholder builtin xmake dove possibile per placeholder tipo x64/win etc platform depednent
+- Keep `xmake.lua` primarily declarative: it should consist of Xmake configuration, target declarations, and one target-specific `cb` callback function per target.
+- Do not add arbitrary Lua helper functions, tables, aliases, or variables. Introduce Lua state only when an Xmake API requires it and no direct declarative expression is practical; keep such state local to the owning task or target callback.
+- A target's `cb` function is its single imperative entry point for configuration and code generation. Do not split target preparation across extra Lua functions.
+- Give every library dependency its own static-library target.
+- PHP extensions are part of the main PHP target; do not create a separate target for each extension.
+- Add source files with the broadest safe patterns, ideally at dependency or PHP-tree scope.
+- Enable unity builds with the largest safe compilation groups, splitting groups only where symbol collisions or other compiler constraints require it.
+- Build the project incrementally, one target at a time, starting with dependencies and ending with the complete PHP target.
 
-commit prima di ogni test xmake
+## Code Generation
 
-i comadi di build saranno:
-xmake prepare (indepotente download e strazioni etc)
-xmake
+- Run every required code-generation step from a callback supplied by the `cb` rule.
+- Use exactly one target-specific callback per target. Attach it as file configuration to the single most appropriate source entry for that target; that callback owns all generated sources, headers, and configuration files for the target.
+- Do not create a separate callback for each generated file.
+- If a callback needs an external executable such as Perl, Bison, RE2C, or the Windows message compiler, make that executable available during `xmake prepare`.
+- If a callback needs an executable built by this project, such as `minilua` or `gen_ir_fold_hash`, build/invoke its Xmake target programmatically from the callback using Xmake built-ins.
+- Generate C configuration headers and their defines/parameters in the owning target callback. Use Xmake detection APIs for platform properties instead of hard-coding them.
+- Keep source and generated paths relative. Use Xmake placeholders for platform-dependent path segments where possible.
+- Document every code-generation action in the inventory in this file, including owner target, input, output, tool, arguments, assembly use, and intertwined dependencies.
 
+## Documentation and Progress
 
-i codegen identificati finora sono:
-os.run([[%s\bison -Wall --no-lines --output=Zend/zend_ini_parser.c -v -d Zend/zend_ini_parser.y]],bin_dir)
-    os.run([[%s\bison -Wall --no-lines --output=Zend/zend_language_parser.c -v -d Zend/zend_language_parser.y]],bin_dir)
-    os.run([[%s\bison -Wall --no-lines --output=sapi/phpdbg/phpdbg_parser.c -v -d sapi/phpdbg/phpdbg_parser.y]],bin_dir)
-    os.run([[%s\bison -Wall --no-lines --defines ext/json/json_parser.y -o ext/json/json_parser.tab.c]],bin_dir)
-    os.run([[%s\re2c --no-generation-date --case-inverted -cbdFt Zend/zend_ini_scanner_defs.h -oZend/zend_ini_scanner.c Zend/zend_ini_scanner.l]],bin_dir)
-    os.run([[%s\re2c --no-generation-date --case-inverted -cbdFt Zend/zend_language_scanner_defs.h -oZend/zend_language_scanner.c Zend/zend_language_scanner.l]],bin_dir)
-    os.run([[%s\re2c --no-generation-date -cbdFo sapi/phpdbg/phpdbg_lexer.c sapi/phpdbg/phpdbg_lexer.l]],bin_dir)
-    os.run([[%s\re2c --no-generation-date -t ext/json/php_json_scanner_defs.h -bci -o ext/json/json_scanner.c ext/json/json_scanner.re]],bin_dir)
-    os.run([[%s\re2c --no-generation-date -b -o ext/standard/var_unserializer.c ext/standard/var_unserializer.re]],bin_dir)
-    os.run([[%s\re2c --no-generation-date -b -o ext/standard/url_scanner_ex.c ext/standard/url_scanner_ex.re]],bin_dir)
-    os.run([[%s\re2c --no-generation-date -b -o ext/phar/phar_path_check.c ext/phar/phar_path_check.re]],bin_dir)
-    os.runv(mc, {"-h", "win32", "-r", build_dir, "-x", build_dir, "win32/build/wsyslog.mc"})
+- This file is the build-policy, target, and code-generation reference. Keep its inventories synchronized with `xmake.lua`.
+- `TODO.md` is the live implementation plan. Update completed work, the next target, blockers, and validation status whenever the build changes.
+- Do not claim a target is working until it has been built successfully.
 
-    os.run([["%s\minilua.exe" ext/opcache/jit/ir/dynasm/dynasm.lua -L -D WIN=1 -o ext\opcache\jit\ir\ir_emit_x86.h ext/opcache/jit/ir/ir_x86.dasc]], build_dir)
+## Validation and Git Workflow
 
-    -- os.run([[$(builddir)\gen_ir_fold_hash < ext\opcache\jit\ir\ir_fold.h > ext\opcache\jit\ir\ir_fold_hash.h]])
-    os.run([["%s\gen_ir_fold_hash.exe"]], build_dir, {
-      stdin=[[ext\opcache\jit\ir\ir_fold.h]],
-      stdout=[[ext\opcache\jit\ir\ir_fold_hash.h]]
-    })
+- Commit all intended source and documentation changes before every Xmake configure or build test.
+- After a test, record the result in `TODO.md`; commit that update before the next Xmake test.
+- Keep generated files, downloaded sources, tool binaries, caches, and build output ignored.
+- Treat warnings and accidental undeclared inputs as build issues to investigate rather than silently accepting them.
+
+## Current Target Inventory
+
+| Target | Kind | Source inputs | Output | Purpose | Status |
+| --- | --- | --- | --- | --- | --- |
+| `minilua` | Binary | `in/php-src/ext/opcache/jit/ir/dynasm/minilua.c` | `out/minilua.exe` | Runs DynASM for the PHP JIT IR emitter | Defined; build validation pending |
+| `gen_ir_fold_hash` | Binary | `in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c` | `out/gen_ir_fold_hash.exe` | Generates the JIT IR fold hash header | Defined; build validation pending |
+| `php` | Object prototype | `in/php-src/Zend/zend.c`, `in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm` | `out/` | Becomes the static PHP build after dependency, configuration, codegen, and source integration | Prototype only; callback is a placeholder |
+
+The `prepare` task fetches dependencies. Each library must receive its own Xmake static-library target as it is integrated; downloaded or prebuilt archives are not yet build targets.
+
+## PHP Code-generation Inventory
+
+All paths below are relative to `in/php-src` unless prefixed with `out/`. Entries marked "planned" reproduce the known PHP generation commands but are not yet wired into the `php` target callback.
+
+| Owner | Tool | Input | Primary output | Arguments / special handling | Status |
+| --- | --- | --- | --- | --- | --- |
+| `php` | Bison | `Zend/zend_ini_parser.y` | `Zend/zend_ini_parser.c` | `-Wall --no-lines -v -d`; also emits the parser header/report | Planned |
+| `php` | Bison | `Zend/zend_language_parser.y` | `Zend/zend_language_parser.c` | `-Wall --no-lines -v -d`; also emits the parser header/report | Planned |
+| `php` | Bison | `sapi/phpdbg/phpdbg_parser.y` | `sapi/phpdbg/phpdbg_parser.c` | `-Wall --no-lines -v -d`; also emits the parser header/report | Planned |
+| `php` | Bison | `ext/json/json_parser.y` | `ext/json/json_parser.tab.c` | `-Wall --no-lines --defines`; also emits the parser header | Planned |
+| `php` | RE2C | `Zend/zend_ini_scanner.l` | `Zend/zend_ini_scanner.c`, `Zend/zend_ini_scanner_defs.h` | `--no-generation-date --case-inverted -cbdFt` | Planned |
+| `php` | RE2C | `Zend/zend_language_scanner.l` | `Zend/zend_language_scanner.c`, `Zend/zend_language_scanner_defs.h` | `--no-generation-date --case-inverted -cbdFt` | Planned |
+| `php` | RE2C | `sapi/phpdbg/phpdbg_lexer.l` | `sapi/phpdbg/phpdbg_lexer.c` | `--no-generation-date -cbdFo` | Planned |
+| `php` | RE2C | `ext/json/json_scanner.re` | `ext/json/json_scanner.c`, `ext/json/php_json_scanner_defs.h` | `--no-generation-date -t -bci` | Planned |
+| `php` | RE2C | `ext/standard/var_unserializer.re` | `ext/standard/var_unserializer.c` | `--no-generation-date -b` | Planned |
+| `php` | RE2C | `ext/standard/url_scanner_ex.re` | `ext/standard/url_scanner_ex.c` | `--no-generation-date -b` | Planned |
+| `php` | RE2C | `ext/phar/phar_path_check.re` | `ext/phar/phar_path_check.c` | `--no-generation-date -b` | Planned |
+| `php` | Windows `mc` | `win32/build/wsyslog.mc` | Headers under `win32/`; resources and binary message data under `out/` | `-h win32 -r out -x out` | Planned |
+| `php` | `minilua` target and DynASM | `ext/opcache/jit/ir/ir_x86.dasc` | `ext/opcache/jit/ir/ir_emit_x86.h` | Run `dynasm.lua -L -D WIN=1`; requires a programmatic build of `minilua` | Planned |
+| `php` | `gen_ir_fold_hash` target | `ext/opcache/jit/ir/ir_fold.h` | `ext/opcache/jit/ir/ir_fold_hash.h` | Pipe the input file to the helper and capture stdout; requires a programmatic helper build | Planned |
+
+The PHP target also assembles `Zend/asm/*_xmm_x86_64_ms_masm.asm` with MSVC-compatible assembly flags. Broader PHP and extension source inclusion, static linking, and unity-build grouping remain to be implemented.
