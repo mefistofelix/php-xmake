@@ -52,14 +52,14 @@ Integrate zstd as one dependency target:
 - [x] Build the complete target once and validate its source/unity layout.
 - [x] Rebuild with the final `/MD` selection, verify the compiler command, and record the validation result before moving to bzip2.
 
-## Next Target: bzip2
+## Completed Target: bzip2
 
 - [x] Inspect upstream `Makefile`, `makefile.msc`, the official release source, and PHP's `ext/bz2/config.w32` for exact library inputs, Windows flags, output names, tests, and link expectations.
-- [x] Remove the redundant prebuilt PHP SDK archive download and use `hx` with the pinned `libarchive/bzip2` GitHub tag `bzip2-1.0.8`.
+- [x] Remove the redundant prebuilt PHP SDK archive download and use `hx` with the official Sourceware bzip2 1.0.8 release tarball; do not prefer an unofficial GitHub mirror over upstream.
 - [x] Add one static target with the exact seven upstream library sources, no callback, and one initial maximal unity group.
-- [x] Run `xmake prepare` and verify that the pinned GitHub source is materialized directly into `in/deps/bzip2`.
-- [x] Repeat `xmake prepare` with every input present to revalidate the GitHub fetch's idempotence.
-- [ ] Build and record the validation result before moving to liblzma.
+- [x] Run `xmake prepare` and verify that the official Sourceware release is materialized directly into `in/deps/bzip2`.
+- [x] Repeat `xmake prepare` with every input present to validate the official fetch's idempotence.
+- [x] Build all seven sources in one unity translation unit and record the validation result before moving to liblzma.
 
 ## Dependency Targets
 
@@ -98,6 +98,7 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-12 — `xmake -r -v` at commit `dccf414`: built `out/bzip2.lib` successfully in 1.391 seconds. All seven upstream library sources compiled in one unity translation unit with `/MD`; Xmake's `set_optimize("fastest")` emitted `/O2` on MSVC.
 - 2026-08-12 — `xmake prepare` at commit `5f134f4`: completed a no-change repeat successfully in 1.3 seconds. The pinned GitHub bzip2 source and every other current input were retained, validating idempotence.
 - 2026-08-12 — `xmake prepare` at commit `60a2840`: completed successfully in 2.0 seconds and materialized `github://libarchive/bzip2?ref=bzip2-1.0.8` in `in/deps/bzip2`. A no-change repeat is still required to validate the new GitHub marker.
 - 2026-08-12 — `xmake prepare` at commit `0af7160`: completed a no-change repeat successfully in 1.3 seconds. All existing inputs, including bzip2, were retained without redundant work, validating task idempotence for the current inventory.

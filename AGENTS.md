@@ -22,7 +22,7 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
   ```
 
 - `xmake prepare` is run manually before the main build and must be idempotent. It downloads and extracts source trees, prebuilt dependencies, and required external tools.
-- Prefer `hx github://owner/repository?ref=release-tag` for source inputs whenever a suitable GitHub repository and pinned release ref are available. Fall back to another upstream host or archive URL only when GitHub has no appropriate source. Do not download a prebuilt PHP SDK package when the dependency is being compiled by its own Xmake target.
+- Prefer the dependency's authoritative upstream source. When an official GitHub repository contains the required pinned version, prefer `hx github://owner/repository?ref=release-tag`. Do not choose an unofficial mirror, a stale GitHub repository, or a repository missing the required version merely to use GitHub; use the best official repository or release archive instead. Do not download a prebuilt PHP SDK package when the dependency is being compiled by its own Xmake target.
 
 ## Target Model
 
@@ -72,7 +72,7 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 | `zlib` | Disabled | Static library | `in/deps/zlib/*.c` | `out/zlib.lib` | First compression dependency | Build validated with `/MD` on MSVC x64 |
 | `brotli` | Disabled | Static library | `in/deps/brotli/c/common/*.c`, `in/deps/brotli/c/dec/*.c`, `in/deps/brotli/c/enc/*.c` | `out/brotli.lib` | Complete Brotli common, decoder, and encoder implementation | One target; three compilation units; build validated with `/MD` on MSVC x64 |
 | `zstd` | Disabled | Static library | `in/deps/zstd/lib/{common,compress,decompress,dictBuilder,legacy}/*.c` | `out/zstd.lib` | Multithreaded zstd library with level-5 legacy decoding | One main unity group; FastCover and legacy sources isolated; build validated with explicit `/MD` on MSVC x64 |
-| `bzip2` | Enabled (current priority) | Static library | Seven library sources named by upstream `Makefile` and `makefile.msc` | `out/bzip2.lib` | bzip2 compression library for the PHP bz2 extension | One maximal unity group; source fetch and build validation pending |
+| `bzip2` | Enabled (current priority) | Static library | Seven library sources named by upstream `Makefile` and `makefile.msc` | `out/bzip2.lib` | bzip2 compression library for the PHP bz2 extension | All seven sources in one unity translation unit; build validated with `/MD` on MSVC x64 |
 | `minilua` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/dynasm/minilua.c` | `out/minilua.exe` | Runs DynASM for the PHP JIT IR emitter | Defined; build validation pending |
 | `gen_ir_fold_hash` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c` | `out/gen_ir_fold_hash.exe` | Generates the JIT IR fold hash header | Defined; build validation pending |
 | `php` | Disabled | Object prototype | `in/php-src/Zend/zend.c`, `in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm` | `out/` | Becomes the static PHP build after dependency, configuration, codegen, and source integration | Prototype only; real codegen callback pending |
@@ -112,10 +112,10 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 
 ### bzip2 upstream build analysis
 
-- Upstream version: bzip2 1.0.8, the current stable release. Fetch the `bzip2-1.0.8` tag from the `libarchive/bzip2` GitHub mirror with `hx`; its peeled tag resolves to the same upstream 1.0.8 commit. Do not retain the redundant prebuilt PHP SDK archive.
+- Upstream version: bzip2 1.0.8, the current stable release. Sourceware is the authoritative upstream and publishes the official release tarball. The available GitHub repository is a mirror, so fetch the Sourceware tarball and strip its single top-level directory with `hx`. Do not retain the redundant prebuilt PHP SDK archive.
 - The root `Makefile` and `makefile.msc` agree that the library contains exactly `blocksort.c`, `huffman.c`, `crctable.c`, `randtable.c`, `compress.c`, `decompress.c`, and `bzlib.c`. Other root C files build command-line programs or tests and are not library inputs, so an explicit seven-file declaration is cleaner and safer than an exclusion-heavy root glob.
-- The upstream MSVC build uses `WIN32`, `_FILE_OFFSET_BITS=64`, `/MD`, and `/Ox`. The project-wide runtime supplies `/MD`; `set_optimize("fastest")` expresses `/Ox` through Xmake. No assembly or build-time code generation is required, so the target has no `cb` callback.
-- Begin with all seven library sources in one unity translation unit. Introduce only the minimum file isolation or wider unity groups if a concrete source conflict is observed.
+- The upstream MSVC build uses `WIN32`, `_FILE_OFFSET_BITS=64`, `/MD`, and `/Ox`. The project-wide runtime supplies `/MD`. The Xmake-native `set_optimize("fastest")` emits MSVC `/O2`, its portable maximize-speed preset; do not describe it as an exact `/Ox` mapping. No assembly or build-time code generation is required, so the target has no `cb` callback.
+- All seven library sources compile successfully in one unity translation unit; no split or isolated source is needed.
 - Upstream MSVC calls the archive `libbz2.lib`, while the PHP SDK package calls its static variant `libbz2_a.lib`. Since the final PHP target will depend directly on the Xmake target rather than search by filename, this project keeps the simpler target-derived `bzip2.lib`.
 
 ## PHP Code-generation Inventory
