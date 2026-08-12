@@ -58,7 +58,7 @@ Integrate zstd as one dependency target:
 - [x] Remove the redundant prebuilt PHP SDK archive download and use `hx` with the pinned `libarchive/bzip2` GitHub tag `bzip2-1.0.8`.
 - [x] Add one static target with the exact seven upstream library sources, no callback, and one initial maximal unity group.
 - [x] Run `xmake prepare` and verify that the pinned GitHub source is materialized directly into `in/deps/bzip2`.
-- [ ] Repeat `xmake prepare` with every input present to revalidate the GitHub fetch's idempotence.
+- [x] Repeat `xmake prepare` with every input present to revalidate the GitHub fetch's idempotence.
 - [ ] Build and record the validation result before moving to liblzma.
 
 ## Dependency Targets
@@ -98,6 +98,7 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-12 — `xmake prepare` at commit `5f134f4`: completed a no-change repeat successfully in 1.3 seconds. The pinned GitHub bzip2 source and every other current input were retained, validating idempotence.
 - 2026-08-12 — `xmake prepare` at commit `60a2840`: completed successfully in 2.0 seconds and materialized `github://libarchive/bzip2?ref=bzip2-1.0.8` in `in/deps/bzip2`. A no-change repeat is still required to validate the new GitHub marker.
 - 2026-08-12 — `xmake prepare` at commit `0af7160`: completed a no-change repeat successfully in 1.3 seconds. All existing inputs, including bzip2, were retained without redundant work, validating task idempotence for the current inventory.
 - 2026-08-12 — `xmake prepare` at commit `a4ed100`: completed successfully in 3.1 seconds and extracted the official bzip2 1.0.8 tarball directly into `in/deps/bzip2`. A no-change repeat is still required to validate the new fetch's idempotence.
