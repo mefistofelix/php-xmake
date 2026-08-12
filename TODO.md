@@ -126,6 +126,8 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-12 — `.\xmake.exe -vD openssl` at commit `c5e978c`: MSVC configuration succeeded, then the generic file callback adapter failed before OpenSSL code generation because a stored file-configuration function does not inherit Xmake's global `import`. Pass the dependency module from the `cb` rule into the target callback for the next test.
+
 - 2026-08-12 — `.\xmake.exe prepare` at commit `6bca1b1`: completed the no-change repeat successfully in 1.3 seconds, validating idempotence of the pinned official OpenSSL 3.5.7 input.
 - 2026-08-12 — `.\xmake.exe prepare` at commit `efb786e`: after moving the previous `openssl-3.5` branch tree out of `in/deps`, completed a clean preparation in 8.1 seconds. The recreated official source reports release `3.5.7` with no prerelease tag and its hx marker records pinned ref `openssl-3.5.7`.
 - 2026-08-12 — `.\xmake.exe -r -v` at commit `9955073`: built `out/liblzma.lib` successfully in 1.172 seconds from the upstream-default 79 sources in exactly five minimum unity units of 55, 10, 4, 3, and 7 sources, all with `/MD /O2`. COFF inspection found zero `/EXPORT:` directives, zero `__imp_lzma*` members, five `MSVCRT` directives, no `LIBCMT`, and the expected standard API symbols.

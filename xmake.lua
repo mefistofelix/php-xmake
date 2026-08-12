@@ -12,7 +12,7 @@ rule("cb")
     on_prepare_file(function (target, sourcefile, opt)
         local fileconfig = target:fileconfig(sourcefile)
         if fileconfig and type(fileconfig.cb) == "function" then
-            fileconfig.cb(target, sourcefile, opt)
+            fileconfig.cb(target, sourcefile, opt, import("core.project.depend"))
         end
     end)
 
@@ -299,9 +299,7 @@ target("openssl")
         "in/deps/openssl/crypto/whrlpool/wp-x86_64.asm",
         "in/deps/openssl/crypto/x86_64cpuid.asm",
         "in/deps/openssl/engines/e_padlock-x86_64.asm")
-    add_files("in/deps/openssl/crypto/init.c", {rules = {"cb"}, cb = function (target, sourcefile, opt)
-        import("core.project.depend")
-
+    add_files("in/deps/openssl/crypto/init.c", {rules = {"cb"}, cb = function (target, sourcefile, opt, depend)
         local root = path.join(os.projectdir(), "in/deps/openssl")
         local perl = path.join(os.projectdir(), "in/perl/perl/bin/perl.exe")
         local regular_outputs = {
