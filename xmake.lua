@@ -213,7 +213,7 @@ target("openssl")
         [[ENGINESDIR="C:\Program Files\OpenSSL\lib\engines-3"]],
         [[MODULESDIR="C:\Program Files\OpenSSL\lib\ossl-modules"]])
     add_cflags("/Gs0", "/GF", "/Gy", {force = true})
-    add_asflags("-Ox", "-DNEAR", "-g", {force = true})
+    add_asflags("-Ox", "-f", "win64", "-DNEAR", "-g", {force = true})
     add_syslinks("ws2_32", "gdi32", "advapi32", "crypt32", "user32", {public = true})
     add_rules("c.unity_build")
     add_files("in/deps/openssl/crypto/**.c", "in/deps/openssl/ssl/**.c",
