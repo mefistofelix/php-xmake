@@ -777,6 +777,55 @@ for my $output (@ARGV) {
     add_files("in/deps/openssl/ssl/record/methods/tlsany_meth.c", {unity_group = "conflict_101"})
     add_files("in/deps/openssl/ssl/record/methods/tls_common.c", {unity_group = "conflict_102"})
     add_files("in/deps/openssl/ssl/record/methods/tls_multib.c", {unity_group = "conflict_103"})
+    add_files("in/deps/openssl/ssl/statem/extensions.c", {unity_group = "conflict_70"})
+    add_files("in/deps/openssl/ssl/statem/extensions_clnt.c", {unity_group = "conflict_71"})
+    add_files("in/deps/openssl/ssl/statem/extensions_cust.c", {unity_group = "conflict_72"})
+    add_files("in/deps/openssl/ssl/statem/extensions_srvr.c", {unity_group = "conflict_73"})
+    add_files("in/deps/openssl/ssl/statem/statem.c", {unity_group = "conflict_74"})
+    add_files("in/deps/openssl/ssl/statem/statem_clnt.c", {unity_group = "conflict_75"})
+    add_files("in/deps/openssl/ssl/statem/statem_dtls.c", {unity_group = "conflict_76"})
+    add_files("in/deps/openssl/ssl/statem/statem_lib.c", {unity_group = "conflict_77"})
+    add_files("in/deps/openssl/ssl/statem/statem_srvr.c", {unity_group = "conflict_78"})
+    add_files("in/deps/openssl/crypto/aes/aes_ecb.c", "in/deps/openssl/crypto/aes/aes_ige.c",
+        "in/deps/openssl/crypto/aes/aes_misc.c", {unity_group = "conflict_46"})
+    add_files("in/deps/openssl/providers/common/der/der_ec_sig.c", {unity_group = "conflict_98"})
+    add_files("in/deps/openssl/providers/common/der/der_sm2_sig.c", {unity_group = "conflict_99"})
+    add_files("in/deps/openssl/providers/implementations/ciphers/cipher_aes_cbc_hmac_sha1_hw.c",
+        {unity_group = "conflict_80"})
+    add_files("in/deps/openssl/providers/implementations/ciphers/cipher_aes_cbc_hmac_sha256_hw.c",
+        {unity_group = "conflict_81"})
+    add_files("in/deps/openssl/providers/implementations/ciphers/cipher_aes_gcm_siv_hw.c",
+        {unity_group = "conflict_82"})
+    add_files("in/deps/openssl/providers/implementations/ciphers/cipher_aes_gcm_siv_polyval.c",
+        {unity_group = "conflict_83"})
+    add_files("in/deps/openssl/providers/implementations/ciphers/cipher_aes_xts_fips.c",
+        {unity_group = "conflict_84"})
+    add_files("in/deps/openssl/providers/implementations/ciphers/cipher_aes_xts_hw.c",
+        {unity_group = "conflict_85"})
+    add_files("in/deps/openssl/providers/implementations/ciphers/cipher_chacha20_hw.c",
+        {unity_group = "conflict_86"})
+    add_files("in/deps/openssl/providers/implementations/ciphers/cipher_chacha20_poly1305_hw.c",
+        {unity_group = "conflict_97"})
+    add_files("in/deps/openssl/providers/implementations/ciphers/cipher_tdes_default.c",
+        {unity_group = "conflict_87"})
+    add_files("in/deps/openssl/providers/implementations/ciphers/cipher_tdes_default_hw.c",
+        {unity_group = "conflict_88"})
+    add_files("in/deps/openssl/providers/implementations/ciphers/cipher_tdes_hw.c",
+        {unity_group = "conflict_89"})
+    add_files("in/deps/openssl/providers/implementations/ciphers/cipher_tdes_wrap_hw.c",
+        {unity_group = "conflict_90"})
+    add_files("in/deps/openssl/providers/implementations/ciphers/cipher_desx.c",
+        {unity_group = "conflict_91"})
+    add_files("in/deps/openssl/providers/implementations/ciphers/cipher_desx_hw.c",
+        {unity_group = "conflict_92"})
+    add_files("in/deps/openssl/providers/implementations/ciphers/cipher_des_hw.c",
+        {unity_group = "conflict_93"})
+    add_files("in/deps/openssl/providers/implementations/ciphers/cipher_sm4_hw.c",
+        {unity_group = "conflict_94"})
+    add_files("in/deps/openssl/providers/implementations/ciphers/cipher_aes_ocb_hw.c",
+        {unity_group = "conflict_95"})
+    add_files("in/deps/openssl/providers/implementations/ciphers/cipher_camellia_hw.c",
+        {unity_group = "conflict_96"})
     add_files("in/deps/openssl/crypto/params_idx.c",
         "in/deps/openssl/providers/common/der/der_digests_gen.c",
         "in/deps/openssl/providers/common/der/der_dsa_gen.c",
