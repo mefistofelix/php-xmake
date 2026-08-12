@@ -7,6 +7,11 @@ set_config("vs_sdkver", "10.0.28000.0")
 
 set_config("builddir", "out")
 
+rule("php.codegen")
+    on_prepare_file(function (target, sourcefile, opt)
+        print("add files 1")
+    end)
+
 task("prepare")
     set_menu({ usage = "xmake prepare" })
     on_run(function()
@@ -83,4 +88,18 @@ target("gen_ir_fold_hash")
     set_targetdir(get_config("builddir"))
     add_files("in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c")
 
-    add_defines("IR_TARGET_X86_64")
+add_defines("IR_TARGET_X86_64")
+
+target("php-asm")
+    set_kind("object")
+    set_targetdir(get_config("builddir"))
+    add_asflags("/DBOOST_CONTEXT_EXPORT=EXPORT", {force = true})
+    add_files("in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm")
+
+target("php")
+    set_kind("object")
+    set_targetdir(get_config("builddir"))
+    add_files("in/php-src/Zend/zend.c", {
+        -- always_added = true,
+        rules = "php.codegen",
+    })
