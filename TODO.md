@@ -89,6 +89,14 @@ Integrate zstd as one dependency target:
 - [x] Validate the standard public OpenSSL interface and inspect the resulting archive symbol/directive surface.
 - [x] Build and record the validation result before moving to libcurl/libssh2/libsodium.
 
+## Next Target: libcurl
+
+- [x] Verify the official `curl/curl` tag `curl-8_21_0`, matching the previous PHP SDK dependency version.
+- [ ] Replace the prebuilt SDK archive with the pinned official source and validate `xmake prepare` from a clean absence and on a no-change repeat.
+- [ ] Inspect upstream CMake/Makefile metadata and PHP's curl configuration for exact library sources, exclusions, generated inputs, public/private defines, protocols, TLS backend, compression dependencies, and Windows system libraries.
+- [ ] Add one static libcurl target using direct Xmake compilation and the fewest widest unity groups justified by observed conflicts.
+- [ ] Build and validate `/MD`, the static public interface, archive architecture, and representative curl symbols before moving to libssh2.
+
 ## Dependency Targets
 
 Every library must receive its own static target. Integrate and validate them one at a time in dependency order.

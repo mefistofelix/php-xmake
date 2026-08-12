@@ -190,6 +190,11 @@ All paths below are relative to `in/deps/openssl`. Every action belongs to the s
 | `openssl` | `util/dofile.pl` + `oids_to_c` | Nine DER `.c.in` templates, nine DER `.h.in` templates, ASN.1 inputs, `oids_to_c.pm`, `configdata.pm` | Nine `providers/common/der/der_*_gen.c` files and nine `providers/common/include/prov/der_*.h` files | Add `-Iproviders/common/der -Moids_to_c` to the template command | Generated C and headers are intertwined inputs to the built-in provider implementation | Build validated |
 | `openssl` | 39 upstream perlasm scripts selected through `configdata.pm` | x86-64 `.pl` generators and perlasm modules | 39 `.asm` files under `crypto` and `engines` | For each declared output, resolve its unique generator from `%unified_info` and run `perl <generator> nasm <output>` | Xmake invokes bundled NASM directly for the generated files with `-Ox -f win64 -DNEAR -g`; Perl never assembles or archives | Build and archive membership validated |
 
+### libcurl upstream build analysis
+
+- Use the official `curl/curl` GitHub repository pinned to tag `curl-8_21_0`, matching the previous PHP SDK package version 8.21.0. Fetch sources into `in/deps/libcurl` and do not retain the redundant prebuilt SDK archive when libcurl is compiled by its own Xmake target.
+- Treat upstream `CMakeLists.txt`, `lib/CMakeLists.txt`, `lib/Makefile.inc`, Windows configuration headers, and PHP's curl extension configuration as the authority for source selection, feature defines, TLS and protocol backends, system libraries, generated inputs, and public static-link macros. Complete the remaining analysis before declaring the target.
+
 ## PHP Code-generation Inventory
 
 All paths below are relative to `in/php-src` unless prefixed with `out/`. Entries marked "planned" reproduce the known PHP generation commands but are not yet wired into the `php` target callback.
