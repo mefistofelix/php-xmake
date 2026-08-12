@@ -7,9 +7,17 @@ set_config("vs_sdkver", "10.0.28000.0")
 
 set_config("builddir", "out")
 
-rule("php.codegen")
+rule("cb")
     on_prepare_file(function (target, sourcefile, opt)
-        print("add files 1")
+        local fcfg = target:fileconfig(sourcefile)
+        if not fcfg or not fcfg.cb then
+            return
+        end
+        local cb = fcfg.cb
+        local is_function = type(cb) == "function"
+        if is_function then
+            cb(target, sourcefile, opt)
+        end
     end)
 
 task("prepare")
@@ -101,5 +109,9 @@ target("php")
     set_targetdir(get_config("builddir"))
     add_files("in/php-src/Zend/zend.c", {
         -- always_added = true,
-        rules = "php.codegen",
+        rules = "cb",
+        cb = function ()
+            print("add files 1")
+            return "aaa"
+        end
     })
