@@ -577,6 +577,11 @@ for my $output (@ARGV) {
     add_files("in/deps/openssl/crypto/property/property_parse.c", {unity_group = "conflict_38"})
     add_files("in/deps/openssl/crypto/property/property_query.c", {unity_group = "conflict_39"})
     add_files("in/deps/openssl/crypto/property/property_string.c", {unity_group = "conflict_40"})
+    add_files("in/deps/openssl/crypto/provider_conf.c", {unity_group = "conflict_41"})
+    add_files("in/deps/openssl/crypto/provider_core.c", {unity_group = "conflict_42"})
+    add_files("in/deps/openssl/crypto/provider_predefined.c", {unity_group = "conflict_43"})
+    add_files("in/deps/openssl/crypto/punycode.c", {unity_group = "conflict_44"})
+    add_files("in/deps/openssl/crypto/param_build_set.c", {unity_group = "conflict_45"})
     add_files("in/deps/openssl/crypto/params_idx.c",
         "in/deps/openssl/providers/common/der/der_digests_gen.c",
         "in/deps/openssl/providers/common/der/der_dsa_gen.c",
