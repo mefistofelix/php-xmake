@@ -130,13 +130,18 @@ target("brotli")
     set_targetdir(get_config("builddir"))
     add_includedirs("in/deps/brotli/c/include", {public = true})
     add_defines("_CRT_SECURE_NO_WARNINGS")
-    add_rules("c.unity_build")
+    add_rules("c.unity_build", {batchsize = 0})
     add_files("in/deps/brotli/c/common/platform.c", {
         rules = "cb",
+        unity_group = "main",
         cb = function ()
         end
     })
-    add_files("in/deps/brotli/c/common/*.c|platform.c", "in/deps/brotli/c/dec/*.c", "in/deps/brotli/c/enc/*.c")
+    add_files("in/deps/brotli/c/common/*.c|platform.c", "in/deps/brotli/c/dec/*.c",
+        "in/deps/brotli/c/enc/*.c|compress_fragment_two_pass.c|entropy_encode.c|static_dict.c", {unity_group = "main"})
+    add_files("in/deps/brotli/c/enc/compress_fragment_two_pass.c",
+        "in/deps/brotli/c/enc/entropy_encode.c", {unity_group = "secondary"})
+    add_files("in/deps/brotli/c/enc/static_dict.c", {unity_ignored = true})
 
 target("php")
     set_enabled(false)

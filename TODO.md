@@ -35,6 +35,7 @@ Integrate Brotli after analyzing its upstream build structure:
 - [x] Map upstream common, decoder, and encoder components into one `brotli` target; do not create preventive sublibrary targets.
 - [x] Add broad patterns for all three component directories and one target-specific `cb` callback.
 - [x] Put the complete dependency in one unity translation unit for the first full build.
+- [x] Keep one `brotli` target and split compilation into the minimum three units required by the observed private-symbol conflict graph.
 - [ ] Build and record the validation result before moving to zstd.
 
 ## Dependency Targets
@@ -73,6 +74,7 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-12 — `xmake` at commit `3e9fc34`: the complete single-target Brotli build reached compilation but one unity unit exposed private encoder symbol collisions (`Hash`, `IsMatch`, `ShouldCompress`, `SortHuffmanTree`, and `BrotliReverseBits`). The dependency remains one archive; sources were partitioned into the minimum three unity-compatible units for the next test.
 - 2026-08-12 — `xmake` at commit `c33180e`: built the initial common-only Brotli target in one unity translation unit in 0.39 seconds. Per project policy, common/decoder/encoder are now being combined into one dependency target before full validation.
 - 2026-08-12 — `xmake` at commit `8e0d4f8`: built `out/zlib.lib` successfully with MSVC x64 in 0.656 seconds. The explicit core unity group and isolated internal implementation sources compiled without warnings or errors.
 - 2026-08-12 — `xmake` at commit `f48875c`: the separately compiled inflate sources succeeded, but the next arbitrary four-file batch combined `deflate.c` and multiple `gz*.c` files and failed on `GZIP`/`gz_state` redefinitions. Arbitrary batching was removed in favor of one explicit maximal compatible group.
