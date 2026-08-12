@@ -23,7 +23,7 @@ Integrate `zlib` as the first dependency target:
 - [x] Inspect its Windows source/configuration requirements and source exclusions.
 - [x] Add one static-library target with the broadest safe source pattern.
 - [x] Attach its target-owned `cb` callback to `zutil.c`; no zlib code generation is currently required.
-- [x] Enable an initial four-file C unity-build batch; adjust only if validation exposes collisions.
+- [x] Keep four-file C unity batches while isolating `infback.c`, `inffast.c`, and `inflate.c`, which are not unity-safe because of internal-header and macro collisions.
 - [ ] Build and record the validation result before moving to the next dependency.
 
 ## Dependency Targets
@@ -62,6 +62,7 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-12 — `xmake` at commit `af8b0a4`: correctly selected only `zlib`, then failed in `unity_3.c`. `gzwrite.c` brings in a `COPY` macro that collides with the `inflate.h` enum; the three inflate implementation sources were excluded from unity batches for the next test.
 - 2026-08-12 — `xmake prepare` at commit `0d2bf4c`: completed successfully after correcting the `ngtcp2` and `nghttp3` release refs. A repeat run is still required to prove idempotence.
 - 2026-08-12 — `xmake prepare` at commit `fec296f`: stopped after the initial dependency downloads because the configured `ngtcp2` ref `v1.69.0` does not exist. Official release tags are `ngtcp2` `v1.25.0` and `nghttp3` `v1.18.0`; the pins were corrected for the next test.
 - 2026-08-12 — `xmake` at commit `bc16350`: MSVC x64 detection succeeded and the `php` callback ran. The build stopped while compiling `Zend/zend.c` because `Zend/zend_config.h` has not been generated yet. The helper targets remain unvalidated by an isolated target build.

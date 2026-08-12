@@ -120,7 +120,8 @@ target("zlib")
         cb = function ()
         end
     })
-    add_files("in/deps/zlib/*.c|zutil.c")
+    add_files("in/deps/zlib/*.c|zutil.c|infback.c|inffast.c|inflate.c")
+    add_files("in/deps/zlib/infback.c", "in/deps/zlib/inffast.c", "in/deps/zlib/inflate.c", {unity_ignored = true})
 
 target("php")
     set_enabled(false)

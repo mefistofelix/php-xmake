@@ -60,12 +60,14 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 
 | Target | Build state | Kind | Source inputs | Output | Purpose | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| `zlib` | Enabled (current priority) | Static library | `in/deps/zlib/*.c` | `out/zlib.lib` | First compression dependency | Defined; build validation pending |
+| `zlib` | Enabled (current priority) | Static library | `in/deps/zlib/*.c` | `out/zlib.lib` | First compression dependency | Four-file unity batches; inflate sources isolated; rebuild pending |
 | `minilua` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/dynasm/minilua.c` | `out/minilua.exe` | Runs DynASM for the PHP JIT IR emitter | Defined; build validation pending |
 | `gen_ir_fold_hash` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c` | `out/gen_ir_fold_hash.exe` | Generates the JIT IR fold hash header | Defined; build validation pending |
 | `php` | Disabled | Object prototype | `in/php-src/Zend/zend.c`, `in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm` | `out/` | Becomes the static PHP build after dependency, configuration, codegen, and source integration | Prototype only; callback is a placeholder |
 
 The `prepare` task fetches dependencies. Each library must receive its own Xmake static-library target as it is integrated; downloaded or prebuilt archives are not yet build targets.
+
+The zlib target keeps `infback.c`, `inffast.c`, and `inflate.c` out of unity batches. `gzwrite.c` exposes a `COPY` macro through `gzguts.h`, while `inflate.h` declares an enum member with the same name; the inflate implementation headers also assume separate translation units. The remaining sources stay in four-file unity batches.
 
 ## PHP Code-generation Inventory
 
