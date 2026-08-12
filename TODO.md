@@ -71,6 +71,7 @@ Integrate zstd as one dependency target:
 - [x] Remove the current `in/deps/xz` tree and obsolete prebuilt `in/deps/liblzma` tree, then validate the official XZ fetch again from a clean absence.
 - [x] Inspect upstream CMake and Windows configuration for the exact liblzma sources, generated headers, feature defines, threading backend, and link requirements.
 - [x] Add one `liblzma` static target with all upstream-default features and one initial maximal unity group.
+- [ ] Derive the minimum unity partition from the observed liblzma private-symbol conflict graph; do not use arbitrary batch sizes.
 - [ ] Build and record the validation result before moving to the next dependency group.
 
 ## Dependency Targets
@@ -110,6 +111,7 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-12 — `xmake -r -v` at commit `695834b`: the complete liblzma source set reached MSVC in one unity translation unit with `/MD` and `/O2`, then failed on reused translation-unit-private names. Observed collisions include `SEQ_*` enumerators and distinct `lzma_alone_coder`, `lzma_block_coder`, `lzma_microlzma_coder`, and `lzma_stream_coder` types/functions across encoder, decoder, and multithreaded implementations. A symbol-conflict partition is required inside the same target.
 - 2026-08-12 — `xmake -r -v` at commit `f5ea765`: rebuilt `out/bzip2.lib` successfully in 1.312 seconds after the source-selection cleanup. The generated unity file contained exactly the seven upstream library sources; broad `add_files("*.c")` plus five `remove_files` patterns excluded all six programs/tests correctly.
 - 2026-08-12 — `xmake prepare` at commit `e5d4ecd`: after moving both `in/deps/xz` and the obsolete prebuilt `in/deps/liblzma` out of `in/deps`, completed a clean preparation in 2.1 seconds. The official GitHub XZ tree was recreated with the pinned `v5.8.3` marker, while the removed PHP SDK binary directory was not recreated.
 - 2026-08-12 — `xmake prepare` at commit `e87ad12`: completed a no-change repeat successfully in 1.3 seconds, validating idempotence of the pinned official XZ source input.
