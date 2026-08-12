@@ -61,6 +61,15 @@ Integrate zstd as one dependency target:
 - [x] Repeat `xmake prepare` with every input present to validate the official fetch's idempotence.
 - [x] Build all seven sources in one unity translation unit and record the validation result before moving to liblzma.
 
+## Next Target: liblzma
+
+- [x] Confirm that the authoritative `tukaani-project/xz` GitHub repository provides tag `v5.8.3`, matching the version selected by the PHP SDK dependency inventory.
+- [x] Replace the prebuilt PHP SDK `liblzma` archive download with the pinned official XZ source repository.
+- [ ] Run `xmake prepare` and validate the new source fetch and its idempotence.
+- [ ] Inspect upstream CMake and Windows configuration for the exact liblzma sources, generated headers, feature defines, threading backend, and link requirements.
+- [ ] Add one `liblzma` static target with the widest safe unity group and only technically necessary exclusions.
+- [ ] Build and record the validation result before moving to the next dependency group.
+
 ## Dependency Targets
 
 Every library must receive its own static target. Integrate and validate them one at a time in dependency order.

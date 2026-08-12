@@ -72,7 +72,7 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 | `zlib` | Disabled | Static library | `in/deps/zlib/*.c` | `out/zlib.lib` | First compression dependency | Build validated with `/MD` on MSVC x64 |
 | `brotli` | Disabled | Static library | `in/deps/brotli/c/common/*.c`, `in/deps/brotli/c/dec/*.c`, `in/deps/brotli/c/enc/*.c` | `out/brotli.lib` | Complete Brotli common, decoder, and encoder implementation | One target; three compilation units; build validated with `/MD` on MSVC x64 |
 | `zstd` | Disabled | Static library | `in/deps/zstd/lib/{common,compress,decompress,dictBuilder,legacy}/*.c` | `out/zstd.lib` | Multithreaded zstd library with level-5 legacy decoding | One main unity group; FastCover and legacy sources isolated; build validated with explicit `/MD` on MSVC x64 |
-| `bzip2` | Enabled (current priority) | Static library | Seven library sources named by upstream `Makefile` and `makefile.msc` | `out/bzip2.lib` | bzip2 compression library for the PHP bz2 extension | All seven sources in one unity translation unit; build validated with `/MD` on MSVC x64 |
+| `bzip2` | Disabled | Static library | Seven library sources named by upstream `Makefile` and `makefile.msc` | `out/bzip2.lib` | bzip2 compression library for the PHP bz2 extension | All seven sources in one unity translation unit; build validated with `/MD` on MSVC x64 |
 | `minilua` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/dynasm/minilua.c` | `out/minilua.exe` | Runs DynASM for the PHP JIT IR emitter | Defined; build validation pending |
 | `gen_ir_fold_hash` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c` | `out/gen_ir_fold_hash.exe` | Generates the JIT IR fold hash header | Defined; build validation pending |
 | `php` | Disabled | Object prototype | `in/php-src/Zend/zend.c`, `in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm` | `out/` | Becomes the static PHP build after dependency, configuration, codegen, and source integration | Prototype only; real codegen callback pending |
@@ -117,6 +117,11 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 - The upstream MSVC build uses `WIN32`, `_FILE_OFFSET_BITS=64`, `/MD`, and `/Ox`. The project-wide runtime supplies `/MD`. The Xmake-native `set_optimize("fastest")` emits MSVC `/O2`, its portable maximize-speed preset; do not describe it as an exact `/Ox` mapping. No assembly or build-time code generation is required, so the target has no `cb` callback.
 - All seven library sources compile successfully in one unity translation unit; no split or isolated source is needed.
 - Upstream MSVC calls the archive `libbz2.lib`, while the PHP SDK package calls its static variant `libbz2_a.lib`. Since the final PHP target will depend directly on the Xmake target rather than search by filename, this project keeps the simpler target-derived `bzip2.lib`.
+
+### liblzma upstream build analysis
+
+- Upstream project: XZ Utils from the official `tukaani-project/xz` GitHub repository. Pin tag `v5.8.3`, which matches the previously downloaded PHP SDK package version, and fetch it as source into `in/deps/xz`; do not retain the redundant prebuilt `liblzma` archive.
+- Inspect the fetched upstream CMake declarations and Windows-specific configuration before defining the target. In particular, record the exact enabled filters/checks, generated configuration headers, threading backend, platform sources, public headers, and static-library defines before the first build attempt.
 
 ## PHP Code-generation Inventory
 
