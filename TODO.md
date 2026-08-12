@@ -17,7 +17,8 @@ Last updated: 2026-08-12
 - [ ] Validate the current Xmake configuration and helper targets.
 - [x] Remove empty and placeholder callbacks; only targets with real codegen/configuration work may attach a `cb` callback.
 - [x] Select the static multithreaded MSVC CRT globally with `set_runtimes("MT")`.
-- [ ] Verify a forced build uses `/MT`, then revalidate previously completed dependency targets under the selected CRT.
+- [x] Verify a forced zstd build uses `/MT` in every MSVC compile command.
+- [ ] Revalidate zlib and Brotli under the selected `/MT` CRT when they next become active.
 - [ ] Replace the object-only `php` prototype and add its real `cb` callback when PHP codegen is implemented.
 
 ## Completed Target: zlib
@@ -41,7 +42,7 @@ Integrate Brotli after analyzing its upstream build structure:
 - [x] Keep one `brotli` target and split compilation into the minimum three units required by the observed private-symbol conflict graph.
 - [x] Build and record the validation result before moving to zstd.
 
-## Next Target
+## Completed Target: zstd
 
 Integrate zstd as one dependency target:
 
@@ -50,7 +51,7 @@ Integrate zstd as one dependency target:
 - [x] Add broad source patterns and no `cb` callback because the upstream library has no build-time codegen.
 - [x] Keep 29 current sources in one unity group; isolate FastCover because `cover.h` is unguarded, and isolate the seven legacy sources whose inspected private symbols collide across historical versions.
 - [x] Build the complete target once and validate its source/unity layout.
-- [ ] Rebuild with `/MT`, verify the compiler command, and record the final validation result before moving to bzip2.
+- [x] Rebuild with `/MT`, verify the compiler command, and record the final validation result before moving to bzip2.
 
 ## Dependency Targets
 
@@ -89,6 +90,7 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-12 — `xmake -r -v` at commit `43d46e7`: rebuilt `out/zstd.lib` successfully in 0.906 seconds. Every verbose MSVC compile command used `-MT` (equivalent to `/MT`), and none used `/MD`; the global static CRT selection is effective.
 - 2026-08-12 — `xmake -r -v` at commit `b270cd4`: built `out/zstd.lib` successfully in 0.922 seconds, validating the one-target source list and the minimal unity exclusions. The verbose MSVC commands exposed Xmake's default `/MD` runtime, so the target must be rebuilt after selecting `set_runtimes("MT")` globally.
 
 - 2026-08-12 — `xmake -r` at commit `a05d138`: confirmed that broad `add_files` plus narrower repeated file config deduplicates correctly; all seven legacy files compiled separately. The main zstd unity unit then failed because `cover.c` and `fastcover.c` both include the unguarded `cover.h`. FastCover was isolated for the next test.
