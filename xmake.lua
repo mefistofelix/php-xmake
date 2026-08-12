@@ -188,7 +188,8 @@ target("liblzma")
         "in/deps/xz/src/liblzma/common/index_decoder.c",
         "in/deps/xz/src/liblzma/common/stream_encoder.c", {unity_group = "conflict_3"})
     add_files("in/deps/xz/src/liblzma/common/alone_encoder.c",
-        "in/deps/xz/src/liblzma/common/index_encoder.c", {unity_group = "conflict_4"})
+        "in/deps/xz/src/liblzma/common/index_encoder.c",
+        "in/deps/xz/src/liblzma/lzma/lzma_encoder.c", {unity_group = "conflict_4"})
 
 target("php")
     set_enabled(false)
