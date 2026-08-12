@@ -52,6 +52,14 @@ Integrate zstd as one dependency target:
 - [x] Build the complete target once and validate its source/unity layout.
 - [x] Rebuild with the final `/MD` selection, verify the compiler command, and record the validation result before moving to bzip2.
 
+## Next Target: bzip2
+
+- [x] Inspect upstream `Makefile`, `makefile.msc`, the official release source, and PHP's `ext/bz2/config.w32` for exact library inputs, Windows flags, output names, tests, and link expectations.
+- [x] Replace the redundant prebuilt PHP SDK archive download with the official bzip2 1.0.8 source tarball.
+- [x] Add one static target with the exact seven upstream library sources, no callback, and one initial maximal unity group.
+- [ ] Run `xmake prepare` to fetch the new source input and revalidate task idempotence.
+- [ ] Build and record the validation result before moving to liblzma.
+
 ## Dependency Targets
 
 Every library must receive its own static target. Integrate and validate them one at a time in dependency order.

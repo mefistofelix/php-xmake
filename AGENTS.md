@@ -70,7 +70,8 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 | --- | --- | --- | --- | --- | --- | --- |
 | `zlib` | Disabled | Static library | `in/deps/zlib/*.c` | `out/zlib.lib` | First compression dependency | Build validated with `/MD` on MSVC x64 |
 | `brotli` | Disabled | Static library | `in/deps/brotli/c/common/*.c`, `in/deps/brotli/c/dec/*.c`, `in/deps/brotli/c/enc/*.c` | `out/brotli.lib` | Complete Brotli common, decoder, and encoder implementation | One target; three compilation units; build validated with `/MD` on MSVC x64 |
-| `zstd` | Enabled (current priority) | Static library | `in/deps/zstd/lib/{common,compress,decompress,dictBuilder,legacy}/*.c` | `out/zstd.lib` | Multithreaded zstd library with level-5 legacy decoding | One main unity group; FastCover and legacy sources isolated; build validated with explicit `/MD` on MSVC x64 |
+| `zstd` | Disabled | Static library | `in/deps/zstd/lib/{common,compress,decompress,dictBuilder,legacy}/*.c` | `out/zstd.lib` | Multithreaded zstd library with level-5 legacy decoding | One main unity group; FastCover and legacy sources isolated; build validated with explicit `/MD` on MSVC x64 |
+| `bzip2` | Enabled (current priority) | Static library | Seven library sources named by upstream `Makefile` and `makefile.msc` | `out/bzip2.lib` | bzip2 compression library for the PHP bz2 extension | One maximal unity group; source fetch and build validation pending |
 | `minilua` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/dynasm/minilua.c` | `out/minilua.exe` | Runs DynASM for the PHP JIT IR emitter | Defined; build validation pending |
 | `gen_ir_fold_hash` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c` | `out/gen_ir_fold_hash.exe` | Generates the JIT IR fold hash header | Defined; build validation pending |
 | `php` | Disabled | Object prototype | `in/php-src/Zend/zend.c`, `in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm` | `out/` | Becomes the static PHP build after dependency, configuration, codegen, and source integration | Prototype only; real codegen callback pending |
@@ -107,6 +108,14 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 - No build-time code generation is required, so the target has no `cb` callback.
 - Keep 29 current sources in the default unity group. Compile `dictBuilder/fastcover.c` separately because it and `cover.c` both include the unguarded internal `cover.h`, which redefines shared structures when merged. Compile each of the seven legacy decoder sources separately: source inspection shows that historical implementations intentionally reuse dozens of private FSE, HUF, and ZSTD function names, making a shared unity translation unit invalid even though they coexist safely as separate objects in one archive.
 - Upstream CMake calls the MSVC static archive `zstd_static.lib` only to avoid a shared import-library name collision. This static-only project uses the simpler target-derived name `zstd.lib`.
+
+### bzip2 upstream build analysis
+
+- Upstream version: bzip2 1.0.8, the current stable release. Fetch the official Sourceware tarball and strip its single top-level directory during `xmake prepare`; do not retain the redundant prebuilt PHP SDK archive.
+- The root `Makefile` and `makefile.msc` agree that the library contains exactly `blocksort.c`, `huffman.c`, `crctable.c`, `randtable.c`, `compress.c`, `decompress.c`, and `bzlib.c`. Other root C files build command-line programs or tests and are not library inputs, so an explicit seven-file declaration is cleaner and safer than an exclusion-heavy root glob.
+- The upstream MSVC build uses `WIN32`, `_FILE_OFFSET_BITS=64`, `/MD`, and `/Ox`. The project-wide runtime supplies `/MD`; `set_optimize("fastest")` expresses `/Ox` through Xmake. No assembly or build-time code generation is required, so the target has no `cb` callback.
+- Begin with all seven library sources in one unity translation unit. Introduce only the minimum file isolation or wider unity groups if a concrete source conflict is observed.
+- Upstream MSVC calls the archive `libbz2.lib`, while the PHP SDK package calls its static variant `libbz2_a.lib`. Since the final PHP target will depend directly on the Xmake target rather than search by filename, this project keeps the simpler target-derived `bzip2.lib`.
 
 ## PHP Code-generation Inventory
 
