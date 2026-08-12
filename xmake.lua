@@ -302,6 +302,7 @@ target("openssl")
     add_files("in/deps/openssl/crypto/init.c", {rules = {"cb"}, cb = function (target, sourcefile, opt, depend, runv)
         local root = path.join(os.projectdir(), "in/deps/openssl")
         local perl = path.join(os.projectdir(), "in/perl/perl/bin/perl.exe")
+        local runenvs = {PATH = path.join(os.projectdir(), "in/perl/c/bin") .. ";" .. os.getenv("PATH")}
         local regular_outputs = {
             "include/crypto/bn_conf.h", "include/crypto/dso_conf.h", "include/openssl/asn1.h",
             "include/openssl/asn1t.h", "include/openssl/bio.h", "include/openssl/cmp.h",
@@ -380,7 +381,7 @@ target("openssl")
         table.join2(generator_inputs, os.files(path.join(root, "providers/common/include/prov/*.h.in")))
         depend.on_changed(function ()
             runv(perl, {"Configure", "VC-WIN64A", "no-shared", "no-module", "no-apps", "no-tests", "no-docs"},
-                {curdir = root})
+                {curdir = root, envs = runenvs})
             for _, output in ipairs(regular_outputs) do
                 runv(perl, {"-I.", "-Mconfigdata", "util/dofile.pl", "-omakefile", output .. ".in"},
                     {curdir = root, stdout = path.join(root, output)})
