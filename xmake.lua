@@ -729,6 +729,34 @@ for my $output (@ARGV) {
     add_files("in/deps/openssl/crypto/ts/ts_rsp_utils.c", {unity_group = "conflict_99"})
     add_files("in/deps/openssl/crypto/ts/ts_rsp_verify.c", {unity_group = "conflict_100"})
     add_files("in/deps/openssl/crypto/ts/ts_verify_ctx.c", {unity_group = "conflict_101"})
+    add_files("in/deps/openssl/crypto/x509/by_dir.c",
+        "in/deps/openssl/crypto/x509/pcy_node.c", {unity_group = "conflict_1"})
+    add_files("in/deps/openssl/crypto/x509/by_file.c",
+        "in/deps/openssl/crypto/x509/pcy_map.c", {unity_group = "conflict_2"})
+    add_files("in/deps/openssl/crypto/x509/by_store.c",
+        "in/deps/openssl/crypto/x509/pcy_lib.c", {unity_group = "conflict_3"})
+    add_files("in/deps/openssl/crypto/x509/v3_ac_tgt.c",
+        "in/deps/openssl/crypto/x509/pcy_data.c", {unity_group = "conflict_4"})
+    add_files("in/deps/openssl/crypto/x509/v3_addr.c",
+        "in/deps/openssl/crypto/x509/pcy_cache.c", {unity_group = "conflict_5"})
+    add_files("in/deps/openssl/crypto/x509/v3_asid.c", {unity_group = "conflict_6"})
+    add_files("in/deps/openssl/crypto/x509/v3_battcons.c", {unity_group = "conflict_7"})
+    add_files("in/deps/openssl/crypto/x509/v3_bcons.c", {unity_group = "conflict_8"})
+    add_files("in/deps/openssl/crypto/x509/v3_cpols.c", {unity_group = "conflict_9"})
+    add_files("in/deps/openssl/crypto/x509/v3_crld.c", {unity_group = "conflict_10"})
+    add_files("in/deps/openssl/crypto/x509/v3_purp.c", {unity_group = "conflict_11"})
+    add_files("in/deps/openssl/crypto/x509/v3_tlsf.c", {unity_group = "conflict_12"})
+    add_files("in/deps/openssl/crypto/x509/v3_utl.c", {unity_group = "conflict_13"})
+    add_files("in/deps/openssl/crypto/x509/x509_att.c", {unity_group = "conflict_14"})
+    add_files("in/deps/openssl/crypto/x509/x509_lu.c", {unity_group = "conflict_15"})
+    add_files("in/deps/openssl/crypto/x509/x509_meth.c", {unity_group = "conflict_16"})
+    add_files("in/deps/openssl/crypto/x509/x509_set.c", {unity_group = "conflict_17"})
+    add_files("in/deps/openssl/crypto/x509/x509_v3.c", {unity_group = "conflict_18"})
+    add_files("in/deps/openssl/crypto/x509/x509_vfy.c", {unity_group = "conflict_19"})
+    add_files("in/deps/openssl/crypto/x509/x509_vpm.c", {unity_group = "conflict_20"})
+    add_files("in/deps/openssl/crypto/x509/x_attrib.c", {unity_group = "conflict_21"})
+    add_files("in/deps/openssl/crypto/x509/x_crl.c", {unity_group = "conflict_22"})
+    add_files("in/deps/openssl/crypto/x509/x_exten.c", {unity_group = "conflict_23"})
     add_files("in/deps/openssl/crypto/params_idx.c",
         "in/deps/openssl/providers/common/der/der_digests_gen.c",
         "in/deps/openssl/providers/common/der/der_dsa_gen.c",
