@@ -95,8 +95,7 @@ target("gen_ir_fold_hash")
     set_kind("binary")
     set_targetdir(get_config("builddir"))
     add_files("in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c")
-
-add_defines("IR_TARGET_X86_64")
+    add_defines("IR_TARGET_X86_64")
 
 target("php-asm")
     set_kind("object")
