@@ -68,7 +68,7 @@ Integrate zstd as one dependency target:
 - [x] Replace the prebuilt PHP SDK `liblzma` archive download with the pinned official XZ source repository.
 - [x] Run `xmake prepare` and verify that official XZ 5.8.3 sources are materialized in `in/deps/xz`.
 - [x] Repeat `xmake prepare` with the XZ input present to validate idempotence.
-- [ ] Remove the current `in/deps/xz` tree and obsolete prebuilt `in/deps/liblzma` tree, then validate the official XZ fetch again from a clean absence.
+- [x] Remove the current `in/deps/xz` tree and obsolete prebuilt `in/deps/liblzma` tree, then validate the official XZ fetch again from a clean absence.
 - [x] Inspect upstream CMake and Windows configuration for the exact liblzma sources, generated headers, feature defines, threading backend, and link requirements.
 - [x] Add one `liblzma` static target with all upstream-default features and one initial maximal unity group.
 - [ ] Build and record the validation result before moving to the next dependency group.
@@ -110,6 +110,7 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-12 — `xmake prepare` at commit `e5d4ecd`: after moving both `in/deps/xz` and the obsolete prebuilt `in/deps/liblzma` out of `in/deps`, completed a clean preparation in 2.1 seconds. The official GitHub XZ tree was recreated with the pinned `v5.8.3` marker, while the removed PHP SDK binary directory was not recreated.
 - 2026-08-12 — `xmake prepare` at commit `e87ad12`: completed a no-change repeat successfully in 1.3 seconds, validating idempotence of the pinned official XZ source input.
 - 2026-08-12 — `xmake prepare` at commit `7bad85f`: completed successfully in 2.0 seconds and materialized the official `tukaani-project/xz` tag `v5.8.3` in `in/deps/xz`. A no-change repeat is still required for the new input.
 - 2026-08-12 — `xmake prepare` at commit `e4e0df8`: completed successfully in 1.4 seconds with the final authoritative-source policy. The official Sourceware bzip2 input was retained idempotently; the PHP SDK binary package is no longer part of `prepare`.
