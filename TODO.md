@@ -7,7 +7,7 @@ Last updated: 2026-08-12
 - [x] Initialize the Git repository and ignore downloaded sources, tools, caches, and outputs.
 - [x] Add an idempotent-oriented `prepare` task for sources, binary dependencies, Perl, MSVC, and the Windows SDK.
 - [x] Complete one successful `xmake prepare` run with all currently pinned inputs.
-- [ ] Repeat `xmake prepare` to validate idempotence after the build-target work advances.
+- [x] Repeat `xmake prepare` with every current input present and validate idempotence.
 - [x] Add the `cb` rule skeleton for target-owned code generation.
 - [x] Define the `minilua` and `gen_ir_fold_hash` helper targets.
 - [x] Record the known PHP code-generation inventory in `AGENTS.md`.
@@ -55,10 +55,10 @@ Integrate zstd as one dependency target:
 ## Next Target: bzip2
 
 - [x] Inspect upstream `Makefile`, `makefile.msc`, the official release source, and PHP's `ext/bz2/config.w32` for exact library inputs, Windows flags, output names, tests, and link expectations.
-- [x] Replace the redundant prebuilt PHP SDK archive download with the official bzip2 1.0.8 source tarball.
+- [x] Remove the redundant prebuilt PHP SDK archive download and use `hx` with the pinned `libarchive/bzip2` GitHub tag `bzip2-1.0.8`.
 - [x] Add one static target with the exact seven upstream library sources, no callback, and one initial maximal unity group.
-- [x] Run `xmake prepare` and verify that the official source tarball is extracted directly into `in/deps/bzip2`.
-- [ ] Repeat `xmake prepare` with every input present to revalidate task idempotence.
+- [ ] Run `xmake prepare` and verify that the pinned GitHub source is materialized directly into `in/deps/bzip2`.
+- [ ] Repeat `xmake prepare` with every input present to revalidate the GitHub fetch's idempotence.
 - [ ] Build and record the validation result before moving to liblzma.
 
 ## Dependency Targets
@@ -98,6 +98,7 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-12 — `xmake prepare` at commit `0af7160`: completed a no-change repeat successfully in 1.3 seconds. All existing inputs, including bzip2, were retained without redundant work, validating task idempotence for the current inventory.
 - 2026-08-12 — `xmake prepare` at commit `a4ed100`: completed successfully in 3.1 seconds and extracted the official bzip2 1.0.8 tarball directly into `in/deps/bzip2`. A no-change repeat is still required to validate the new fetch's idempotence.
 - 2026-08-12 — `xmake -r -v` at commit `9f8c33a`: rebuilt `out/zstd.lib` successfully in 0.891 seconds after restoring the upstream-compatible dynamic CRT. Every verbose MSVC compile command used `-MD` (equivalent to `/MD`), and none used `/MT`.
 - 2026-08-12 — `xmake -r -v` at commit `43d46e7`: rebuilt `out/zstd.lib` successfully in 0.906 seconds. Every verbose MSVC compile command used `-MT` (equivalent to `/MT`), and none used `/MD`; the global static CRT selection is effective.

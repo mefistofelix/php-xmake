@@ -22,6 +22,7 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
   ```
 
 - `xmake prepare` is run manually before the main build and must be idempotent. It downloads and extracts source trees, prebuilt dependencies, and required external tools.
+- Prefer `hx github://owner/repository?ref=release-tag` for source inputs whenever a suitable GitHub repository and pinned release ref are available. Fall back to another upstream host or archive URL only when GitHub has no appropriate source. Do not download a prebuilt PHP SDK package when the dependency is being compiled by its own Xmake target.
 
 ## Target Model
 
@@ -111,7 +112,7 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 
 ### bzip2 upstream build analysis
 
-- Upstream version: bzip2 1.0.8, the current stable release. Fetch the official Sourceware tarball and strip its single top-level directory during `xmake prepare`; do not retain the redundant prebuilt PHP SDK archive.
+- Upstream version: bzip2 1.0.8, the current stable release. Fetch the `bzip2-1.0.8` tag from the `libarchive/bzip2` GitHub mirror with `hx`; its peeled tag resolves to the same upstream 1.0.8 commit. Do not retain the redundant prebuilt PHP SDK archive.
 - The root `Makefile` and `makefile.msc` agree that the library contains exactly `blocksort.c`, `huffman.c`, `crctable.c`, `randtable.c`, `compress.c`, `decompress.c`, and `bzlib.c`. Other root C files build command-line programs or tests and are not library inputs, so an explicit seven-file declaration is cleaner and safer than an exclusion-heavy root glob.
 - The upstream MSVC build uses `WIN32`, `_FILE_OFFSET_BITS=64`, `/MD`, and `/Ox`. The project-wide runtime supplies `/MD`; `set_optimize("fastest")` expresses `/Ox` through Xmake. No assembly or build-time code generation is required, so the target has no `cb` callback.
 - Begin with all seven library sources in one unity translation unit. Introduce only the minimum file isolation or wider unity groups if a concrete source conflict is observed.
