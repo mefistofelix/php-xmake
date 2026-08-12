@@ -23,9 +23,9 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 ## Target Model
 
 - Before converting a dependency, inspect its original non-Xmake build system (`CMakeLists.txt`, configure scripts, Makefiles, Visual Studio projects, or equivalent). Treat it as the primary source for the exact source list and exclusions, generated files, platform defines, include paths, output names, runtime flags, optional assembly, and dependency edges. Record the relevant findings in this file before the first build attempt so Xmake conversion is guided by upstream intent instead of trial and error.
-- Keep `xmake.lua` primarily declarative: it should consist of Xmake configuration, target declarations, and one target-specific `cb` callback function per target.
+- Keep `xmake.lua` primarily declarative: it should consist of Xmake configuration, target declarations, and only the target-specific `cb` callbacks that perform real configuration generation or code generation.
 - Do not add arbitrary Lua helper functions, tables, aliases, or variables. Introduce Lua state only when an Xmake API requires it and no direct declarative expression is practical; keep such state local to the owning task or target callback.
-- A target's `cb` function is its single imperative entry point for configuration and code generation. Do not split target preparation across extra Lua functions.
+- A target that needs imperative configuration or code generation must use one target-specific `cb` function as its single imperative entry point. Do not split target preparation across extra Lua functions. A target with no such work must not define or attach an empty callback.
 - Give every library dependency its own static-library target.
 - Do not mirror an upstream build's internal component libraries as separate Xmake targets by default. Keep one dependency in one target and include all of its components there. Create sublibrary targets only when a single target is proven impractical by duplicate external symbols, incompatible compile settings, unavoidable build ordering/code-generation edges, or another concrete technical constraint. Unity-group splits do not require target splits.
 - PHP extensions are part of the main PHP target; do not create a separate target for each extension.
@@ -37,7 +37,7 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 ## Code Generation
 
 - Run every required code-generation step from a callback supplied by the `cb` rule.
-- Use exactly one target-specific callback per target. Attach it as file configuration to the single most appropriate source entry for that target; that callback owns all generated sources, headers, and configuration files for the target.
+- For each target that actually needs configuration generation or code generation, use exactly one target-specific callback. Attach it as file configuration to the single most appropriate source entry for that target; that callback owns all generated sources, headers, and configuration files for the target.
 - Do not create a separate callback for each generated file.
 - If a callback needs an external executable such as Perl, Bison, RE2C, or the Windows message compiler, make that executable available during `xmake prepare`.
 - If a callback needs an executable built by this project, such as `minilua` or `gen_ir_fold_hash`, build/invoke its Xmake target programmatically from the callback using Xmake built-ins.
@@ -64,7 +64,7 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 | Target | Build state | Kind | Source inputs | Output | Purpose | Status |
 | --- | --- | --- | --- | --- | --- | --- |
 | `zlib` | Disabled | Static library | `in/deps/zlib/*.c` | `out/zlib.lib` | First compression dependency | Build validated on MSVC x64 |
-| `brotli` | Enabled (current priority) | Static library | `in/deps/brotli/c/common/*.c`, `in/deps/brotli/c/dec/*.c`, `in/deps/brotli/c/enc/*.c` | `out/brotli.lib` | Complete Brotli common, decoder, and encoder implementation | One target; three unity-compatible compilation units; rebuild pending |
+| `brotli` | Enabled (current priority) | Static library | `in/deps/brotli/c/common/*.c`, `in/deps/brotli/c/dec/*.c`, `in/deps/brotli/c/enc/*.c` | `out/brotli.lib` | Complete Brotli common, decoder, and encoder implementation | One target; three compilation units; build validated on MSVC x64 |
 | `minilua` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/dynasm/minilua.c` | `out/minilua.exe` | Runs DynASM for the PHP JIT IR emitter | Defined; build validation pending |
 | `gen_ir_fold_hash` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c` | `out/gen_ir_fold_hash.exe` | Generates the JIT IR fold hash header | Defined; build validation pending |
 | `php` | Disabled | Object prototype | `in/php-src/Zend/zend.c`, `in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm` | `out/` | Becomes the static PHP build after dependency, configuration, codegen, and source integration | Prototype only; callback is a placeholder |
@@ -78,7 +78,7 @@ The zlib target uses one explicit unity group for `adler32.c`, `compress.c`, `cr
 - Upstream version: zlib 1.3.2.
 - `CMakeLists.txt` and `win32/Makefile.msc` agree on the same 15 root C sources; the Xmake wildcard covers exactly that set.
 - The upstream static CMake target defines `ZLIB_BUILD`, `NO_FSEEKO` when the probe fails on MSVC, `_CRT_SECURE_NO_DEPRECATE`, and `_CRT_NONSTDC_NO_DEPRECATE`. It does not enable Unix large-file or hidden-visibility defines on Windows.
-- The shipped root `zconf.h` already contains the Windows configuration used by the MSVC Makefile, so the zlib callback has no generation work.
+- The shipped root `zconf.h` already contains the Windows configuration used by the MSVC Makefile, so the zlib target needs no callback.
 - The MSVC Makefile names the static result `zlib.lib`. CMake uses `zs.lib`; this project keeps `zlib.lib` to match the native MSVC convention and the target name.
 - The MSVC Makefile declares optional x86/x64 assembly rules but leaves `OBJA` empty. Upstream CMake also leaves contrib acceleration disabled by default, so the initial target intentionally compiles no assembly.
 

@@ -9,14 +9,9 @@ set_config("builddir", "out")
 
 rule("cb")
     on_prepare_file(function (target, sourcefile, opt)
-        local fcfg = target:fileconfig(sourcefile)
-        if not fcfg or not fcfg.cb then
-            return
-        end
-        local cb = fcfg.cb
-        local is_function = type(cb) == "function"
-        if is_function then
-            cb(target, sourcefile, opt)
+        local fileconfig = target:fileconfig(sourcefile)
+        if fileconfig and type(fileconfig.cb) == "function" then
+            fileconfig.cb(target, sourcefile, opt)
         end
     end)
 
@@ -92,21 +87,13 @@ target("minilua")
     set_enabled(false)
     set_kind("binary")
     set_targetdir(get_config("builddir"))
-    add_files("in/php-src/ext/opcache/jit/ir/dynasm/minilua.c", {
-        rules = "cb",
-        cb = function ()
-        end
-    })
+    add_files("in/php-src/ext/opcache/jit/ir/dynasm/minilua.c")
 
 target("gen_ir_fold_hash")
     set_enabled(false)
     set_kind("binary")
     set_targetdir(get_config("builddir"))
-    add_files("in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c", {
-        rules = "cb",
-        cb = function ()
-        end
-    })
+    add_files("in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c")
     add_defines("IR_TARGET_X86_64")
 
 target("zlib")
@@ -116,12 +103,7 @@ target("zlib")
     add_includedirs("in/deps/zlib", {public = true})
     add_defines("ZLIB_BUILD", "NO_FSEEKO", "_CRT_SECURE_NO_DEPRECATE", "_CRT_NONSTDC_NO_DEPRECATE")
     add_rules("c.unity_build", {batchsize = 0})
-    add_files("in/deps/zlib/zutil.c", {
-        rules = "cb",
-        unity_ignored = true,
-        cb = function ()
-        end
-    })
+    add_files("in/deps/zlib/zutil.c", {unity_ignored = true})
     add_files("in/deps/zlib/*.c|gz*.c|inf*.c|zutil.c", {unity_group = "core"})
     add_files("in/deps/zlib/gz*.c", "in/deps/zlib/inf*.c", {unity_ignored = true})
 
@@ -131,13 +113,7 @@ target("brotli")
     add_includedirs("in/deps/brotli/c/include", {public = true})
     add_defines("_CRT_SECURE_NO_WARNINGS")
     add_rules("c.unity_build", {batchsize = 0})
-    add_files("in/deps/brotli/c/common/platform.c", {
-        rules = "cb",
-        unity_group = "main",
-        cb = function ()
-        end
-    })
-    add_files("in/deps/brotli/c/common/*.c|platform.c", "in/deps/brotli/c/dec/*.c",
+    add_files("in/deps/brotli/c/common/*.c", "in/deps/brotli/c/dec/*.c",
         "in/deps/brotli/c/enc/*.c|compress_fragment_two_pass.c|entropy_encode.c|static_dict.c", {unity_group = "main"})
     add_files("in/deps/brotli/c/enc/compress_fragment_two_pass.c",
         "in/deps/brotli/c/enc/entropy_encode.c", {unity_group = "secondary"})
@@ -147,14 +123,7 @@ target("php")
     set_enabled(false)
     set_kind("object")
     set_targetdir(get_config("builddir"))
-    add_files("in/php-src/Zend/zend.c", {
-        -- always_added = true,
-        rules = "cb",
-        cb = function ()
-            print("add files 1")
-            return "aaa"
-        end
-    })
+    add_files("in/php-src/Zend/zend.c")
 
     add_asflags("/DBOOST_CONTEXT_EXPORT=EXPORT", {force = true})
     add_files("in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm")

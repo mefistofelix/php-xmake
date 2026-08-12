@@ -13,9 +13,10 @@ Last updated: 2026-08-12
 - [x] Record the known PHP code-generation inventory in `AGENTS.md`.
 - [x] Disable non-priority targets by default so focused builds only exercise the target under integration.
 - [x] Build and archive `out/zlib.lib` successfully with MSVC x64.
+- [x] Build and archive the complete single-target `out/brotli.lib` successfully with MSVC x64.
 - [ ] Validate the current Xmake configuration and helper targets.
-- [x] Normalize every current target to the intended declarative form with one target-specific `cb` callback and no unrelated Lua helpers or state.
-- [ ] Replace the placeholder callback and object-only `php` prototype.
+- [x] Remove empty and placeholder callbacks; only targets with real codegen/configuration work may attach a `cb` callback.
+- [ ] Replace the object-only `php` prototype and add its real `cb` callback when PHP codegen is implemented.
 
 ## Completed Target: zlib
 
@@ -23,20 +24,30 @@ Last updated: 2026-08-12
 
 - [x] Inspect upstream `CMakeLists.txt` and `win32/Makefile.msc` for exact sources, Windows defines, output naming, configuration, and optional assembly.
 - [x] Add one static-library target with the broadest safe source pattern.
-- [x] Attach its target-owned `cb` callback to `zutil.c`; no zlib code generation is currently required.
+- [x] Confirm that shipped Windows configuration needs no zlib codegen and therefore no `cb` callback.
 - [x] Use one maximal explicit unity group for compatible core sources; isolate only `zutil.c`, `gz*.c`, and `inf*.c`, whose unguarded internal headers and macros require separate translation units.
 - [x] Build and record the validation result before moving to the next dependency.
 
-## Next Target
+## Completed Target: Brotli
 
 Integrate Brotli after analyzing its upstream build structure:
 
 - [x] Inspect upstream CMake/Bazel build files for component libraries, exact sources, generated inputs, defines, include paths, and dependencies.
 - [x] Map upstream common, decoder, and encoder components into one `brotli` target; do not create preventive sublibrary targets.
-- [x] Add broad patterns for all three component directories and one target-specific `cb` callback.
+- [x] Add broad patterns for all three component directories; no callback is needed because Brotli has no build-time codegen.
 - [x] Put the complete dependency in one unity translation unit for the first full build.
 - [x] Keep one `brotli` target and split compilation into the minimum three units required by the observed private-symbol conflict graph.
-- [ ] Build and record the validation result before moving to zstd.
+- [x] Build and record the validation result before moving to zstd.
+
+## Next Target
+
+Integrate zstd as one dependency target:
+
+- [ ] Inspect upstream CMake/Makefiles for exact library sources, exclusions, Windows defines, generated inputs, assembly/intrinsics, and feature toggles.
+- [ ] Keep all upstream components in one `zstd` target unless a concrete target-level constraint proves otherwise.
+- [ ] Add the broadest source patterns and no `cb` callback unless real codegen/configuration work exists.
+- [ ] Attempt one unity translation unit first; partition only on demonstrated conflicts.
+- [ ] Build and record the validation result before moving to bzip2.
 
 ## Dependency Targets
 
@@ -74,6 +85,7 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-12 — `xmake` at commit `a64db92`: built the complete single-target `out/brotli.lib` successfully with MSVC x64 in 0.921 seconds. The minimal three-unit partition compiled without warnings or errors.
 - 2026-08-12 — `xmake` at commit `3e9fc34`: the complete single-target Brotli build reached compilation but one unity unit exposed private encoder symbol collisions (`Hash`, `IsMatch`, `ShouldCompress`, `SortHuffmanTree`, and `BrotliReverseBits`). The dependency remains one archive; sources were partitioned into the minimum three unity-compatible units for the next test.
 - 2026-08-12 — `xmake` at commit `c33180e`: built the initial common-only Brotli target in one unity translation unit in 0.39 seconds. Per project policy, common/decoder/encoder are now being combined into one dependency target before full validation.
 - 2026-08-12 — `xmake` at commit `8e0d4f8`: built `out/zlib.lib` successfully with MSVC x64 in 0.656 seconds. The explicit core unity group and isolated internal implementation sources compiled without warnings or errors.
