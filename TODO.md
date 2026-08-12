@@ -57,7 +57,8 @@ Integrate zstd as one dependency target:
 - [x] Inspect upstream `Makefile`, `makefile.msc`, the official release source, and PHP's `ext/bz2/config.w32` for exact library inputs, Windows flags, output names, tests, and link expectations.
 - [x] Replace the redundant prebuilt PHP SDK archive download with the official bzip2 1.0.8 source tarball.
 - [x] Add one static target with the exact seven upstream library sources, no callback, and one initial maximal unity group.
-- [ ] Run `xmake prepare` to fetch the new source input and revalidate task idempotence.
+- [x] Run `xmake prepare` and verify that the official source tarball is extracted directly into `in/deps/bzip2`.
+- [ ] Repeat `xmake prepare` with every input present to revalidate task idempotence.
 - [ ] Build and record the validation result before moving to liblzma.
 
 ## Dependency Targets
@@ -97,6 +98,7 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-12 — `xmake prepare` at commit `a4ed100`: completed successfully in 3.1 seconds and extracted the official bzip2 1.0.8 tarball directly into `in/deps/bzip2`. A no-change repeat is still required to validate the new fetch's idempotence.
 - 2026-08-12 — `xmake -r -v` at commit `9f8c33a`: rebuilt `out/zstd.lib` successfully in 0.891 seconds after restoring the upstream-compatible dynamic CRT. Every verbose MSVC compile command used `-MD` (equivalent to `/MD`), and none used `/MT`.
 - 2026-08-12 — `xmake -r -v` at commit `43d46e7`: rebuilt `out/zstd.lib` successfully in 0.906 seconds. Every verbose MSVC compile command used `-MT` (equivalent to `/MT`), and none used `/MD`; the global static CRT selection is effective.
 - 2026-08-12 — `xmake -r -v` at commit `b270cd4`: built `out/zstd.lib` successfully in 0.922 seconds, validating the one-target source list and the minimal unity exclusions. The verbose MSVC commands exposed Xmake's default `/MD` runtime, so the target must be rebuilt after selecting `set_runtimes("MT")` globally.
