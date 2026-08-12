@@ -563,7 +563,7 @@ for my $output (@ARGV) {
     add_files("in/deps/openssl/crypto/ripemd/rmd_dgst.c", {unity_group = "conflict_18"})
     add_files("in/deps/openssl/crypto/sha/sha1dgst.c", {unity_group = "conflict_19"})
     add_files("in/deps/openssl/crypto/sm3/sm3.c", {unity_group = "conflict_20"})
-    add_files("in/deps/openssl/crypto/des/*.c", {unity_group = "conflict_27"})
+    add_files("in/deps/openssl/crypto/des/*.c", {unity_group = "conflict_108"})
     add_files("in/deps/openssl/crypto/lhash/lh_stats.c", {unity_group = "conflict_28"})
     add_files("in/deps/openssl/crypto/pkcs12/p12_asn.c", {unity_group = "conflict_29"})
     add_files("in/deps/openssl/crypto/pkcs12/p12_attr.c", {unity_group = "conflict_30"})
@@ -703,7 +703,7 @@ for my $output (@ARGV) {
     add_files("in/deps/openssl/crypto/rsa/rsa_lib.c", {unity_group = "conflict_69"})
     add_files("in/deps/openssl/providers/implementations/encode_decode/encode_key2text.c",
         {unity_group = "conflict_70"})
-    add_files("in/deps/openssl/crypto/rsa/rsa_sign.c", {unity_group = "conflict_71"})
+    add_files("in/deps/openssl/crypto/rsa/rsa_sign.c", {unity_group = "conflict_107"})
     add_files("in/deps/openssl/crypto/sha/sha256.c", {unity_group = "conflict_72"})
     add_files("in/deps/openssl/crypto/siphash/siphash.c", {unity_group = "conflict_73"})
     add_files("in/deps/openssl/crypto/slh_dsa/slh_dsa.c", {unity_group = "conflict_84"})
@@ -787,7 +787,7 @@ for my $output (@ARGV) {
     add_files("in/deps/openssl/ssl/statem/statem_lib.c", {unity_group = "conflict_77"})
     add_files("in/deps/openssl/ssl/statem/statem_srvr.c", {unity_group = "conflict_78"})
     add_files("in/deps/openssl/crypto/aes/aes_ecb.c", "in/deps/openssl/crypto/aes/aes_ige.c",
-        "in/deps/openssl/crypto/aes/aes_misc.c", {unity_group = "conflict_46"})
+        "in/deps/openssl/crypto/aes/aes_misc.c", {unity_group = "conflict_107"})
     add_files("in/deps/openssl/providers/common/der/der_ec_sig.c", {unity_group = "conflict_98"})
     add_files("in/deps/openssl/providers/common/der/der_sm2_sig.c", {unity_group = "conflict_99"})
     add_files("in/deps/openssl/providers/implementations/ciphers/cipher_aes_cbc_hmac_sha1_hw.c",
