@@ -12,7 +12,7 @@ rule("cb")
     on_prepare_file(function (target, sourcefile, opt)
         local fileconfig = target:fileconfig(sourcefile)
         if fileconfig and type(fileconfig.cb) == "function" then
-            fileconfig.cb(target, sourcefile, opt, import("core.project.depend"))
+            fileconfig.cb(target, sourcefile, opt, import("core.project.depend"), os.vrunv)
         end
     end)
 
@@ -299,7 +299,7 @@ target("openssl")
         "in/deps/openssl/crypto/whrlpool/wp-x86_64.asm",
         "in/deps/openssl/crypto/x86_64cpuid.asm",
         "in/deps/openssl/engines/e_padlock-x86_64.asm")
-    add_files("in/deps/openssl/crypto/init.c", {rules = {"cb"}, cb = function (target, sourcefile, opt, depend)
+    add_files("in/deps/openssl/crypto/init.c", {rules = {"cb"}, cb = function (target, sourcefile, opt, depend, runv)
         local root = path.join(os.projectdir(), "in/deps/openssl")
         local perl = path.join(os.projectdir(), "in/perl/perl/bin/perl.exe")
         local regular_outputs = {
@@ -379,14 +379,14 @@ target("openssl")
         table.join2(generator_inputs, os.files(path.join(root, "providers/common/der/*.c.in")))
         table.join2(generator_inputs, os.files(path.join(root, "providers/common/include/prov/*.h.in")))
         depend.on_changed(function ()
-            os.vrunv(perl, {"Configure", "VC-WIN64A", "no-shared", "no-module", "no-apps", "no-tests", "no-docs"},
+            runv(perl, {"Configure", "VC-WIN64A", "no-shared", "no-module", "no-apps", "no-tests", "no-docs"},
                 {curdir = root})
             for _, output in ipairs(regular_outputs) do
-                os.vrunv(perl, {"-I.", "-Mconfigdata", "util/dofile.pl", "-omakefile", output .. ".in"},
+                runv(perl, {"-I.", "-Mconfigdata", "util/dofile.pl", "-omakefile", output .. ".in"},
                     {curdir = root, stdout = path.join(root, output)})
             end
             for _, output in ipairs(param_outputs) do
-                os.vrunv(perl, {"-I.", "-Iutil/perl", "-Mconfigdata", "-MOpenSSL::paramnames",
+                runv(perl, {"-I.", "-Iutil/perl", "-Mconfigdata", "-MOpenSSL::paramnames",
                     "util/dofile.pl", "-omakefile", output .. ".in"},
                     {curdir = root, stdout = path.join(root, output)})
             end
@@ -396,12 +396,12 @@ target("openssl")
                     "providers/common/include/prov/der_" .. name .. ".h"
                 }
                 for _, output in ipairs(outputs) do
-                    os.vrunv(perl, {"-I.", "-Iproviders/common/der", "-Mconfigdata", "-Moids_to_c",
+                    runv(perl, {"-I.", "-Iproviders/common/der", "-Mconfigdata", "-Moids_to_c",
                         "util/dofile.pl", "-omakefile", output .. ".in"},
                         {curdir = root, stdout = path.join(root, output)})
                 end
             end
-            os.vrunv(perl, {"util/mkbuildinf.pl", "cl /MD /O2", "VC-WIN64A"},
+            runv(perl, {"util/mkbuildinf.pl", "cl /MD /O2", "VC-WIN64A"},
                 {curdir = root, stdout = path.join(root, "crypto/buildinf.h")})
             local perlasm = [[
 use strict;
@@ -417,7 +417,7 @@ for my $output (@ARGV) {
 ]]
             local argv = {"-I.", "-Mconfigdata", "-e", perlasm}
             table.join2(argv, assembly_outputs)
-            os.vrunv(perl, argv, {curdir = root})
+            runv(perl, argv, {curdir = root})
         end, {
             files = generator_inputs,
             values = {"VC-WIN64A", "no-shared", "no-module", "no-apps", "no-tests", "no-docs"},

@@ -126,6 +126,7 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-12 — `.\xmake.exe -vD openssl` at commit `65f2dd8`: dependency tracking reached the OpenSSL callback, but the stored file-configuration closure exposes filesystem helpers rather than `os.vrunv`. Pass the rule's verbose process runner into the target callback before attempting code generation again.
 - 2026-08-12 — `.\xmake.exe -vD openssl` at commit `c5e978c`: MSVC configuration succeeded, then the generic file callback adapter failed before OpenSSL code generation because a stored file-configuration function does not inherit Xmake's global `import`. Pass the dependency module from the `cb` rule into the target callback for the next test.
 
 - 2026-08-12 — `.\xmake.exe prepare` at commit `6bca1b1`: completed the no-change repeat successfully in 1.3 seconds, validating idempotence of the pinned official OpenSSL 3.5.7 input.
