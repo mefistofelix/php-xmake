@@ -125,7 +125,7 @@ target("zlib")
     add_files("in/deps/zlib/*.c|gz*.c|inf*.c|zutil.c", {unity_group = "core"})
     add_files("in/deps/zlib/gz*.c", "in/deps/zlib/inf*.c", {unity_ignored = true})
 
-target("brotlicommon")
+target("brotli")
     set_kind("static")
     set_targetdir(get_config("builddir"))
     add_includedirs("in/deps/brotli/c/include", {public = true})
@@ -136,7 +136,7 @@ target("brotlicommon")
         cb = function ()
         end
     })
-    add_files("in/deps/brotli/c/common/*.c|platform.c")
+    add_files("in/deps/brotli/c/common/*.c|platform.c", "in/deps/brotli/c/dec/*.c", "in/deps/brotli/c/enc/*.c")
 
 target("php")
     set_enabled(false)

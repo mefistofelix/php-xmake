@@ -27,6 +27,7 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 - Do not add arbitrary Lua helper functions, tables, aliases, or variables. Introduce Lua state only when an Xmake API requires it and no direct declarative expression is practical; keep such state local to the owning task or target callback.
 - A target's `cb` function is its single imperative entry point for configuration and code generation. Do not split target preparation across extra Lua functions.
 - Give every library dependency its own static-library target.
+- Do not mirror an upstream build's internal component libraries as separate Xmake targets by default. Keep one dependency in one target and include all of its components there. Create sublibrary targets only when a single target is proven impractical by duplicate external symbols, incompatible compile settings, unavoidable build ordering/code-generation edges, or another concrete technical constraint. Unity-group splits do not require target splits.
 - PHP extensions are part of the main PHP target; do not create a separate target for each extension.
 - Add source files with the broadest safe patterns, ideally at dependency or PHP-tree scope.
 - Prefer one unity translation unit containing all of a target's sources. Do not choose arbitrary batch sizes. Split into the fewest and widest explicit unity groups only when observed symbol, macro, header, or compiler conflicts prove that a single translation unit is impossible; isolate only the incompatible files.
@@ -63,7 +64,7 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 | Target | Build state | Kind | Source inputs | Output | Purpose | Status |
 | --- | --- | --- | --- | --- | --- | --- |
 | `zlib` | Disabled | Static library | `in/deps/zlib/*.c` | `out/zlib.lib` | First compression dependency | Build validated on MSVC x64 |
-| `brotlicommon` | Enabled (current priority) | Static library | `in/deps/brotli/c/common/*.c` | `out/brotlicommon.lib` | Shared Brotli constants, dictionary, platform, and transform support | One complete unity translation unit; build pending |
+| `brotli` | Enabled (current priority) | Static library | `in/deps/brotli/c/common/*.c`, `in/deps/brotli/c/dec/*.c`, `in/deps/brotli/c/enc/*.c` | `out/brotli.lib` | Complete Brotli common, decoder, and encoder implementation | One target and one complete unity translation unit; build pending |
 | `minilua` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/dynasm/minilua.c` | `out/minilua.exe` | Runs DynASM for the PHP JIT IR emitter | Defined; build validation pending |
 | `gen_ir_fold_hash` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c` | `out/gen_ir_fold_hash.exe` | Generates the JIT IR fold hash header | Defined; build validation pending |
 | `php` | Disabled | Object prototype | `in/php-src/Zend/zend.c`, `in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm` | `out/` | Becomes the static PHP build after dependency, configuration, codegen, and source integration | Prototype only; callback is a placeholder |
@@ -84,11 +85,11 @@ The zlib target uses one explicit unity group for `adler32.c`, `compress.c`, `cr
 ### Brotli upstream build analysis
 
 - Upstream version: Brotli 1.2.0.
-- Upstream CMake and Bazel both define three component libraries: `brotlicommon`, `brotlidec`, and `brotlienc`. Decoder and encoder each depend on common. Preserve these as three Xmake targets because they are distinct upstream libraries with real dependency edges.
+- Upstream CMake and Bazel define three component libraries: `brotlicommon`, `brotlidec`, and `brotlienc`, with decoder and encoder depending on common. This project combines all three components into one `brotli` target because they belong to one dependency. The upstream split remains useful for understanding source ownership, but it is not sufficient reason to create Xmake subtargets.
 - Each component source list is the broad recursive set under `c/common/*.c`, `c/dec/*.c`, or `c/enc/*.c`. Public headers come from `c/include`.
 - MSVC requires `_CRT_SECURE_NO_WARNINGS`. Brotli shared-compilation defines do not apply to these static targets, and the upstream math-library dependency is empty on MSVC.
 - No build-time code generation or assembly is enabled. `c/common/dictionary_inc.h` and the encoder's generated lookup headers are committed inputs. `c/common/dictionary.bin` is exposed as Bazel data but is not an input to the CMake library compilation.
-- Start each component with all its sources in one unity translation unit. Split only if a concrete conflict is observed.
+- Start the complete dependency with all common, decoder, and encoder sources in one unity translation unit. Split unity groups inside the same target only if a concrete conflict is observed; split targets only if a single archive is technically impossible.
 
 ## PHP Code-generation Inventory
 
