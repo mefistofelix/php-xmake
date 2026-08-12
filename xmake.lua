@@ -552,6 +552,17 @@ for my $output (@ARGV) {
     add_files("in/deps/openssl/crypto/modes/ccm128.c", {unity_group = "conflict_15"})
     add_files("in/deps/openssl/crypto/modes/cbc128.c", {unity_group = "conflict_16"})
     add_files("in/deps/openssl/crypto/objects/o_names.c", {unity_group = "conflict_48"})
+    add_files("in/deps/openssl/crypto/ocsp/ocsp_cl.c", {unity_group = "conflict_1"})
+    add_files("in/deps/openssl/crypto/ocsp/ocsp_ext.c", {unity_group = "conflict_2"})
+    add_files("in/deps/openssl/crypto/ocsp/ocsp_lib.c", {unity_group = "conflict_3"})
+    add_files("in/deps/openssl/crypto/ocsp/ocsp_prn.c", {unity_group = "conflict_4"})
+    add_files("in/deps/openssl/crypto/ocsp/ocsp_srv.c", {unity_group = "conflict_5"})
+    add_files("in/deps/openssl/crypto/ocsp/ocsp_vfy.c", {unity_group = "conflict_6"})
+    add_files("in/deps/openssl/crypto/ocsp/v3_ocsp.c", {unity_group = "conflict_7"})
+    add_files("in/deps/openssl/crypto/md5/md5_dgst.c", {unity_group = "conflict_17"})
+    add_files("in/deps/openssl/crypto/ripemd/rmd_dgst.c", {unity_group = "conflict_18"})
+    add_files("in/deps/openssl/crypto/sha/sha1dgst.c", {unity_group = "conflict_19"})
+    add_files("in/deps/openssl/crypto/sm3/sm3.c", {unity_group = "conflict_20"})
     add_files("in/deps/openssl/crypto/params_idx.c",
         "in/deps/openssl/providers/common/der/der_digests_gen.c",
         "in/deps/openssl/providers/common/der/der_dsa_gen.c",
