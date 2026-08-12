@@ -826,6 +826,38 @@ for my $output (@ARGV) {
         {unity_group = "conflict_95"})
     add_files("in/deps/openssl/providers/implementations/ciphers/cipher_camellia_hw.c",
         {unity_group = "conflict_96"})
+    add_files("in/deps/openssl/providers/implementations/digests/blake2_prov.c",
+        "in/deps/openssl/providers/implementations/digests/digestcommon.c",
+        "in/deps/openssl/providers/implementations/digests/md4_prov.c",
+        "in/deps/openssl/providers/implementations/digests/md5_prov.c",
+        "in/deps/openssl/providers/implementations/digests/md5_sha1_prov.c",
+        "in/deps/openssl/providers/implementations/digests/mdc2_prov.c",
+        "in/deps/openssl/providers/implementations/digests/null_prov.c",
+        "in/deps/openssl/providers/implementations/digests/ripemd_prov.c",
+        "in/deps/openssl/providers/implementations/digests/sha2_prov.c",
+        "in/deps/openssl/providers/implementations/digests/sha3_prov.c",
+        "in/deps/openssl/providers/implementations/digests/sm3_prov.c",
+        "in/deps/openssl/providers/implementations/digests/wp_prov.c",
+        {unity_group = "conflict_104"})
+    add_files("in/deps/openssl/providers/implementations/digests/blake2s_prov.c",
+        "in/deps/openssl/providers/implementations/macs/blake2s_mac.c",
+        {unity_group = "conflict_105"})
+    add_files("in/deps/openssl/providers/implementations/digests/blake2b_prov.c",
+        "in/deps/openssl/providers/implementations/macs/blake2b_mac.c",
+        {unity_group = "conflict_106"})
+    add_files("in/deps/openssl/providers/implementations/encode_decode/decode_der2key.c",
+        {unity_group = "conflict_53"})
+    add_files("in/deps/openssl/providers/implementations/encode_decode/decode_msblob2key.c",
+        {unity_group = "conflict_54"})
+    add_files("in/deps/openssl/providers/implementations/encode_decode/decode_pvk2key.c",
+        {unity_group = "conflict_55"})
+    add_files("in/deps/openssl/providers/implementations/encode_decode/ml_kem_codecs.c",
+        {unity_group = "conflict_56"})
+    add_files("in/deps/openssl/providers/implementations/rands/seeding/rand_cpu_x86.c",
+        {unity_group = "conflict_57"})
+    add_files("in/deps/openssl/providers/implementations/rands/seeding/rand_tsc.c",
+        {unity_group = "conflict_58"})
+    add_files("in/deps/openssl/engines/e_capi.c", {unity_group = "conflict_59"})
     add_files("in/deps/openssl/crypto/params_idx.c",
         "in/deps/openssl/providers/common/der/der_digests_gen.c",
         "in/deps/openssl/providers/common/der/der_dsa_gen.c",
