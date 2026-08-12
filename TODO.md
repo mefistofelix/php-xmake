@@ -46,7 +46,7 @@ Integrate zstd as one dependency target:
 - [x] Inspect upstream CMake, Makefiles, and Visual Studio project for exact library sources, exclusions, Windows defines, generated inputs, assembly/intrinsics, and feature toggles.
 - [x] Keep common, compression, decompression, dictionary-builder, and legacy modules in one `zstd` target.
 - [x] Add broad source patterns and no `cb` callback because the upstream library has no build-time codegen.
-- [x] Put all 30 current sources in one unity group and isolate the seven legacy sources whose inspected private symbols collide across historical versions.
+- [x] Keep 29 current sources in one unity group; isolate FastCover because `cover.h` is unguarded, and isolate the seven legacy sources whose inspected private symbols collide across historical versions.
 - [ ] Build and record the validation result before moving to bzip2.
 
 ## Dependency Targets
@@ -85,6 +85,7 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-12 — `xmake -r` at commit `a05d138`: confirmed that broad `add_files` plus narrower repeated file config deduplicates correctly; all seven legacy files compiled separately. The main zstd unity unit then failed because `cover.c` and `fastcover.c` both include the unguarded `cover.h`. FastCover was isolated for the next test.
 - 2026-08-12 — `xmake -r` at commit `17a93d0`: forced a complete `brotli` rebuild after removing empty callbacks; `out/brotli.lib` built without warnings or errors in 0.906 seconds.
 - 2026-08-12 — `xmake` at commit `a64db92`: built the complete single-target `out/brotli.lib` successfully with MSVC x64 in 0.921 seconds. The minimal three-unit partition compiled without warnings or errors.
 - 2026-08-12 — `xmake` at commit `3e9fc34`: the complete single-target Brotli build reached compilation but one unity unit exposed private encoder symbol collisions (`Hash`, `IsMatch`, `ShouldCompress`, `SortHuffmanTree`, and `BrotliReverseBits`). The dependency remains one archive; sources were partitioned into the minimum three unity-compatible units for the next test.

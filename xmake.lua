@@ -126,6 +126,7 @@ target("zstd")
     add_rules("c.unity_build")
     add_files("in/deps/zstd/lib/common/*.c", "in/deps/zstd/lib/compress/*.c",
         "in/deps/zstd/lib/decompress/*.c", "in/deps/zstd/lib/dictBuilder/*.c", "in/deps/zstd/lib/legacy/*.c")
+    add_files("in/deps/zstd/lib/dictBuilder/fastcover.c", {unity_ignored = true})
     add_files("in/deps/zstd/lib/legacy/*.c", {unity_ignored = true})
 
 target("php")
