@@ -16,9 +16,8 @@ Last updated: 2026-08-12
 - [x] Build and archive the complete single-target `out/brotli.lib` successfully with MSVC x64.
 - [ ] Validate the current Xmake configuration and helper targets.
 - [x] Remove empty and placeholder callbacks; only targets with real codegen/configuration work may attach a `cb` callback.
-- [x] Select the static multithreaded MSVC CRT globally with `set_runtimes("MT")`.
-- [x] Verify a forced zstd build uses `/MT` in every MSVC compile command.
-- [ ] Revalidate zlib and Brotli under the selected `/MT` CRT when they next become active.
+- [x] Follow upstream Windows PHP and select the dynamic multithreaded MSVC CRT globally with `set_runtimes("MD")` for loadable-extension compatibility.
+- [ ] Verify a forced zstd build uses `/MD` in every MSVC compile command.
 - [ ] Replace the object-only `php` prototype and add its real `cb` callback when PHP codegen is implemented.
 
 ## Completed Target: zlib
@@ -51,7 +50,7 @@ Integrate zstd as one dependency target:
 - [x] Add broad source patterns and no `cb` callback because the upstream library has no build-time codegen.
 - [x] Keep 29 current sources in one unity group; isolate FastCover because `cover.h` is unguarded, and isolate the seven legacy sources whose inspected private symbols collide across historical versions.
 - [x] Build the complete target once and validate its source/unity layout.
-- [x] Rebuild with `/MT`, verify the compiler command, and record the final validation result before moving to bzip2.
+- [ ] Rebuild with the final `/MD` selection, verify the compiler command, and record the validation result before moving to bzip2.
 
 ## Dependency Targets
 
@@ -81,7 +80,7 @@ Every library must receive its own static target. Integrate and validate them on
 
 - [ ] Add broad Zend, main, TSRM, SAPI, extension, and selected external source patterns.
 - [ ] Keep PHP extensions inside the PHP target rather than creating extension targets.
-- [x] Select the statically linked multithreaded MSVC CRT globally with `set_runtimes("MT")`.
+- [x] Select the upstream-compatible dynamically linked multithreaded MSVC CRT globally with `set_runtimes("MD")`.
 - [ ] Decide and configure PHP ZTS versus NTS independently of the MSVC CRT selection.
 - [ ] Add the widest safe unity-build groups and document necessary exclusions.
 - [ ] Connect all dependency targets in correct link order.
