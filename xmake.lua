@@ -113,15 +113,16 @@ target("zlib")
     set_kind("static")
     set_targetdir(get_config("builddir"))
     add_includedirs("in/deps/zlib", {public = true})
-    add_defines("_CRT_SECURE_NO_DEPRECATE", "_CRT_NONSTDC_NO_DEPRECATE")
-    add_rules("c.unity_build", {batchsize = 4})
+    add_defines("ZLIB_BUILD", "NO_FSEEKO", "_CRT_SECURE_NO_DEPRECATE", "_CRT_NONSTDC_NO_DEPRECATE")
+    add_rules("c.unity_build", {batchsize = 0})
     add_files("in/deps/zlib/zutil.c", {
         rules = "cb",
+        unity_ignored = true,
         cb = function ()
         end
     })
-    add_files("in/deps/zlib/*.c|zutil.c|infback.c|inffast.c|inflate.c")
-    add_files("in/deps/zlib/infback.c", "in/deps/zlib/inffast.c", "in/deps/zlib/inflate.c", {unity_ignored = true})
+    add_files("in/deps/zlib/*.c|gz*.c|inf*.c|zutil.c", {unity_group = "core"})
+    add_files("in/deps/zlib/gz*.c", "in/deps/zlib/inf*.c", {unity_ignored = true})
 
 target("php")
     set_enabled(false)

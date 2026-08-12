@@ -20,10 +20,10 @@ Last updated: 2026-08-12
 
 Integrate `zlib` as the first dependency target:
 
-- [x] Inspect its Windows source/configuration requirements and source exclusions.
+- [x] Inspect upstream `CMakeLists.txt` and `win32/Makefile.msc` for exact sources, Windows defines, output naming, configuration, and optional assembly.
 - [x] Add one static-library target with the broadest safe source pattern.
 - [x] Attach its target-owned `cb` callback to `zutil.c`; no zlib code generation is currently required.
-- [x] Keep four-file C unity batches while isolating `infback.c`, `inffast.c`, and `inflate.c`, which are not unity-safe because of internal-header and macro collisions.
+- [x] Use one maximal explicit unity group for compatible core sources; isolate only `zutil.c`, `gz*.c`, and `inf*.c`, whose unguarded internal headers and macros require separate translation units.
 - [ ] Build and record the validation result before moving to the next dependency.
 
 ## Dependency Targets
@@ -62,6 +62,7 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-12 — `xmake` at commit `f48875c`: the separately compiled inflate sources succeeded, but the next arbitrary four-file batch combined `deflate.c` and multiple `gz*.c` files and failed on `GZIP`/`gz_state` redefinitions. Arbitrary batching was removed in favor of one explicit maximal compatible group.
 - 2026-08-12 — `xmake` at commit `af8b0a4`: correctly selected only `zlib`, then failed in `unity_3.c`. `gzwrite.c` brings in a `COPY` macro that collides with the `inflate.h` enum; the three inflate implementation sources were excluded from unity batches for the next test.
 - 2026-08-12 — `xmake prepare` at commit `0d2bf4c`: completed successfully after correcting the `ngtcp2` and `nghttp3` release refs. A repeat run is still required to prove idempotence.
 - 2026-08-12 — `xmake prepare` at commit `fec296f`: stopped after the initial dependency downloads because the configured `ngtcp2` ref `v1.69.0` does not exist. Official release tags are `ngtcp2` `v1.25.0` and `nghttp3` `v1.18.0`; the pins were corrected for the next test.

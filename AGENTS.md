@@ -22,13 +22,14 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 
 ## Target Model
 
+- Before converting a dependency, inspect its original non-Xmake build system (`CMakeLists.txt`, configure scripts, Makefiles, Visual Studio projects, or equivalent). Treat it as the primary source for the exact source list and exclusions, generated files, platform defines, include paths, output names, runtime flags, optional assembly, and dependency edges. Record the relevant findings in this file before the first build attempt so Xmake conversion is guided by upstream intent instead of trial and error.
 - Keep `xmake.lua` primarily declarative: it should consist of Xmake configuration, target declarations, and one target-specific `cb` callback function per target.
 - Do not add arbitrary Lua helper functions, tables, aliases, or variables. Introduce Lua state only when an Xmake API requires it and no direct declarative expression is practical; keep such state local to the owning task or target callback.
 - A target's `cb` function is its single imperative entry point for configuration and code generation. Do not split target preparation across extra Lua functions.
 - Give every library dependency its own static-library target.
 - PHP extensions are part of the main PHP target; do not create a separate target for each extension.
 - Add source files with the broadest safe patterns, ideally at dependency or PHP-tree scope.
-- Enable unity builds with the largest safe compilation groups, splitting groups only where symbol collisions or other compiler constraints require it.
+- Prefer one unity translation unit containing all of a target's sources. Do not choose arbitrary batch sizes. Split into the fewest and widest explicit unity groups only when observed symbol, macro, header, or compiler conflicts prove that a single translation unit is impossible; isolate only the incompatible files.
 - Build the project incrementally, one target at a time, starting with dependencies and ending with the complete PHP target.
 - Keep only the current priority target active during focused build/debug cycles. Use `set_enabled(false)` to remove unrelated or unfinished targets completely. Use `set_default(false)` when a target must remain available for an explicit build or as a dependency but should not join the default build. Re-enable a target when it becomes the priority or a dependency of the priority target.
 
@@ -46,6 +47,7 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 ## Documentation and Progress
 
 - This file is the build-policy, target, and code-generation reference. Keep its inventories synchronized with `xmake.lua`.
+- Treat durable guidance supplied by the user during development as project policy: evaluate it, incorporate the important parts into this file in English, and revise or replace older rules when the guidance makes them obsolete. Keep one-off test observations in `TODO.md` instead of turning them into permanent policy.
 - `TODO.md` is the live implementation plan. Update completed work, the next target, blockers, and validation status whenever the build changes.
 - Do not claim a target is working until it has been built successfully.
 
@@ -60,14 +62,23 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 
 | Target | Build state | Kind | Source inputs | Output | Purpose | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| `zlib` | Enabled (current priority) | Static library | `in/deps/zlib/*.c` | `out/zlib.lib` | First compression dependency | Four-file unity batches; inflate sources isolated; rebuild pending |
+| `zlib` | Enabled (current priority) | Static library | `in/deps/zlib/*.c` | `out/zlib.lib` | First compression dependency | One maximal core unity group; incompatible internal sources isolated; rebuild pending |
 | `minilua` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/dynasm/minilua.c` | `out/minilua.exe` | Runs DynASM for the PHP JIT IR emitter | Defined; build validation pending |
 | `gen_ir_fold_hash` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c` | `out/gen_ir_fold_hash.exe` | Generates the JIT IR fold hash header | Defined; build validation pending |
 | `php` | Disabled | Object prototype | `in/php-src/Zend/zend.c`, `in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm` | `out/` | Becomes the static PHP build after dependency, configuration, codegen, and source integration | Prototype only; callback is a placeholder |
 
 The `prepare` task fetches dependencies. Each library must receive its own Xmake static-library target as it is integrated; downloaded or prebuilt archives are not yet build targets.
 
-The zlib target keeps `infback.c`, `inffast.c`, and `inflate.c` out of unity batches. `gzwrite.c` exposes a `COPY` macro through `gzguts.h`, while `inflate.h` declares an enum member with the same name; the inflate implementation headers also assume separate translation units. The remaining sources stay in four-file unity batches.
+The zlib target uses one explicit unity group for `adler32.c`, `compress.c`, `crc32.c`, `deflate.c`, `trees.c`, and `uncompr.c`. It compiles `zutil.c`, all `gz*.c` files, and all `inf*.c` files separately. `gzguts.h`, `inflate.h`, and `inftrees.h` are internal headers without conventional guards; repeated inclusion redefines types, and `gzguts.h` also exposes `COPY` and `GZIP` macros that collide with the deflate/inflate implementation. These observed conflicts make those sources unsafe in a shared translation unit.
+
+### zlib upstream build analysis
+
+- Upstream version: zlib 1.3.2.
+- `CMakeLists.txt` and `win32/Makefile.msc` agree on the same 15 root C sources; the Xmake wildcard covers exactly that set.
+- The upstream static CMake target defines `ZLIB_BUILD`, `NO_FSEEKO` when the probe fails on MSVC, `_CRT_SECURE_NO_DEPRECATE`, and `_CRT_NONSTDC_NO_DEPRECATE`. It does not enable Unix large-file or hidden-visibility defines on Windows.
+- The shipped root `zconf.h` already contains the Windows configuration used by the MSVC Makefile, so the zlib callback has no generation work.
+- The MSVC Makefile names the static result `zlib.lib`. CMake uses `zs.lib`; this project keeps `zlib.lib` to match the native MSVC convention and the target name.
+- The MSVC Makefile declares optional x86/x64 assembly rules but leaves `OBJA` empty. Upstream CMake also leaves contrib acceleration disabled by default, so the initial target intentionally compiles no assembly.
 
 ## PHP Code-generation Inventory
 
