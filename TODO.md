@@ -98,6 +98,7 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-12 — `xmake prepare` at commit `e4e0df8`: completed successfully in 1.4 seconds with the final authoritative-source policy. The official Sourceware bzip2 input was retained idempotently; the PHP SDK binary package is no longer part of `prepare`.
 - 2026-08-12 — `xmake -r -v` at commit `dccf414`: built `out/bzip2.lib` successfully in 1.391 seconds. All seven upstream library sources compiled in one unity translation unit with `/MD`; Xmake's `set_optimize("fastest")` emitted `/O2` on MSVC.
 - 2026-08-12 — `xmake prepare` at commit `5f134f4`: completed a no-change repeat successfully in 1.3 seconds. The pinned GitHub bzip2 source and every other current input were retained, validating idempotence.
 - 2026-08-12 — `xmake prepare` at commit `60a2840`: completed successfully in 2.0 seconds and materialized `github://libarchive/bzip2?ref=bzip2-1.0.8` in `in/deps/bzip2`. A no-change repeat is still required to validate the new GitHub marker.
