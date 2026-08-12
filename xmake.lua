@@ -770,6 +770,7 @@ for my $output (@ARGV) {
     add_files("in/deps/openssl/ssl/quic/quic_record_rx.c", {unity_group = "conflict_67"})
     add_files("in/deps/openssl/ssl/quic/quic_stream_map.c", {unity_group = "conflict_68"})
     add_files("in/deps/openssl/ssl/quic/quic_txpim.c", {unity_group = "conflict_69"})
+    add_files("in/deps/openssl/ssl/record/methods/dtls_meth.c", {unity_group = "conflict_47"})
     add_files("in/deps/openssl/ssl/record/methods/ssl3_meth.c", {unity_group = "conflict_98"})
     add_files("in/deps/openssl/ssl/record/methods/tls13_meth.c", {unity_group = "conflict_99"})
     add_files("in/deps/openssl/ssl/record/methods/tls1_meth.c", {unity_group = "conflict_100"})
