@@ -99,12 +99,6 @@ target("gen_ir_fold_hash")
     add_files("in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c")
     add_defines("IR_TARGET_X86_64")
 
-target("php-asm")
-    set_kind("object")
-    set_targetdir(get_config("builddir"))
-    add_asflags("/DBOOST_CONTEXT_EXPORT=EXPORT", {force = true})
-    add_files("in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm")
-
 target("php")
     set_kind("object")
     set_targetdir(get_config("builddir"))
@@ -116,3 +110,6 @@ target("php")
             return "aaa"
         end
     })
+
+    add_asflags("/DBOOST_CONTEXT_EXPORT=EXPORT", {force = true})
+    add_files("in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm")
