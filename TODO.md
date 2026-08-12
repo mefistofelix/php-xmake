@@ -80,8 +80,12 @@ Integrate zstd as one dependency target:
 - [x] Replace the moving official `openssl-3.5` branch with the pinned official `openssl-3.5.7` LTS release tag.
 - [x] Remove `in/deps/openssl` and validate the pinned source fetch from a clean absence.
 - [x] Repeat `xmake prepare` with every input present to validate idempotence.
-- [ ] Inspect upstream Configure/build metadata and Windows notes for the exact crypto/SSL source set, generated files, assembly, public/private defines, providers, and system libraries.
-- [ ] Add one static OpenSSL dependency target unless upstream constraints prove that separate archives are technically required.
+- [x] Inspect upstream Configure/build metadata and Windows notes for the exact crypto/SSL source set, generated files, assembly, public/private defines, providers, and system libraries.
+- [x] Implement OpenSSL code generation with `perl Configure` and the required Perl generators only; do not invoke `nmake` from the target callback.
+- [x] Declare all selected C and generated assembly sources directly in Xmake and let Xmake perform compilation, NASM assembly, and archiving.
+- [x] Add one static OpenSSL dependency target; the configured closure contains no source compiled with incompatible duplicate settings.
+- [x] Validate that the Xmake source declaration matches the configured 1,100-C plus 39-assembly upstream closure exactly.
+- [ ] Resolve only observed unity-build conflicts and retain the fewest widest groups.
 - [ ] Validate the standard public OpenSSL interface and inspect the resulting archive symbol/directive surface.
 - [ ] Build and record the validation result before moving to libcurl/libssh2/libsodium.
 

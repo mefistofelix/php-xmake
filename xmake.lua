@@ -144,6 +144,7 @@ target("bzip2")
         "in/deps/bzip2/spewG.c", "in/deps/bzip2/unzcrash.c")
 
 target("liblzma")
+    set_enabled(false)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
@@ -191,6 +192,241 @@ target("liblzma")
         "in/deps/xz/src/liblzma/common/index_encoder.c",
         "in/deps/xz/src/liblzma/lz/lz_encoder_mf.c",
         "in/deps/xz/src/liblzma/lzma/lzma_encoder*.c", {unity_group = "conflict_4"})
+
+target("openssl")
+    set_kind("static")
+    set_targetdir(get_config("builddir"))
+    set_optimize("fastest")
+    set_toolset("as", "nasm@$(projectdir)/in/perl/c/bin/nasm.exe")
+    add_includedirs("in/deps/openssl/include", {public = true})
+    add_includedirs("in/deps/openssl", "in/deps/openssl/crypto",
+        "in/deps/openssl/providers/common/include", "in/deps/openssl/providers/common/include/prov",
+        "in/deps/openssl/providers/implementations/include", "in/deps/openssl/providers/fips/include")
+    add_defines("L_ENDIAN", "OPENSSL_PIC", "OPENSSL_BUILDING_OPENSSL", "OPENSSL_SYS_WIN32",
+        "WIN32_LEAN_AND_MEAN", "UNICODE", "_UNICODE", "_CRT_SECURE_NO_DEPRECATE",
+        "_WINSOCK_DEPRECATED_NO_WARNINGS", "NDEBUG", "STATIC_LEGACY",
+        "AES_ASM", "BSAES_ASM", "CMLL_ASM", "ECP_NISTZ256_ASM", "GHASH_ASM",
+        "KECCAK1600_ASM", "MD5_ASM", "OPENSSL_BN_ASM_GF2m", "OPENSSL_BN_ASM_MONT",
+        "OPENSSL_BN_ASM_MONT5", "OPENSSL_CPUID_OBJ", "OPENSSL_IA32_SSE2", "PADLOCK_ASM",
+        "POLY1305_ASM", "RC4_ASM", "SHA1_ASM", "SHA256_ASM", "SHA512_ASM", "VPAES_ASM",
+        "WHIRLPOOL_ASM", "X25519_ASM", [[OPENSSLDIR="C:\Program Files\Common Files\SSL"]],
+        [[ENGINESDIR="C:\Program Files\OpenSSL\lib\engines-3"]],
+        [[MODULESDIR="C:\Program Files\OpenSSL\lib\ossl-modules"]])
+    add_cflags("/Gs0", "/GF", "/Gy", {force = true})
+    add_asflags("-Ox", "-DNEAR", "-g", {force = true})
+    add_syslinks("ws2_32", "gdi32", "advapi32", "crypt32", "user32", {public = true})
+    add_rules("c.unity_build")
+    add_files("in/deps/openssl/crypto/**.c", "in/deps/openssl/ssl/**.c",
+        "in/deps/openssl/providers/**.c")
+    add_files("in/deps/openssl/engines/e_capi.c", "in/deps/openssl/engines/e_padlock.c")
+    remove_files("in/deps/openssl/crypto/bn/asm/*.c", "in/deps/openssl/crypto/chacha/*.c",
+        "in/deps/openssl/crypto/md2/*.c", "in/deps/openssl/crypto/rc4/*.c",
+        "in/deps/openssl/crypto/rc5/*.c", "in/deps/openssl/providers/fips/**.c")
+    remove_files("in/deps/openssl/crypto/aes/aes_cbc.c", "in/deps/openssl/crypto/aes/aes_core.c",
+        "in/deps/openssl/crypto/aes/aes_x86core.c", "in/deps/openssl/crypto/*cap.c",
+        "in/deps/openssl/crypto/bn/bn_ppc.c", "in/deps/openssl/crypto/bn/bn_s390x.c",
+        "in/deps/openssl/crypto/bn/bn_sparc.c", "in/deps/openssl/crypto/camellia/camellia.c",
+        "in/deps/openssl/crypto/camellia/cmll_cbc.c", "in/deps/openssl/crypto/des/ncbc_enc.c",
+        "in/deps/openssl/crypto/dllmain.c", "in/deps/openssl/crypto/ec/ecp_nistp*.c",
+        "in/deps/openssl/crypto/ec/ecp_nistz256_table.c", "in/deps/openssl/crypto/ec/ecp_ppc.c",
+        "in/deps/openssl/crypto/ec/ecp_s390x_nistp.c", "in/deps/openssl/crypto/ec/ecp_sm2p256*.c",
+        "in/deps/openssl/crypto/ec/ecx_s390x.c", "in/deps/openssl/crypto/evp/legacy_md2.c",
+        "in/deps/openssl/crypto/hmac/hmac_s390x.c", "in/deps/openssl/crypto/LPdir_*.c",
+        "in/deps/openssl/crypto/mem_clr.c", "in/deps/openssl/crypto/poly1305/poly1305_base2_44.c",
+        "in/deps/openssl/crypto/poly1305/poly1305_ieee754.c",
+        "in/deps/openssl/crypto/poly1305/poly1305_ppc.c", "in/deps/openssl/crypto/rand/rand_egd.c",
+        "in/deps/openssl/crypto/rsa/rsa_acvp_test_params.c", "in/deps/openssl/crypto/sha/keccak1600.c",
+        "in/deps/openssl/crypto/sha/sha_ppc.c", "in/deps/openssl/crypto/sha/sha_riscv.c",
+        "in/deps/openssl/crypto/sm3/sm3_riscv.c", "in/deps/openssl/crypto/whrlpool/wp_block.c",
+        "in/deps/openssl/providers/common/securitycheck_fips.c",
+        "in/deps/openssl/providers/implementations/ciphers/cipher_rc5.c",
+        "in/deps/openssl/providers/implementations/ciphers/cipher_rc5_hw.c",
+        "in/deps/openssl/providers/implementations/digests/md2_prov.c",
+        "in/deps/openssl/providers/implementations/kem/template_kem.c",
+        "in/deps/openssl/providers/implementations/keymgmt/template_kmgmt.c",
+        "in/deps/openssl/providers/implementations/macs/blake2_mac_impl.c",
+        "in/deps/openssl/providers/implementations/rands/fips_crng_test.c",
+        "in/deps/openssl/providers/implementations/rands/seeding/rand_cpu_arm64.c",
+        "in/deps/openssl/providers/implementations/rands/seeding/rand_vms.c",
+        "in/deps/openssl/providers/implementations/rands/seeding/rand_vxworks.c",
+        "in/deps/openssl/ssl/record/methods/ktls_meth.c")
+    add_files("in/deps/openssl/crypto/params_idx.c",
+        "in/deps/openssl/providers/common/der/der_digests_gen.c",
+        "in/deps/openssl/providers/common/der/der_dsa_gen.c",
+        "in/deps/openssl/providers/common/der/der_ec_gen.c",
+        "in/deps/openssl/providers/common/der/der_ecx_gen.c",
+        "in/deps/openssl/providers/common/der/der_ml_dsa_gen.c",
+        "in/deps/openssl/providers/common/der/der_rsa_gen.c",
+        "in/deps/openssl/providers/common/der/der_slh_dsa_gen.c",
+        "in/deps/openssl/providers/common/der/der_sm2_gen.c",
+        "in/deps/openssl/providers/common/der/der_wrap_gen.c")
+    add_files("in/deps/openssl/crypto/aes/aes-x86_64.asm",
+        "in/deps/openssl/crypto/aes/aesni-mb-x86_64.asm",
+        "in/deps/openssl/crypto/aes/aesni-sha1-x86_64.asm",
+        "in/deps/openssl/crypto/aes/aesni-sha256-x86_64.asm",
+        "in/deps/openssl/crypto/aes/aesni-x86_64.asm",
+        "in/deps/openssl/crypto/aes/aesni-xts-avx512.asm",
+        "in/deps/openssl/crypto/aes/bsaes-x86_64.asm",
+        "in/deps/openssl/crypto/aes/vpaes-x86_64.asm",
+        "in/deps/openssl/crypto/bn/rsaz-2k-avx512.asm",
+        "in/deps/openssl/crypto/bn/rsaz-2k-avxifma.asm",
+        "in/deps/openssl/crypto/bn/rsaz-3k-avx512.asm",
+        "in/deps/openssl/crypto/bn/rsaz-3k-avxifma.asm",
+        "in/deps/openssl/crypto/bn/rsaz-4k-avx512.asm",
+        "in/deps/openssl/crypto/bn/rsaz-4k-avxifma.asm",
+        "in/deps/openssl/crypto/bn/rsaz-avx2.asm",
+        "in/deps/openssl/crypto/bn/rsaz-x86_64.asm",
+        "in/deps/openssl/crypto/bn/x86_64-gf2m.asm",
+        "in/deps/openssl/crypto/bn/x86_64-mont.asm",
+        "in/deps/openssl/crypto/bn/x86_64-mont5.asm",
+        "in/deps/openssl/crypto/camellia/cmll-x86_64.asm",
+        "in/deps/openssl/crypto/chacha/chacha-x86_64.asm",
+        "in/deps/openssl/crypto/ec/ecp_nistz256-x86_64.asm",
+        "in/deps/openssl/crypto/ec/x25519-x86_64.asm",
+        "in/deps/openssl/crypto/md5/md5-x86_64.asm",
+        "in/deps/openssl/crypto/modes/aes-gcm-avx512.asm",
+        "in/deps/openssl/crypto/modes/aesni-gcm-x86_64.asm",
+        "in/deps/openssl/crypto/modes/ghash-x86_64.asm",
+        "in/deps/openssl/crypto/poly1305/poly1305-x86_64.asm",
+        "in/deps/openssl/crypto/rc4/rc4-md5-x86_64.asm",
+        "in/deps/openssl/crypto/rc4/rc4-x86_64.asm",
+        "in/deps/openssl/crypto/sha/keccak1600-x86_64.asm",
+        "in/deps/openssl/crypto/sha/sha1-mb-x86_64.asm",
+        "in/deps/openssl/crypto/sha/sha1-x86_64.asm",
+        "in/deps/openssl/crypto/sha/sha256-mb-x86_64.asm",
+        "in/deps/openssl/crypto/sha/sha256-x86_64.asm",
+        "in/deps/openssl/crypto/sha/sha512-x86_64.asm",
+        "in/deps/openssl/crypto/whrlpool/wp-x86_64.asm",
+        "in/deps/openssl/crypto/x86_64cpuid.asm",
+        "in/deps/openssl/engines/e_padlock-x86_64.asm")
+    add_files("in/deps/openssl/crypto/init.c", {rules = {"cb"}, cb = function (target, sourcefile, opt)
+        import("core.project.depend")
+
+        local root = path.join(os.projectdir(), "in/deps/openssl")
+        local perl = path.join(os.projectdir(), "in/perl/perl/bin/perl.exe")
+        local regular_outputs = {
+            "include/crypto/bn_conf.h", "include/crypto/dso_conf.h", "include/openssl/asn1.h",
+            "include/openssl/asn1t.h", "include/openssl/bio.h", "include/openssl/cmp.h",
+            "include/openssl/cms.h", "include/openssl/comp.h", "include/openssl/conf.h",
+            "include/openssl/crmf.h", "include/openssl/crypto.h", "include/openssl/ct.h",
+            "include/openssl/err.h", "include/openssl/ess.h", "include/openssl/fipskey.h",
+            "include/openssl/lhash.h", "include/openssl/ocsp.h", "include/openssl/opensslv.h",
+            "include/openssl/pkcs12.h", "include/openssl/pkcs7.h", "include/openssl/safestack.h",
+            "include/openssl/srp.h", "include/openssl/ssl.h", "include/openssl/ui.h",
+            "include/openssl/x509.h", "include/openssl/x509_acert.h",
+            "include/openssl/x509_vfy.h", "include/openssl/x509v3.h"
+        }
+        local param_outputs = {
+            "crypto/params_idx.c", "include/internal/param_names.h", "include/openssl/core_names.h"
+        }
+        local der_names = {"digests", "dsa", "ec", "ecx", "ml_dsa", "rsa", "slh_dsa", "sm2", "wrap"}
+        local assembly_outputs = {
+            [[crypto\aes\aes-x86_64.asm]], [[crypto\aes\aesni-mb-x86_64.asm]],
+            [[crypto\aes\aesni-sha1-x86_64.asm]], [[crypto\aes\aesni-sha256-x86_64.asm]],
+            [[crypto\aes\aesni-x86_64.asm]], [[crypto\aes\aesni-xts-avx512.asm]],
+            [[crypto\aes\bsaes-x86_64.asm]], [[crypto\aes\vpaes-x86_64.asm]],
+            [[crypto\bn\rsaz-2k-avx512.asm]], [[crypto\bn\rsaz-2k-avxifma.asm]],
+            [[crypto\bn\rsaz-3k-avx512.asm]], [[crypto\bn\rsaz-3k-avxifma.asm]],
+            [[crypto\bn\rsaz-4k-avx512.asm]], [[crypto\bn\rsaz-4k-avxifma.asm]],
+            [[crypto\bn\rsaz-avx2.asm]], [[crypto\bn\rsaz-x86_64.asm]],
+            [[crypto\bn\x86_64-gf2m.asm]], [[crypto\bn\x86_64-mont.asm]],
+            [[crypto\bn\x86_64-mont5.asm]], [[crypto\camellia\cmll-x86_64.asm]],
+            [[crypto\chacha\chacha-x86_64.asm]], [[crypto\ec\ecp_nistz256-x86_64.asm]],
+            [[crypto\ec\x25519-x86_64.asm]], [[crypto\md5\md5-x86_64.asm]],
+            [[crypto\modes\aes-gcm-avx512.asm]], [[crypto\modes\aesni-gcm-x86_64.asm]],
+            [[crypto\modes\ghash-x86_64.asm]], [[crypto\poly1305\poly1305-x86_64.asm]],
+            [[crypto\rc4\rc4-md5-x86_64.asm]], [[crypto\rc4\rc4-x86_64.asm]],
+            [[crypto\sha\keccak1600-x86_64.asm]], [[crypto\sha\sha1-mb-x86_64.asm]],
+            [[crypto\sha\sha1-x86_64.asm]], [[crypto\sha\sha256-mb-x86_64.asm]],
+            [[crypto\sha\sha256-x86_64.asm]], [[crypto\sha\sha512-x86_64.asm]],
+            [[crypto\whrlpool\wp-x86_64.asm]], [[crypto\x86_64cpuid.asm]],
+            [[engines\e_padlock-x86_64.asm]]
+        }
+        local expected_outputs = {
+            path.join(root, "configdata.pm"), path.join(root, "include/openssl/configuration.h"),
+            path.join(root, "crypto/buildinf.h")
+        }
+        for _, output in ipairs(regular_outputs) do
+            table.insert(expected_outputs, path.join(root, output))
+        end
+        for _, output in ipairs(param_outputs) do
+            table.insert(expected_outputs, path.join(root, output))
+        end
+        for _, name in ipairs(der_names) do
+            table.insert(expected_outputs, path.join(root, "providers/common/der/der_" .. name .. "_gen.c"))
+            table.insert(expected_outputs, path.join(root, "providers/common/include/prov/der_" .. name .. ".h"))
+        end
+        for _, output in ipairs(assembly_outputs) do
+            table.insert(expected_outputs, path.join(root, output))
+        end
+        local missing = false
+        for _, output in ipairs(expected_outputs) do
+            if not os.isfile(output) then
+                missing = true
+                break
+            end
+        end
+        local generator_inputs = {path.join(root, "Configure")}
+        table.join2(generator_inputs, os.files(path.join(root, "Configurations/**.conf")))
+        table.join2(generator_inputs, os.files(path.join(root, "**/build.info")))
+        table.join2(generator_inputs, os.files(path.join(root, "util/**.pl")))
+        table.join2(generator_inputs, os.files(path.join(root, "util/**.pm")))
+        for _, output in ipairs(regular_outputs) do
+            table.insert(generator_inputs, path.join(root, output .. ".in"))
+        end
+        for _, output in ipairs(param_outputs) do
+            table.insert(generator_inputs, path.join(root, output .. ".in"))
+        end
+        table.join2(generator_inputs, os.files(path.join(root, "providers/common/der/*.asn1")))
+        table.join2(generator_inputs, os.files(path.join(root, "providers/common/der/*.c.in")))
+        table.join2(generator_inputs, os.files(path.join(root, "providers/common/include/prov/*.h.in")))
+        depend.on_changed(function ()
+            os.vrunv(perl, {"Configure", "VC-WIN64A", "no-shared", "no-module", "no-apps", "no-tests", "no-docs"},
+                {curdir = root})
+            for _, output in ipairs(regular_outputs) do
+                os.vrunv(perl, {"-I.", "-Mconfigdata", "util/dofile.pl", "-omakefile", output .. ".in"},
+                    {curdir = root, stdout = path.join(root, output)})
+            end
+            for _, output in ipairs(param_outputs) do
+                os.vrunv(perl, {"-I.", "-Iutil/perl", "-Mconfigdata", "-MOpenSSL::paramnames",
+                    "util/dofile.pl", "-omakefile", output .. ".in"},
+                    {curdir = root, stdout = path.join(root, output)})
+            end
+            for _, name in ipairs(der_names) do
+                local outputs = {
+                    "providers/common/der/der_" .. name .. "_gen.c",
+                    "providers/common/include/prov/der_" .. name .. ".h"
+                }
+                for _, output in ipairs(outputs) do
+                    os.vrunv(perl, {"-I.", "-Iproviders/common/der", "-Mconfigdata", "-Moids_to_c",
+                        "util/dofile.pl", "-omakefile", output .. ".in"},
+                        {curdir = root, stdout = path.join(root, output)})
+                end
+            end
+            os.vrunv(perl, {"util/mkbuildinf.pl", "cl /MD /O2", "VC-WIN64A"},
+                {curdir = root, stdout = path.join(root, "crypto/buildinf.h")})
+            local perlasm = [[
+use strict;
+use warnings;
+for my $output (@ARGV) {
+    (my $source = $output) =~ s/[.]asm$/.s/;
+    my $generators = $configdata::unified_info{generate}{$source};
+    die "No unique perlasm generator for $output\n"
+        unless ref($generators) eq "ARRAY" && @$generators == 1;
+    system($^X, $generators->[0], "nasm", $output) == 0
+        or die "Perlasm generation failed for $output\n";
+}
+]]
+            local argv = {"-I.", "-Mconfigdata", "-e", perlasm}
+            table.join2(argv, assembly_outputs)
+            os.vrunv(perl, argv, {curdir = root})
+        end, {
+            files = generator_inputs,
+            values = {"VC-WIN64A", "no-shared", "no-module", "no-apps", "no-tests", "no-docs"},
+            dependfile = target:dependfile(sourcefile) .. ".openssl",
+            changed = missing or target:is_rebuilt()
+        })
+    end})
 
 target("php")
     set_enabled(false)
