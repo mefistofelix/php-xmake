@@ -92,7 +92,7 @@ Integrate zstd as one dependency target:
 ## Next Target: libcurl
 
 - [x] Verify the official `curl/curl` tag `curl-8_21_0`, matching the previous PHP SDK dependency version.
-- [ ] Replace the prebuilt SDK archive with the pinned official source and validate `xmake prepare` from a clean absence and on a no-change repeat.
+- [x] Replace the prebuilt SDK archive with the pinned official source and validate `xmake prepare` from a clean absence and on a no-change repeat.
 - [ ] Inspect upstream CMake/Makefile metadata and PHP's curl configuration for exact library sources, exclusions, generated inputs, public/private defines, protocols, TLS backend, compression dependencies, and Windows system libraries.
 - [ ] Add one static libcurl target using direct Xmake compilation and the fewest widest unity groups justified by observed conflicts.
 - [ ] Build and validate `/MD`, the static public interface, archive architecture, and representative curl symbols before moving to libssh2.
@@ -134,6 +134,7 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-12 — `.\xmake.exe prepare` at commit `040a065`: completed the no-change repeat successfully in 0.671 seconds, retaining the pinned official libcurl source and validating preparation idempotence.
 - 2026-08-12 — `.\xmake.exe prepare` at commit `6b62c7b`: after moving the previous prebuilt SDK directory out of `in/deps`, completed the clean official libcurl source preparation in 3.6 seconds. The recreated tree contains the complete upstream build metadata, and its hx marker records `github://curl/curl?ref=curl-8_21_0`. A no-change repeat is still required.
 - 2026-08-12 — final clean `.\xmake.exe clean openssl` plus `.\xmake.exe -vD -j1 openssl` at commit `3cd23c7`: direct compilation, NASM assembly, and archive creation passed with no errors. The warning set is exactly C4133/C4244/C4267/C4319/C4334, matching the captured official `nmake` build; unity-only C4005/C4090/C4129/C4996/C5332 are absent. Fresh archive inspection reports 148 x64 members, 109 `MSVCRT` and zero `LIBCMT` directives, no exports or OpenSSL-family import thunks, and all representative crypto, TLS, default/legacy provider, and assembly symbols.
 - 2026-08-12 — clean `.\xmake.exe clean openssl` plus `.\xmake.exe -vD -j1 openssl` at commit `8dc8e23`: build and archive succeeded with zero C4005, C4090, and C4996. The remaining warning-code delta against the official log is 25 C4129 plus two C5332 diagnostics; both indicate that Xmake's configured Windows path string literals contain single backslashes interpreted as C escape introducers. Encode literal doubled backslashes in `OPENSSLDIR`, `ENGINESDIR`, and `MODULESDIR` before final validation.
