@@ -212,7 +212,7 @@ target("openssl")
         "WHIRLPOOL_ASM", "X25519_ASM", [[OPENSSLDIR="C:\Program Files\Common Files\SSL"]],
         [[ENGINESDIR="C:\Program Files\OpenSSL\lib\engines-3"]],
         [[MODULESDIR="C:\Program Files\OpenSSL\lib\ossl-modules"]])
-    add_cflags("/Gs0", "/GF", "/Gy", {force = true})
+    add_cflags("/Gs0", "/GF", "/Gy", "/W3", "/wd4090", {force = true})
     add_asflags("-Ox", "-f", "win64", "-DNEAR", "-g", {force = true})
     add_syslinks("ws2_32", "gdi32", "advapi32", "crypt32", "user32", {public = true})
     add_rules("c.unity_build")
@@ -563,6 +563,20 @@ for my $output (@ARGV) {
     add_files("in/deps/openssl/crypto/ripemd/rmd_dgst.c", {unity_group = "conflict_18"})
     add_files("in/deps/openssl/crypto/sha/sha1dgst.c", {unity_group = "conflict_19"})
     add_files("in/deps/openssl/crypto/sm3/sm3.c", {unity_group = "conflict_20"})
+    add_files("in/deps/openssl/crypto/des/*.c", {unity_group = "conflict_27"})
+    add_files("in/deps/openssl/crypto/lhash/lh_stats.c", {unity_group = "conflict_28"})
+    add_files("in/deps/openssl/crypto/pkcs12/p12_asn.c", {unity_group = "conflict_29"})
+    add_files("in/deps/openssl/crypto/pkcs12/p12_attr.c", {unity_group = "conflict_30"})
+    add_files("in/deps/openssl/crypto/pkcs12/p12_crt.c", {unity_group = "conflict_31"})
+    add_files("in/deps/openssl/crypto/pkcs12/p12_init.c", {unity_group = "conflict_32"})
+    add_files("in/deps/openssl/crypto/pkcs12/p12_mutl.c", {unity_group = "conflict_33"})
+    add_files("in/deps/openssl/crypto/pkcs12/p12_npas.c", {unity_group = "conflict_34"})
+    add_files("in/deps/openssl/crypto/pkcs12/p12_sbag.c", {unity_group = "conflict_35"})
+    add_files("in/deps/openssl/crypto/pkcs12/p12_utl.c", {unity_group = "conflict_36"})
+    add_files("in/deps/openssl/crypto/property/defn_cache.c", {unity_group = "conflict_37"})
+    add_files("in/deps/openssl/crypto/property/property_parse.c", {unity_group = "conflict_38"})
+    add_files("in/deps/openssl/crypto/property/property_query.c", {unity_group = "conflict_39"})
+    add_files("in/deps/openssl/crypto/property/property_string.c", {unity_group = "conflict_40"})
     add_files("in/deps/openssl/crypto/params_idx.c",
         "in/deps/openssl/providers/common/der/der_digests_gen.c",
         "in/deps/openssl/providers/common/der/der_dsa_gen.c",
