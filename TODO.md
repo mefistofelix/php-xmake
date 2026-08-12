@@ -6,6 +6,8 @@ Last updated: 2026-08-12
 
 - [x] Initialize the Git repository and ignore downloaded sources, tools, caches, and outputs.
 - [x] Add an idempotent-oriented `prepare` task for sources, binary dependencies, Perl, MSVC, and the Windows SDK.
+- [x] Complete one successful `xmake prepare` run with all currently pinned inputs.
+- [ ] Repeat `xmake prepare` to validate idempotence after the build-target work advances.
 - [x] Add the `cb` rule skeleton for target-owned code generation.
 - [x] Define the `minilua` and `gen_ir_fold_hash` helper targets.
 - [x] Record the known PHP code-generation inventory in `AGENTS.md`.
@@ -60,5 +62,6 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-12 — `xmake prepare` at commit `0d2bf4c`: completed successfully after correcting the `ngtcp2` and `nghttp3` release refs. A repeat run is still required to prove idempotence.
 - 2026-08-12 — `xmake prepare` at commit `fec296f`: stopped after the initial dependency downloads because the configured `ngtcp2` ref `v1.69.0` does not exist. Official release tags are `ngtcp2` `v1.25.0` and `nghttp3` `v1.18.0`; the pins were corrected for the next test.
 - 2026-08-12 — `xmake` at commit `bc16350`: MSVC x64 detection succeeded and the `php` callback ran. The build stopped while compiling `Zend/zend.c` because `Zend/zend_config.h` has not been generated yet. The helper targets remain unvalidated by an isolated target build.
