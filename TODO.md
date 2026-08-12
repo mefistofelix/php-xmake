@@ -60,7 +60,7 @@ Integrate zstd as one dependency target:
 - [x] Run `xmake prepare` and verify that the official Sourceware release is materialized directly into `in/deps/bzip2`.
 - [x] Repeat `xmake prepare` with every input present to validate the official fetch's idempotence.
 - [x] Build all seven sources in one unity translation unit and record the validation result before moving to liblzma.
-- [ ] Revalidate that broad `add_files("*.c")` plus declarative `remove_files` selects the same seven library sources and still builds one unity unit.
+- [x] Revalidate that broad `add_files("*.c")` plus declarative `remove_files` selects the same seven library sources and still builds one unity unit.
 
 ## Next Target: liblzma
 
@@ -110,6 +110,7 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-12 — `xmake -r -v` at commit `f5ea765`: rebuilt `out/bzip2.lib` successfully in 1.312 seconds after the source-selection cleanup. The generated unity file contained exactly the seven upstream library sources; broad `add_files("*.c")` plus five `remove_files` patterns excluded all six programs/tests correctly.
 - 2026-08-12 — `xmake prepare` at commit `e5d4ecd`: after moving both `in/deps/xz` and the obsolete prebuilt `in/deps/liblzma` out of `in/deps`, completed a clean preparation in 2.1 seconds. The official GitHub XZ tree was recreated with the pinned `v5.8.3` marker, while the removed PHP SDK binary directory was not recreated.
 - 2026-08-12 — `xmake prepare` at commit `e87ad12`: completed a no-change repeat successfully in 1.3 seconds, validating idempotence of the pinned official XZ source input.
 - 2026-08-12 — `xmake prepare` at commit `7bad85f`: completed successfully in 2.0 seconds and materialized the official `tukaani-project/xz` tag `v5.8.3` in `in/deps/xz`. A no-change repeat is still required for the new input.
