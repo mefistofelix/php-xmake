@@ -78,7 +78,7 @@ Integrate zstd as one dependency target:
 ## Next Target: OpenSSL
 
 - [x] Replace the moving official `openssl-3.5` branch with the pinned official `openssl-3.5.7` LTS release tag.
-- [ ] Remove `in/deps/openssl` and validate the pinned source fetch from a clean absence.
+- [x] Remove `in/deps/openssl` and validate the pinned source fetch from a clean absence.
 - [ ] Repeat `xmake prepare` with every input present to validate idempotence.
 - [ ] Inspect upstream Configure/build metadata and Windows notes for the exact crypto/SSL source set, generated files, assembly, public/private defines, providers, and system libraries.
 - [ ] Add one static OpenSSL dependency target unless upstream constraints prove that separate archives are technically required.
@@ -122,6 +122,7 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-12 — `.\xmake.exe prepare` at commit `efb786e`: after moving the previous `openssl-3.5` branch tree out of `in/deps`, completed a clean preparation in 8.1 seconds. The recreated official source reports release `3.5.7` with no prerelease tag and its hx marker records pinned ref `openssl-3.5.7`.
 - 2026-08-12 — `.\xmake.exe -r -v` at commit `9955073`: built `out/liblzma.lib` successfully in 1.172 seconds from the upstream-default 79 sources in exactly five minimum unity units of 55, 10, 4, 3, and 7 sources, all with `/MD /O2`. COFF inspection found zero `/EXPORT:` directives, zero `__imp_lzma*` members, five `MSVCRT` directives, no `LIBCMT`, and the expected standard API symbols.
 - 2026-08-12 — `.\xmake.exe -r -v` at commit `a335cb4`: all five units again compiled with `/MD /O2`; the default and fourth encoder-compatible groups passed, exposing the same internal header-type conflict inside group 1 between encoder users `lz_encoder.c`/`lzma2_encoder.c` and `lzma_decoder.c`. The latter has no private-name conflict with group 2 and can move there. `lzma2_decoder.c` cannot join that wider setting because it overlaps group 2 on `SEQ_PROPERTIES` and `SEQ_COPY`.
 - 2026-08-12 — `.\xmake.exe -r -v` at commit `d717c1b`: generated and compiled the same five unity units with `/MD /O2`, but the default unit still combined `lz_decoder.h` and `lz_encoder.h`. Inspection of the generated unit found the remaining encoder-header users: direct user `lz/lz_encoder_mf.c` and indirect users `lzma_encoder_optimum_fast.c` and `lzma_encoder_optimum_normal.c` through `lzma_encoder_private.h`. They must join `lzma_encoder.c` in the existing encoder-compatible fourth group.
