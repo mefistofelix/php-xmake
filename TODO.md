@@ -31,10 +31,12 @@ Last updated: 2026-08-12
 
 Integrate Brotli after analyzing its upstream build structure:
 
-- [ ] Inspect upstream CMake/Bazel build files for component libraries, exact sources, generated inputs, defines, include paths, and dependencies.
-- [ ] Decide how the upstream common, decoder, and encoder components map to this project's one-target-per-library policy.
-- [ ] Add the broadest safe source patterns and one target-specific `cb` callback.
-- [ ] Attempt one unity translation unit first; split only on demonstrated incompatibility.
+- [x] Inspect upstream CMake/Bazel build files for component libraries, exact sources, generated inputs, defines, include paths, and dependencies.
+- [x] Map the three upstream libraries to `brotlicommon`, `brotlidec`, and `brotlienc` targets with decoder/encoder depending on common.
+- [x] Add `brotlicommon` with the broad common source pattern and one target-specific `cb` callback.
+- [x] Put all six `brotlicommon` sources in one unity translation unit for the first build.
+- [ ] Add and validate `brotlidec` after common succeeds.
+- [ ] Add and validate `brotlienc` after decoder succeeds.
 - [ ] Build and record the validation result before moving to zstd.
 
 ## Dependency Targets

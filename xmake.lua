@@ -110,6 +110,7 @@ target("gen_ir_fold_hash")
     add_defines("IR_TARGET_X86_64")
 
 target("zlib")
+    set_enabled(false)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     add_includedirs("in/deps/zlib", {public = true})
@@ -123,6 +124,19 @@ target("zlib")
     })
     add_files("in/deps/zlib/*.c|gz*.c|inf*.c|zutil.c", {unity_group = "core"})
     add_files("in/deps/zlib/gz*.c", "in/deps/zlib/inf*.c", {unity_ignored = true})
+
+target("brotlicommon")
+    set_kind("static")
+    set_targetdir(get_config("builddir"))
+    add_includedirs("in/deps/brotli/c/include", {public = true})
+    add_defines("_CRT_SECURE_NO_WARNINGS")
+    add_rules("c.unity_build")
+    add_files("in/deps/brotli/c/common/platform.c", {
+        rules = "cb",
+        cb = function ()
+        end
+    })
+    add_files("in/deps/brotli/c/common/*.c|platform.c")
 
 target("php")
     set_enabled(false)

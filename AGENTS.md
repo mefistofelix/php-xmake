@@ -62,7 +62,8 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 
 | Target | Build state | Kind | Source inputs | Output | Purpose | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| `zlib` | Enabled | Static library | `in/deps/zlib/*.c` | `out/zlib.lib` | First compression dependency | Build validated on MSVC x64 |
+| `zlib` | Disabled | Static library | `in/deps/zlib/*.c` | `out/zlib.lib` | First compression dependency | Build validated on MSVC x64 |
+| `brotlicommon` | Enabled (current priority) | Static library | `in/deps/brotli/c/common/*.c` | `out/brotlicommon.lib` | Shared Brotli constants, dictionary, platform, and transform support | One complete unity translation unit; build pending |
 | `minilua` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/dynasm/minilua.c` | `out/minilua.exe` | Runs DynASM for the PHP JIT IR emitter | Defined; build validation pending |
 | `gen_ir_fold_hash` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c` | `out/gen_ir_fold_hash.exe` | Generates the JIT IR fold hash header | Defined; build validation pending |
 | `php` | Disabled | Object prototype | `in/php-src/Zend/zend.c`, `in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm` | `out/` | Becomes the static PHP build after dependency, configuration, codegen, and source integration | Prototype only; callback is a placeholder |
@@ -79,6 +80,15 @@ The zlib target uses one explicit unity group for `adler32.c`, `compress.c`, `cr
 - The shipped root `zconf.h` already contains the Windows configuration used by the MSVC Makefile, so the zlib callback has no generation work.
 - The MSVC Makefile names the static result `zlib.lib`. CMake uses `zs.lib`; this project keeps `zlib.lib` to match the native MSVC convention and the target name.
 - The MSVC Makefile declares optional x86/x64 assembly rules but leaves `OBJA` empty. Upstream CMake also leaves contrib acceleration disabled by default, so the initial target intentionally compiles no assembly.
+
+### Brotli upstream build analysis
+
+- Upstream version: Brotli 1.2.0.
+- Upstream CMake and Bazel both define three component libraries: `brotlicommon`, `brotlidec`, and `brotlienc`. Decoder and encoder each depend on common. Preserve these as three Xmake targets because they are distinct upstream libraries with real dependency edges.
+- Each component source list is the broad recursive set under `c/common/*.c`, `c/dec/*.c`, or `c/enc/*.c`. Public headers come from `c/include`.
+- MSVC requires `_CRT_SECURE_NO_WARNINGS`. Brotli shared-compilation defines do not apply to these static targets, and the upstream math-library dependency is empty on MSVC.
+- No build-time code generation or assembly is enabled. `c/common/dictionary_inc.h` and the encoder's generated lookup headers are committed inputs. `c/common/dictionary.bin` is exposed as Bazel data but is not an input to the CMake library compilation.
+- Start each component with all its sources in one unity translation unit. Split only if a concrete conflict is observed.
 
 ## PHP Code-generation Inventory
 
