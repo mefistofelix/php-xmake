@@ -60,6 +60,7 @@ Integrate zstd as one dependency target:
 - [x] Run `xmake prepare` and verify that the official Sourceware release is materialized directly into `in/deps/bzip2`.
 - [x] Repeat `xmake prepare` with every input present to validate the official fetch's idempotence.
 - [x] Build all seven sources in one unity translation unit and record the validation result before moving to liblzma.
+- [ ] Revalidate that broad `add_files("*.c")` plus declarative `remove_files` selects the same seven library sources and still builds one unity unit.
 
 ## Next Target: liblzma
 

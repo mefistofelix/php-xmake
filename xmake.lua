@@ -132,18 +132,18 @@ target("zstd")
     add_files("in/deps/zstd/lib/legacy/*.c", {unity_ignored = true})
 
 target("bzip2")
-    set_enabled(false)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
     add_includedirs("in/deps/bzip2", {public = true})
     add_defines("WIN32", "_FILE_OFFSET_BITS=64")
     add_rules("c.unity_build")
-    add_files("in/deps/bzip2/blocksort.c", "in/deps/bzip2/huffman.c", "in/deps/bzip2/crctable.c",
-        "in/deps/bzip2/randtable.c", "in/deps/bzip2/compress.c", "in/deps/bzip2/decompress.c",
-        "in/deps/bzip2/bzlib.c")
+    add_files("in/deps/bzip2/*.c")
+    remove_files("in/deps/bzip2/bzip2*.c", "in/deps/bzip2/dlltest.c", "in/deps/bzip2/mk251.c",
+        "in/deps/bzip2/spewG.c", "in/deps/bzip2/unzcrash.c")
 
 target("liblzma")
+    set_enabled(false)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
