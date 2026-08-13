@@ -144,6 +144,8 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-13 — clean `.\xmake.exe clean openssl_test` plus `.\xmake.exe -j8 openssl_test` and root-DLL symbol comparison at commit `4f25734`: the complete target rebuilt and archived successfully in 24.781 seconds. The single combined `openssl_test.lib` contains all 6,475 names exported by the OpenSSL 3.5.7 x64 `libcrypto` and `libssl` DLLs, with zero missing names and zero embedded `/EXPORT:` directives.
+
 - 2026-08-13 — `.\xmake.exe -j8 openssl_test` plus root-DLL symbol comparison at commit `54e439d`: Xmake compiled the restored configured `ecp_nist.c` and `ecp_nistz256.c`, re-archived successfully, and the combined `openssl_test.lib` now contains all 6,475 names exported by the OpenSSL 3.5.7 x64 `libcrypto` and `libssl` DLLs. Removing `ms/applink.c` also leaves the archive with zero embedded `/EXPORT:` directives. A clean rebuild remains for final validation.
 
 - 2026-08-13 — symbol comparison at commit `4a88c59`: the root OpenSSL 3.5.7 x64 DLLs export 5,872 `libcrypto` names and 603 `libssl` names. The combined `openssl_test.lib` contains 6,474 of those 6,475 exports; only `EC_GFp_nist_method` is absent because `ecp_nist*.c` also removes the configured `ecp_nist.c`. The archive additionally carries `/EXPORT:OPENSSL_Applink` from non-library source `ms/applink.c`. Narrow the EC exclusion to disabled `ecp_nistp*.c` plus included table fragment `ecp_nistz256_table.c`, and remove `ms/applink.c` before rebuilding.
