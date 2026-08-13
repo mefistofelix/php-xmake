@@ -984,7 +984,8 @@ target("openssl_test")
         "in/deps/openssl/providers/implementations/macs/blake2_mac_impl.c",
         "in/deps/openssl/providers/implementations/rands/fips_crng_test.c",
         "in/deps/openssl/providers/implementations/rands/seeding/rand_cpu_arm64.c",
-        "in/deps/openssl/providers/implementations/rands/seeding/rand_v*.c"
+        "in/deps/openssl/providers/implementations/rands/seeding/rand_v*.c",
+        "in/deps/openssl/ssl/record/methods/ktls_meth.c"
     )
 
     add_asflags("-Ox", "-f", "win64", "-DNEAR", "-g", {force = true})

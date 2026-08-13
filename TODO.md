@@ -144,6 +144,8 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-13 — `.\xmake.exe -j8 openssl_test` at commit `4682cde`: the VC-WIN64A seeding selection compiled only `rand_cpu_x86.c`, `rand_tsc.c`, `rand_unix.c`, and `rand_win.c`, passing the previous platform-source failure. Compilation reached 72% and failed at `ssl/record/methods/ktls_meth.c`; upstream `build.info` selects that source only when KTLS is enabled, while the generated configuration records both `no-ktls` and `OPENSSL_NO_KTLS`.
+
 - 2026-08-13 — `.\xmake.exe -j8 openssl_test` at commit `4e847c2`: excluding the macro-parameterized Blake2 implementation fragment preserved and compiled both concrete Blake2 MAC wrappers. Compilation reached the platform seeding directory and failed at VMS-only `rand_vms.c`; VC-WIN64A selects `rand_cpu_x86.c`, `rand_tsc.c`, `rand_unix.c`, and `rand_win.c`, while omitting ARM64 `rand_cpu_arm64.c` and the two `rand_v*.c` VMS/VxWorks variants.
 
 - 2026-08-13 — `.\xmake.exe -j8 openssl_test` at commit `d2258a9`: the complete non-FIPS exclusion passed, while the shared default-provider implementations `cipher_aes_xts_fips.c` and `pbkdf2_fips.c` compiled as expected. Compilation reached `providers/implementations/macs/blake2_mac_impl.c`; this is a macro-parameterized implementation fragment textually included by both `blake2b_mac.c` and `blake2s_mac.c`, and upstream never compiles it independently.
