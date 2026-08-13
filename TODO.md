@@ -167,7 +167,7 @@ Integrate zstd as one dependency target:
 ## Next Target: libintl
 
 - [x] Identify the authoritative source and version corresponding to the current PHP SDK package.
-- [ ] Replace the prebuilt package with pinned upstream source and validate clean and repeated preparation.
+- [x] Replace the prebuilt package with pinned upstream source and validate clean and repeated preparation.
 - [ ] Inspect the upstream Windows build for its exact source manifest, generated configuration, static interface, and libiconv dependency.
 - [ ] Add a direct per-source static target without unity, then build and validate it.
 
@@ -207,6 +207,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-13 — unchanged libintl preparation after commit `5c571ee`: `.\xmake.exe prepare` completed in 0.8 seconds with the official GNU Gettext 1.0 tree already present, validating the new source fetch's idempotence.
 
 - 2026-08-13 — clean libintl preparation at commit `ee36d3b`: after preserving the PHP SDK static archive/header under `%TEMP%`, verifying `in/deps/libintl` as the exact direct child of `in/deps`, and moving the binary package to the Recycle Bin, `.\xmake.exe prepare` recreated the tree from GNU's official Gettext 1.0 tarball in 6.5 seconds. The source reports version 1.0 and retains the expected `gettext-runtime/intl` build metadata; an unchanged repeat remains.
 
