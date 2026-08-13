@@ -28,7 +28,7 @@ Last updated: 2026-08-13
 - [x] Use the single `**/*.[ch].in` Xmake glob for the true single-character `c`/`h` alternative; it resolves to and regenerates the same 50 template outputs.
 - [x] Validate the upstream application generation sequence in `openssl_test`: Configure with apps enabled, generate `apps/progs.c` with `apps/progs.pl -C apps\openssl`, then generate `apps/progs.h` with `-H`. `apps/include/apps.h` is already a committed input and needs no generator.
 - [x] Validate `async.runjobs` for the independent OpenSSL template and perlasm generators, with concurrency limited by the build action's `-j` value.
-- [ ] Continue the broad `openssl_test` source-glob experiment with preparation temporarily bypassed. Exclude the broad EC experiment set, default-disabled MD2 closure, non-x64 root capability files, and `crypto/LPdir_*.c` backend fragments that are included through `o_dir.c` rather than compiled independently.
+- [x] Complete a clean parallel build of the broad `openssl_test` source-glob experiment with preparation temporarily bypassed, using declarative exclusions for disabled, platform-incompatible, test/example, and textually included implementation sources.
 
 ## Completed Target: zlib
 
@@ -143,6 +143,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-13 — clean `.\xmake.exe clean openssl_test` plus `.\xmake.exe -j8 openssl_test` at commit `6eadcf1`: Xmake rebuilt the complete simplified C and x64 assembly selection from zero, compiled both explicitly retained engines, and archived `openssl_test.lib` successfully in 24.39 seconds. The broad source-glob experiment is build-complete; its existing upstream-style MSVC warnings remain non-fatal.
 
 - 2026-08-13 — `.\xmake.exe -j8 openssl_test` at commit `169f7d9`: the single `test/**.c` exclusion removed the complete disabled test tree. The incremental compilation resumed at 94%, compiled the two explicitly retained engines, archived `openssl_test.lib`, and completed successfully. A clean parallel rebuild remains to verify the complete simplified declaration without cached objects.
 
