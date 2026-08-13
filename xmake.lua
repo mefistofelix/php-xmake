@@ -538,7 +538,14 @@ target("libintl")
             :gsub("@HAVE_NEWLOCALE@", "0")
             :gsub("@ENHANCE_LOCALE_FUNCS@", "0")
             :gsub("@WOE32DLL@", "0")
-        io.writefile("in/deps/libintl/gettext-runtime/intl/libgnuintl.h", header)
+        io.writefile(
+            "in/deps/libintl/gettext-runtime/intl/libgnuintl.h",
+            header .. [[
+#include <stddef.h>
+#include <wchar.h>
+extern wchar_t *wgetcwd (wchar_t *, size_t);
+]]
+        )
         io.writefile("in/deps/libintl/gettext-runtime/intl/libintl.h", header)
         io.writefile(
             "in/deps/libintl/gettext-runtime/intl/gnulib-lib/search.h",
@@ -593,6 +600,7 @@ target("libintl")
         "HAVE_CONFIG_H",
         "LIBDIR=\".\"",
         "LOCALEDIR=\".\"",
+        "alignof=__alignof",
         "_CRT_SECURE_NO_WARNINGS",
         "_WIN32_WINNT=0x0601"
     )
@@ -605,6 +613,9 @@ target("libintl")
         "in/deps/libintl/gettext-runtime/intl/intl-exports.c",
         "in/deps/libintl/gettext-runtime/intl/os2compat.c"
     )
+    add_files("in/deps/libintl/gettext-runtime/intl/setlocale.c", {
+        defines = {"SETLOCALE_NULL_ALL_MAX=3221"}
+    })
 
 
 target("php")

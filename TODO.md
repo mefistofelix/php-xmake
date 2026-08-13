@@ -208,6 +208,8 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-14 — fifth direct `libintl` build at commit `1055bb4`: the generated Unicode and search headers worked, eliminating the tree-search implicit declarations and advancing compilation to 48%. `setlocale.c` then required `SETLOCALE_NULL_ALL_MAX`, normally exposed by Gnulib's generated locale wrapper; apply the upstream value only to that source. Map C `alignof` to MSVC's intrinsic and declare `wgetcwd` in the internal generated header to eliminate the remaining pointer-sized implicit declarations before retrying.
+
 - 2026-08-14 — fourth direct `libintl` build at commit `d5a7f98`: relative `LOCALEDIR` and `LIBDIR` values allowed all 25 core sources to compile and advanced the broad build to 46%. The first Gnulib failure was the expected generated `unicase.h`; generate only the non-system Unicode headers plus the tree-search wrapper in the callback, leaving MSVC's CRT headers unshadowed.
 
 - 2026-08-14 — third direct `libintl` build at commit `0ac0440`: after the two platform exclusions, the core compiled through 22% and stopped only because the direct target had not supplied upstream's install-time `LOCALEDIR` macro. Define relative `LOCALEDIR` and `LIBDIR` values in Xmake; the same translation unit's implicit tree-search diagnostics identify the generated `search.h` compatibility declaration as the next likely configuration requirement.
