@@ -636,7 +636,7 @@ extern wchar_t *wgetcwd (wchar_t *, size_t);
     })
 
 target("libxml2")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
@@ -687,6 +687,59 @@ target("libxml2")
         "in/deps/libxml2/xmlcatalog.c",
         "in/deps/libxml2/xmllint.c",
         "in/deps/libxml2/xzlib.c"
+    )
+
+target("libxslt")
+    set_enabled(true)
+    set_kind("static")
+    set_targetdir(get_config("builddir"))
+    set_optimize("fastest")
+    on_prepare(function ()
+        io.writefile(
+            "in/deps/libxslt/libxslt/xsltconfig.h",
+            (io.readfile("in/deps/libxslt/libxslt/xsltconfig.h.in")
+                :gsub("@VERSION@", "1.1.43")
+                :gsub("@LIBXSLT_VERSION_NUMBER@", "10143")
+                :gsub("@LIBXSLT_VERSION_EXTRA@", "")
+                :gsub("@WITH_TRIO@", "0")
+                :gsub("@WITH_XSLT_DEBUG@", "1")
+                :gsub("@WITH_DEBUGGER@", "1")
+                :gsub("@WITH_MODULES@", "1")
+                :gsub("@WITH_PROFILER@", "1")
+                :gsub("@LIBXSLT_DEFAULT_PLUGINS_PATH@", "NULL"))
+        )
+        io.writefile(
+            "in/deps/libxslt/libexslt/exsltconfig.h",
+            (io.readfile("in/deps/libxslt/libexslt/exsltconfig.h.in")
+                :gsub("@LIBEXSLT_VERSION@", "0.8.24")
+                :gsub("@LIBEXSLT_VERSION_NUMBER@", "824")
+                :gsub("@LIBEXSLT_VERSION_EXTRA@", "")
+                :gsub("@WITH_CRYPTO@", "0"))
+        )
+    end)
+    add_deps("libxml2")
+    add_includedirs("in/deps/libxslt", {public = true})
+    add_includedirs(
+        "in/deps/libxslt/libexslt",
+        "in/deps/libxslt/libxslt"
+    )
+    add_defines(
+        "LIBEXSLT_STATIC",
+        "LIBXSLT_STATIC",
+        {public = true}
+    )
+    add_defines(
+        "NDEBUG",
+        "_CRT_NONSTDC_NO_DEPRECATE",
+        "_CRT_SECURE_NO_DEPRECATE",
+        "_MBCS",
+        "_REENTRANT",
+        "_WINDOWS"
+    )
+    add_syslinks("kernel32", {public = true})
+    add_files(
+        "in/deps/libxslt/libexslt/*.c",
+        "in/deps/libxslt/libxslt/*.c"
     )
 
 
