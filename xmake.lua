@@ -981,6 +981,7 @@ target("openssl_test")
         "in/deps/openssl/providers/common/securitycheck_fips.c",
         "in/deps/openssl/providers/fips/*.c",
         "in/deps/openssl/providers/implementations/ciphers/cipher_rc5*.c",
+        "in/deps/openssl/providers/implementations/macs/blake2_mac_impl.c",
         "in/deps/openssl/providers/implementations/rands/fips_crng_test.c"
     )
 
@@ -989,23 +990,52 @@ target("openssl_test")
 
     add_includedirs(
         "in/deps/openssl/apps/include",
-        "in/deps/openssl/include"
+        "in/deps/openssl/include",
+        "in/deps/openssl",
+        "in/deps/openssl/crypto",
+        "in/deps/openssl/providers/common/include",
+        "in/deps/openssl/providers/common/include/prov",
+        "in/deps/openssl/providers/implementations/include",
+        "in/deps/openssl/providers/fips/include"
     )
-
-    add_includedirs("in/deps/openssl", "in/deps/openssl/crypto",
-         "in/deps/openssl/providers/common/include", "in/deps/openssl/providers/common/include/prov",
-         "in/deps/openssl/providers/implementations/include", "in/deps/openssl/providers/fips/include")
-    add_defines("L_ENDIAN", "OPENSSL_PIC", "OPENSSL_BUILDING_OPENSSL", "OPENSSL_SUPPRESS_DEPRECATED=",
+    add_defines(
+        "L_ENDIAN",
+        "OPENSSL_PIC",
+        "OPENSSL_BUILDING_OPENSSL",
+        "OPENSSL_SUPPRESS_DEPRECATED=",
         "OPENSSL_SYS_WIN32",
-        "WIN32_LEAN_AND_MEAN", "UNICODE", "_UNICODE", "_CRT_SECURE_NO_DEPRECATE",
-        "_WINSOCK_DEPRECATED_NO_WARNINGS", "NDEBUG", "STATIC_LEGACY",
-        "AES_ASM", "BSAES_ASM", "CMLL_ASM", "ECP_NISTZ256_ASM", "GHASH_ASM",
-        "KECCAK1600_ASM", "MD5_ASM", "OPENSSL_BN_ASM_GF2m", "OPENSSL_BN_ASM_MONT",
-        "OPENSSL_BN_ASM_MONT5", "OPENSSL_CPUID_OBJ", "OPENSSL_IA32_SSE2", "PADLOCK_ASM",
-        "POLY1305_ASM", "RC4_ASM", "SHA1_ASM", "SHA256_ASM", "SHA512_ASM", "VPAES_ASM",
-        "WHIRLPOOL_ASM", "X25519_ASM", [[OPENSSLDIR="C:\\Program Files\\Common Files\\SSL"]],
+        "WIN32_LEAN_AND_MEAN",
+        "UNICODE",
+        "_UNICODE",
+        "_CRT_SECURE_NO_DEPRECATE",
+        "_WINSOCK_DEPRECATED_NO_WARNINGS",
+        "NDEBUG",
+        "STATIC_LEGACY",
+        "AES_ASM",
+        "BSAES_ASM",
+        "CMLL_ASM",
+        "ECP_NISTZ256_ASM",
+        "GHASH_ASM",
+        "KECCAK1600_ASM",
+        "MD5_ASM",
+        "OPENSSL_BN_ASM_GF2m",
+        "OPENSSL_BN_ASM_MONT",
+        "OPENSSL_BN_ASM_MONT5",
+        "OPENSSL_CPUID_OBJ",
+        "OPENSSL_IA32_SSE2",
+        "PADLOCK_ASM",
+        "POLY1305_ASM",
+        "RC4_ASM",
+        "SHA1_ASM",
+        "SHA256_ASM",
+        "SHA512_ASM",
+        "VPAES_ASM",
+        "WHIRLPOOL_ASM",
+        "X25519_ASM",
+        [[OPENSSLDIR="C:\\Program Files\\Common Files\\SSL"]],
         [[ENGINESDIR="C:\\Program Files\\OpenSSL\\lib\\engines-3"]],
-        [[MODULESDIR="C:\\Program Files\\OpenSSL\\lib\\ossl-modules"]])
+        [[MODULESDIR="C:\\Program Files\\OpenSSL\\lib\\ossl-modules"]]
+    )
     -- add_cflags("/Gs0", "/GF", "/Gy", "/W3", "/wd4090", {force = true})
 
     -- add_syslinks("ws2_32", "gdi32", "advapi32", "crypt32", "user32", {public = true})
