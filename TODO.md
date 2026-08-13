@@ -179,6 +179,8 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-13 — clean recursive `nghttp3` preparation at commit `f5d4832` stopped before writing the destination: hx's recursive Git implementation interpreted tag name `v1.18.0` as `refs/heads/v1.18.0`. Pin the tag's immutable commit `dbfc24286138cb0b6490160e7ca87fe1ce6722a0` while retaining `--recursive`, then retry from absence.
+
 - 2026-08-13 — clean `nghttp3` preparation at commit `4170b01`: the separate pinned `sfparse` fetch populated the release's formerly empty gitlink successfully, but inspection of hx's own help showed that `--recursive` provides this behavior natively. Replace the redundant second command and repeat the clean preparation before accepting it.
 
 - 2026-08-13 — `.\xmake.exe -vD -j8 libuv` plus `uv.h` API comparison at commit `aa908fe`: all 37 sources compiled independently with `/MD /O2`, and `out/libuv.lib` archived in 1.7 seconds. All 37 members are x64 and request `MSVCRT`, with zero `LIBCMT` or `/EXPORT:` directives; all 318 public header APIs are present and none uses an import thunk. MSVC 14.50 reports two investigated upstream C4090 warnings where libuv frees its owned `const char *` CPU-model field.
