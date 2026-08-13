@@ -309,6 +309,11 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 | --- | --- | --- | --- | --- | --- |
 | `libxml2` | Xmake Lua I/O | `include/win32config.h`, `include/libxml/xmlversion.h.in`, pinned Windows feature selection | `config.h`, `include/libxml/xmlversion.h` | Copy the committed Windows configuration and substitute version/feature placeholders in the target's only `on_prepare` callback | Build and runtime validation passed |
 
+### libxslt upstream build analysis
+
+- The PHP SDK 1.1.43-2 SBOM identifies GNOME libxslt 1.1.43 as upstream and the exact package source as `winlibs/libxslt` tag `libxslt-1.1.43-2`, commit `9f399f8d223ddddeaeacd15285a2e993ec326c0f`. Prepare that pinned PHP-maintained source so the direct build retains the 1.1.43 ABI and the SDK's CVE-2025-10911, CVE-2025-11731, and CVE-2025-7424 backports.
+- The preserved SDK package provides separate `libxslt_a.lib` and `libexslt_a.lib` references. Treat them as the two native components of one dependency and combine them in one Xmake target unless source or link validation proves that impossible.
+
 ## PHP Code-generation Inventory
 
 All paths below are relative to `in/php-src` unless prefixed with `out/`. Entries marked "planned" reproduce the known PHP generation commands but are not yet wired into the `php` target's `on_prepare` callback.

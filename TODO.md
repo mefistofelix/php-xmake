@@ -181,7 +181,7 @@ Integrate zstd as one dependency target:
 
 ## Next Target: libxslt
 
-- [ ] Identify the authoritative source and exact version corresponding to the current PHP SDK package.
+- [x] Identify the SDK's exact pinned `winlibs/libxslt` 1.1.43-2 source and its GNOME 1.1.43 base.
 - [ ] Replace the prebuilt package with pinned source and validate clean and repeated preparation.
 - [ ] Inspect the upstream native build declarations for exact sources, configuration, static interface, and dependency edges.
 - [ ] Add a direct per-source static target without unity, then build and validate it against libxml2.

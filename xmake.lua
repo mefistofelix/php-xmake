@@ -67,7 +67,7 @@ task("prepare")
         os.run("hx %s/libwebp-1.6.0-vs18-x64.zip in/deps/libwebp",bp)
         os.run("hx github://winlibs/libxml2?ref=libxml2-2.11.9-7 in/deps/libxml2")
         os.run("hx %s/libxpm-3.5.19-vs18-x64.zip in/deps/libxpm",bp)
-        os.run("hx %s/libxslt-1.1.43-2-vs18-x64.zip in/deps/libxslt",bp)
+        os.run("hx github://winlibs/libxslt?ref=libxslt-1.1.43-2 in/deps/libxslt")
         os.run("hx %s/libzip-1.11.4-vs18-x64.zip in/deps/libzip",bp)
         os.run("hx %s/mpir-3.0.0-2-vs18-x64.zip in/deps/mpir",bp) --xmiss
         os.run("hx %s/net-snmp-5.9.4-vs18-x64.zip in/deps/net-snmp",bp) -- xmiss
