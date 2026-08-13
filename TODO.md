@@ -144,6 +144,8 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-13 — `.\xmake.exe -j8 openssl_test` at commit `b47a95f`: the broad glob's `|engines/*.c` exclusion removed every unselected engine C source, while the explicit CAPI and PadLock sources remained selected. Compilation advanced directly to `fuzz/driver.c`; all 33 C files in `fuzz` are standalone fuzz or corpus-test program inputs, and none belongs to the library closure under `no-tests`, `no-fuzz-afl`, and `no-fuzz-libfuzzer`.
+
 - 2026-08-13 — `.\xmake.exe -j8 openssl_test` at commit `3be0820`: the AF_ALG exclusion removed both Linux engine sources, then compilation failed on the Unix `/dev/crypto` engine. The configured static-engine closure contains only `e_capi.c` and `e_padlock.c` plus PadLock x64 assembly; exclude all direct `engines/*.c` files inside the broad glob and add back those two selected C sources instead of accumulating per-engine exclusions.
 
 - 2026-08-13 — `.\xmake.exe -j8 openssl_test` at commit `37aa64a`: excluding all seven documentation C snippets removed the `sys/poll.h` failure. Compilation next stopped at the Linux AF_ALG engine source `engines/e_afalg.c`; VC-WIN64A enables only the CAPI and PadLock engines, while `no-afalgeng` omits both `e_afalg.c` and its generated `e_afalg_err.c` companion.
