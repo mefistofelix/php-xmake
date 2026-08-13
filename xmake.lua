@@ -452,6 +452,51 @@ target("icu")
     })
     add_files("in/deps/ICU/icu4c/source/data/in/icudt77l_dat.obj", {always_added = true})
 
+target("libiconv")
+    set_kind("static")
+    set_targetdir(get_config("builddir"))
+    set_optimize("fastest")
+    on_prepare(function ()
+        io.writefile("in/deps/libiconv/lib/config.h", [[
+#define ENABLE_EXTRA 0
+#define HAVE_LANGINFO_CODESET 0
+#define HAVE_MBRTOWC 1
+#define HAVE_MBSINIT 1
+#define HAVE_WCRTOMB 1
+#define WORDS_LITTLEENDIAN 1
+]])
+        io.writefile(
+            "in/deps/libiconv/include/iconv.h",
+            (io.readfile("in/deps/libiconv/include/iconv.h.build.in")
+                :gsub("@HAVE_VISIBILITY@", "0")
+                :gsub("@DLL_VARIABLE@", "")
+                :gsub("@EILSEQ@", "")
+                :gsub("@ICONV_CONST@", "")
+                :gsub("@USE_MBSTATE_T@", "1")
+                :gsub("@BROKEN_WCHAR_H@", "0"))
+        )
+        io.writefile(
+            "in/deps/libiconv/libcharset/include/localcharset.h",
+            (io.readfile("in/deps/libiconv/libcharset/include/localcharset.h.build.in")
+                :gsub("@HAVE_VISIBILITY@", "0"))
+        )
+    end)
+    add_includedirs("in/deps/libiconv/include", {public = true})
+    add_includedirs(
+        "in/deps/libiconv/lib",
+        "in/deps/libiconv/libcharset/include"
+    )
+    add_defines(
+        "BUILDING_LIBCHARSET",
+        "BUILDING_LIBICONV",
+        "_CRT_SECURE_NO_WARNINGS"
+    )
+    add_files(
+        "in/deps/libiconv/lib/iconv.c",
+        "in/deps/libiconv/libcharset/lib/localcharset.c",
+        "in/deps/libiconv/lib/compat.c"
+    )
+
 
 target("php")
     set_enabled(false)

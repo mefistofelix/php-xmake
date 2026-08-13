@@ -92,6 +92,7 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 | `ngtcp2` | Disabled | Static library | All 46 direct C children of `in/deps/ngtcp2/lib` | `out/ngtcp2.lib` | QUIC transport required by PHP HTTP/3 | Build and complete 168-API header-surface validation passed with C11 and `/MD` on MSVC x64 |
 | `ngtcp2_crypto_ossl` | Disabled | Static library | `crypto/ossl/ossl.c` and `crypto/shared.c` | `out/ngtcp2_crypto_ossl.lib` | OpenSSL 3.5 QUIC glue required by PHP HTTP/3 | Build and complete 54-API header-surface validation passed with C11 and `/MD` on MSVC x64 |
 | `icu` | Disabled | Static library | All 201 common and 254 i18n C++ sources plus generated `icudt77l_dat.obj` | `out/icu.lib` | Unicode common, internationalization, and packaged data for PHP intl | Build, C/data symbol surface, CRT, architecture, and C++ runtime smoke validation passed |
+| `libiconv` | Enabled | Static library | `lib/iconv.c`, `libcharset/lib/localcharset.c`, and `lib/compat.c` | `out/libiconv.lib` | Character-set conversion for PHP iconv and dependent libraries | Upstream analysis complete; direct per-source build pending |
 | `minilua` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/dynasm/minilua.c` | `out/minilua.exe` | Runs DynASM for the PHP JIT IR emitter | Defined; build validation pending |
 | `gen_ir_fold_hash` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c` | `out/gen_ir_fold_hash.exe` | Generates the JIT IR fold hash header | Defined; build validation pending |
 | `php` | Disabled | Object prototype | `in/php-src/Zend/zend.c`, `in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm` | `out/` | Becomes the static PHP build after dependency, configuration, codegen, and source integration | Prototype only; real `on_prepare` codegen pending |
@@ -266,7 +267,16 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 ### libiconv upstream build analysis
 
 - Replace the PHP SDK binary package with the authoritative GNU libiconv 1.19 release tarball from `ftp.gnu.org`, matching the selected package version. Strip its single top-level directory into `in/deps/libiconv`; do not substitute an unofficial GitHub mirror merely to use a Git transport.
-- Complete the library source, generated configuration, Windows definitions, public static interface, and dependency analysis before declaring the Xmake target.
+- Upstream `lib/Makefile.in` defines the libiconv library from `lib/iconv.c`, `libcharset/lib/localcharset.c`, and `lib/compat.c`. Its Windows resource is packaging metadata, and `woe32dll/iconv-exports.c` is shared-library-only. `libcharset/lib/relocatable-stub.c` belongs to the separate libcharset archive and is not part of libiconv's combined manifest. The previous PHP SDK `libiconv_a.lib` independently confirms the same three-object static layout.
+- Generate `include/iconv.h` from `iconv.h.build.in` with no visibility attribute, DLL-variable decoration, or const input pointer, with MSVC's existing `EILSEQ`, usable `mbstate_t`, and standalone `wchar.h`. Generate `libcharset/include/localcharset.h` with visibility disabled. Neither static consumers nor the library require a propagated definition: without `DLL_EXPORT`, the upstream headers leave all declarations undecorated.
+- Generate a minimal `lib/config.h` for the selected sources: default extra encodings disabled, no Unix `langinfo` API, working MSVC `mbrtowc`, `mbsinit`, and `wcrtomb`, and little-endian byte order. Define `BUILDING_LIBICONV` and `BUILDING_LIBCHARSET` privately as upstream does; suppress only MSVC's secure-CRT warning for the upstream bounded `sprintf` calls.
+- Compile the three sources independently without unity. The Windows implementation uses only CRT and Kernel32 APIs, so no explicit system-library edge is required. Validate all nine exports of the reference PHP SDK `libiconv.dll`, the three x64 `/MD` archive members, static decoration, and representative conversions.
+
+### libiconv code-generation inventory
+
+| Owner | Tool | Input | Output | Handling | Status |
+| --- | --- | --- | --- | --- | --- |
+| `libiconv` | Xmake Lua I/O | `include/iconv.h.build.in`, `libcharset/include/localcharset.h.build.in`, MSVC/platform configuration | `include/iconv.h`, `libcharset/include/localcharset.h`, `lib/config.h` | Substitute the upstream header templates and write the six selected configuration macros in the target's only `on_prepare` callback | Build pending |
 
 ## PHP Code-generation Inventory
 
