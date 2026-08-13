@@ -179,6 +179,8 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-13 — `.\xmake.exe -vD -j8 nghttp3` at commit `736a6eb` stopped in `nghttp3_ksl.h` because the initial target omitted upstream's required C11 language level and MSVC parsed the `_Generic` min/max macro as legacy C. Add target-scoped `c11` so Xmake emits `/std:c11`, then retry.
+
 - 2026-08-13 — unchanged recursive `nghttp3` preparation after commit `4e5789f`: `xmake prepare` completed in 0.7 seconds with the release commit and all recursively materialized gitlinks already present, validating idempotence.
 
 - 2026-08-13 — clean recursive `nghttp3` preparation at commit `212a0ae`: hx materialized release commit `dbfc24286138cb0b6490160e7ca87fe1ce6722a0` and its exact `sfparse` and test submodule gitlinks in one command. The source tree now contains all 31 direct library C files plus `lib/sfparse/sfparse.c`; preparation completed in 2.6 seconds and an unchanged repeat remains.

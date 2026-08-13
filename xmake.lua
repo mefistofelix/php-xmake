@@ -235,6 +235,7 @@ target("nghttp3")
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
+    set_languages("c11")
     on_prepare(function ()
         io.writefile(
             "in/deps/nghttp3/lib/includes/nghttp3/version.h",
