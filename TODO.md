@@ -172,12 +172,19 @@ Integrate zstd as one dependency target:
 - [ ] Add a direct per-source static target without unity, then build and validate it.
 - [ ] Resume the generated Gnulib locale-wrapper configuration after the dependency baseline is complete.
 
-## Current Target: libxml2
+## Completed Target: libxml2
 
 - [x] Identify the SDK's exact pinned `winlibs/libxml2` 2.11.9-7 source and its GNOME 2.11.9 base.
 - [x] Replace the vanilla upstream tree with the SDK's security-backported source and validate clean and repeated preparation.
 - [x] Inspect the upstream native build declarations for the exact source manifest, generated configuration, definitions, and dependency edges.
-- [ ] Add a direct per-source static target without unity, then build and validate it.
+- [x] Add a direct per-source static target without unity, then build and validate it.
+
+## Next Target: libxslt
+
+- [ ] Identify the authoritative source and exact version corresponding to the current PHP SDK package.
+- [ ] Replace the prebuilt package with pinned source and validate clean and repeated preparation.
+- [ ] Inspect the upstream native build declarations for exact sources, configuration, static interface, and dependency edges.
+- [ ] Add a direct per-source static target without unity, then build and validate it against libxml2.
 
 ## Dependency Targets
 
@@ -215,6 +222,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-14 — `libxml2` runtime validation at commit `1510d26`: a temporary non-default Xmake target compiled and linked upstream `doc/examples/parse3.c` against the direct `libxml2` and `libiconv` archives. The example verified the ABI, parsed an in-memory XML document, cleaned up, and exited 0. Its import table contains only Windows, VCRuntime, and UCRT DLLs, with no libxml2 or libiconv DLL dependency, confirming static third-party linkage with the dynamic MSVC CRT. Remove the temporary target and disable the completed library.
 
 - 2026-08-14 — patched `libxml2` build and archive inspection after commit `c201401`: Xmake compiled the same 43 independent sources with `/MD /O2` and archived them successfully in 3.5 seconds. All 43 members are x64 and request `MSVCRT`; none requests `LIBCMT`, emits `/EXPORT:`, or contains libxml/libiconv import thunks. The archive contains every one of the SDK reference `libxml2_a_dll.lib`'s 1,770 defined symbols, including `xmlDllMain` and `xmlRelaxParserSetIncLImit`; its only additional symbol is the current MSVC compiler artifact `_Avx2WmemEnabledWeakValue`. It also covers all 1,622 reference DLL exports except the DLL entry point `DllMain`, and the generated public `xmlversion.h` matches the SDK header line for line. Runtime parser validation remains.
 

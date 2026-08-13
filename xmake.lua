@@ -636,7 +636,7 @@ extern wchar_t *wgetcwd (wchar_t *, size_t);
     })
 
 target("libxml2")
-    set_enabled(true)
+    set_enabled(false)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
@@ -688,13 +688,6 @@ target("libxml2")
         "in/deps/libxml2/xmllint.c",
         "in/deps/libxml2/xzlib.c"
     )
-
-target("libxml2_smoke")
-    set_default(false)
-    set_kind("binary")
-    set_targetdir(get_config("builddir"))
-    add_deps("libxml2")
-    add_files("in/deps/libxml2/doc/examples/parse3.c")
 
 
 target("php")

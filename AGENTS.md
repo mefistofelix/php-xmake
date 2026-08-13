@@ -94,7 +94,7 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 | `icu` | Disabled | Static library | All 201 common and 254 i18n C++ sources plus generated `icudt77l_dat.obj` | `out/icu.lib` | Unicode common, internationalization, and packaged data for PHP intl | Build, C/data symbol surface, CRT, architecture, and C++ runtime smoke validation passed |
 | `libiconv` | Disabled | Static library | `lib/iconv.c`, `libcharset/lib/localcharset.c`, and `lib/compat.c` | `out/libiconv.lib` | Character-set conversion for PHP iconv and dependent libraries | Build, complete 9-symbol surface, CRT, architecture, and upstream runtime validation passed |
 | `libintl` | Disabled | Static library | Direct per-source C inputs under `gettext-runtime/intl` and `gettext-runtime/intl/gnulib-lib` | `out/libintl.lib` | GNU message catalogs and locale handling for PHP and dependent libraries | Deferred during the broad Gnulib configuration pass; not yet validated |
-| `libxml2` | Enabled | Static library | 43 native Windows library sources selected from `in/deps/libxml2/*.c` | `out/libxml2.lib` | XML, HTML, XPath, schema, catalog, and network parsing for PHP and dependent libraries | Direct per-source build passed; patched-source and interface validation pending |
+| `libxml2` | Disabled | Static library | 43 native Windows library sources selected from `in/deps/libxml2/*.c` | `out/libxml2.lib` | XML, HTML, XPath, schema, catalog, and network parsing for PHP and dependent libraries | Build, SDK symbol surface, CRT, architecture, static linkage, and upstream parser smoke validation passed |
 | `minilua` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/dynasm/minilua.c` | `out/minilua.exe` | Runs DynASM for the PHP JIT IR emitter | Defined; build validation pending |
 | `gen_ir_fold_hash` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c` | `out/gen_ir_fold_hash.exe` | Generates the JIT IR fold hash header | Defined; build validation pending |
 | `php` | Disabled | Object prototype | `in/php-src/Zend/zend.c`, `in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm` | `out/` | Becomes the static PHP build after dependency, configuration, codegen, and source integration | Prototype only; real `on_prepare` codegen pending |
@@ -307,7 +307,7 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 
 | Owner | Tool | Input | Output | Handling | Status |
 | --- | --- | --- | --- | --- | --- |
-| `libxml2` | Xmake Lua I/O | `include/win32config.h`, `include/libxml/xmlversion.h.in`, pinned Windows feature selection | `config.h`, `include/libxml/xmlversion.h` | Copy the committed Windows configuration and substitute version/feature placeholders in the target's only `on_prepare` callback | Initial build passed; final validation pending |
+| `libxml2` | Xmake Lua I/O | `include/win32config.h`, `include/libxml/xmlversion.h.in`, pinned Windows feature selection | `config.h`, `include/libxml/xmlversion.h` | Copy the committed Windows configuration and substitute version/feature placeholders in the target's only `on_prepare` callback | Build and runtime validation passed |
 
 ## PHP Code-generation Inventory
 
