@@ -95,7 +95,7 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 | `libiconv` | Enabled | Static library | `lib/iconv.c`, `libcharset/lib/localcharset.c`, and `lib/compat.c` | `out/libiconv.lib` | Character-set conversion for PHP iconv and dependent libraries | Build, complete 9-symbol surface, CRT, architecture, and upstream runtime validation passed; enabled as a transitive libxslt dependency |
 | `libintl` | Disabled | Static library | Direct per-source C inputs under `gettext-runtime/intl` and `gettext-runtime/intl/gnulib-lib` | `out/libintl.lib` | GNU message catalogs and locale handling for PHP and dependent libraries | Deferred during the broad Gnulib configuration pass; not yet validated |
 | `libxml2` | Enabled | Static library | 43 native Windows library sources selected from `in/deps/libxml2/*.c` | `out/libxml2.lib` | XML, HTML, XPath, schema, catalog, and network parsing for PHP and dependent libraries | Build, SDK symbol surface, CRT, architecture, static linkage, and upstream parser smoke validation passed; enabled as the direct libxslt dependency |
-| `libxslt` | Enabled | Static library | `in/deps/libxslt/libxslt/*.c`, `in/deps/libxslt/libexslt/*.c` | `out/libxslt.lib` | XSLT and EXSLT transformation support for PHP | One combined per-source target defined; build validation pending |
+| `libxslt` | Enabled | Static library | `in/deps/libxslt/libxslt/*.c`, `in/deps/libxslt/libexslt/*.c` | `out/libxslt.lib` | XSLT and EXSLT transformation support for PHP | Combined per-source build and SDK archive/interface validation passed; runtime validation pending |
 | `minilua` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/dynasm/minilua.c` | `out/minilua.exe` | Runs DynASM for the PHP JIT IR emitter | Defined; build validation pending |
 | `gen_ir_fold_hash` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c` | `out/gen_ir_fold_hash.exe` | Generates the JIT IR fold hash header | Defined; build validation pending |
 | `php` | Disabled | Object prototype | `in/php-src/Zend/zend.c`, `in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm` | `out/` | Becomes the static PHP build after dependency, configuration, codegen, and source integration | Prototype only; real `on_prepare` codegen pending |
@@ -324,7 +324,7 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 
 | Owner | Tool | Input | Output | Handling | Status |
 | --- | --- | --- | --- | --- | --- |
-| `libxslt` | Xmake Lua I/O | `libxslt/xsltconfig.h.in`, `libexslt/exsltconfig.h.in`, pinned SDK feature selection | `libxslt/xsltconfig.h`, `libexslt/exsltconfig.h` | Substitute version and feature placeholders in the target's only `on_prepare` callback | Build pending |
+| `libxslt` | Xmake Lua I/O | `libxslt/xsltconfig.h.in`, `libexslt/exsltconfig.h.in`, pinned SDK feature selection | `libxslt/xsltconfig.h`, `libexslt/exsltconfig.h` | Substitute version and feature placeholders in the target's only `on_prepare` callback | Build passed; runtime validation pending |
 
 ## PHP Code-generation Inventory
 
