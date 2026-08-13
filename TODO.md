@@ -119,6 +119,13 @@ Integrate zstd as one dependency target:
 - [x] Add one static libcurl target using direct per-source Xmake compilation without unity.
 - [x] Build and validate `/MD`, the static public interface, archive architecture, and every symbol in upstream `libcurl.def` before moving to the next dependency.
 
+## Next Target: libsodium
+
+- [x] Verify the exact official `jedisct1/libsodium` tag `1.0.22`, matching the previous PHP SDK dependency version.
+- [ ] Replace the prebuilt SDK archive with the pinned official source and validate `xmake prepare` from a clean absence and on a no-change repeat.
+- [ ] Inspect the upstream Visual Studio and autotools manifests for sources, generated files, architecture implementations, defines, includes, and Windows libraries.
+- [ ] Add and validate one direct per-source static target without unity.
+
 ## Dependency Targets
 
 Every library must receive its own static target. Integrate and validate them one at a time in dependency order.

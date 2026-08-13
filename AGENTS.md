@@ -86,6 +86,7 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 | `libssh2` | Disabled | Static library | 26 sources from `in/deps/libssh2/src/*.c` after seven backend/platform removals | `out/libssh2.lib` | OpenSSL-backed SSH transport required by libcurl/PHP | Build and 137-export static-interface validation passed with `/MD` on MSVC x64 |
 | `nghttp2` | Disabled | Static library | All 26 C sources under `in/deps/nghttp2/lib/*.c` | `out/nghttp2.lib` | HTTP/2 transport required by libcurl/PHP | Build and 181-export static-interface validation passed with `/MD` on MSVC x64 |
 | `libcurl` | Disabled | Static library | 192 sources under `in/deps/libcurl/lib` after removing `dllmain.c` | `out/libcurl.lib` | PHP curl transport library | Complete dependency build and 100-symbol static-interface validation passed with `/MD` on MSVC x64 |
+| `libsodium` | Not yet defined | Static library | Official `1.0.22` source tree | `out/libsodium.lib` | Modern cryptography used by PHP sodium | Official-source preparation pending |
 | `minilua` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/dynasm/minilua.c` | `out/minilua.exe` | Runs DynASM for the PHP JIT IR emitter | Defined; build validation pending |
 | `gen_ir_fold_hash` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c` | `out/gen_ir_fold_hash.exe` | Generates the JIT IR fold hash header | Defined; build validation pending |
 | `php` | Disabled | Object prototype | `in/php-src/Zend/zend.c`, `in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm` | `out/` | Becomes the static PHP build after dependency, configuration, codegen, and source integration | Prototype only; real `on_prepare` codegen pending |
@@ -182,6 +183,11 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 - Enable `USE_OPENSSL`, `HAVE_LIBZ`, `HAVE_BROTLI`, `HAVE_ZSTD`, `USE_LIBSSH2`, `USE_NGHTTP2`, `USE_WIN32_IDN`, and `USE_IPV6`. Keep `CURL_CA_NATIVE` disabled, matching its upstream default; WinIDN supplies the PHP-required `normaliz` edge independently of native CA handling.
 - Depend on the enabled `openssl`, `zlib`, `brotli`, `zstd`, `libssh2`, and `nghttp2` targets so the complete libcurl closure participates in its build test. Inherit their public headers and static-interface definitions; retain only libcurl's private directory and OpenSSL's non-public include directory explicitly. Propagate the Windows closure selected by upstream and PHP: `advapi32`, `bcrypt`, `crypt32`, `iphlpapi`, `normaliz`, `winmm`, `wldap32`, and `ws2_32`.
 - No library input requires generation: `easyoptions.c` and its data are committed upstream. Compile all 192 sources independently without a callback or unity rule, then validate the public symbol set against `lib/libcurl.def` because `dll_compare` has no libcurl DLL.
+
+### libsodium upstream source
+
+- Replace the PHP SDK binary package with the official `jedisct1/libsodium` repository pinned to tag `1.0.22`, which resolves to the same release version.
+- Validate preparation from a clean absence and on an unchanged repeat before inspecting the upstream Visual Studio and autotools manifests for the Xmake target.
 
 ## PHP Code-generation Inventory
 
