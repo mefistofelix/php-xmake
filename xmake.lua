@@ -39,7 +39,7 @@ task("prepare")
         os.run("hx github://libuv/libuv?ref=v1.52.1 in/deps/libuv")
 
         local bp = "https://downloads.php.net/~windows/php-sdk/deps/vs18/x64"
-        os.run("hx %s/ICU-77.1-1-vs18-x64.zip in/deps/ICU",bp)
+        os.run("hx github://unicode-org/icu?ref=release-77-1 in/deps/ICU")
         os.run("hx %s/apache-2.4.68-vs18-x64.zip in/deps/apache",bp)
         os.run("hx %s/fbclient-4.0.7-vs18-x64.zip in/deps/fbclient",bp)
         os.run("hx %s/freetype-2.14.3-vs18-x64.zip in/deps/freetype",bp)

@@ -149,6 +149,13 @@ Integrate zstd as one dependency target:
 - [x] Add direct per-source targets for all 46 core sources and the two adapter sources without unity.
 - [x] Build the complete core/OpenSSL closure and validate both archives, their public header API surfaces, architecture, `/MD`, and static decoration.
 
+## Next Target: ICU
+
+- [x] Verify the official `unicode-org/icu` release tag `release-77-1`, matching the previous PHP SDK dependency version.
+- [ ] Replace the prebuilt SDK package with the pinned official source and validate clean and repeated preparation.
+- [ ] Inspect the upstream Windows build for exact common, i18n, data, generation, definitions, and dependency edges before declaring the target.
+- [ ] Add a direct per-source static target without unity, then build and validate it.
+
 ## Dependency Targets
 
 Every library must receive its own static target. Integrate and validate them one at a time in dependency order.

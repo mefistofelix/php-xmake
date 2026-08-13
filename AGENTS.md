@@ -244,6 +244,10 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 | --- | --- | --- | --- | --- | --- |
 | `ngtcp2` | Xmake Lua I/O | `lib/includes/ngtcp2/version.h.in` | `lib/includes/ngtcp2/version.h` | Replace `@PACKAGE_VERSION@` with `1.25.0` and `@PACKAGE_VERSION_NUM@` with `0x011900` in the target's only `on_prepare` callback | Build validated |
 
+### ICU upstream build analysis
+
+- Replace the PHP SDK binary package with the official `unicode-org/icu` repository pinned to tag `release-77-1`, matching the selected ICU 77.1 package version. Fetch the complete release source into `in/deps/ICU`; source/component and data-generation analysis must be completed before declaring its Xmake target.
+
 ## PHP Code-generation Inventory
 
 All paths below are relative to `in/php-src` unless prefixed with `out/`. Entries marked "planned" reproduce the known PHP generation commands but are not yet wired into the `php` target's `on_prepare` callback.
