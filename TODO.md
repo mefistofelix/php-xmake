@@ -26,6 +26,7 @@ Last updated: 2026-08-13
 - [x] Run the independent `mkbuildinf.pl` invocation directly after `Configure`, before the template loop; it depends only on its arguments and optional `SOURCE_DATE_EPOCH`.
 - [x] Replace the OpenSSL template output-extension `if` with the union of the complete `**/*.c.in` and `**/*.h.in` input globs; they select the same 50 templates directly.
 - [x] Use the single `**/*.[ch].in` Xmake glob for the true single-character `c`/`h` alternative; it resolves to and regenerates the same 50 template outputs.
+- [ ] Validate the upstream application generation sequence in `openssl_test`: Configure with apps enabled, generate `apps/progs.c` with `apps/progs.pl -C apps/openssl`, then generate `apps/progs.h` with `-H`. `apps/include/apps.h` is already a committed input and needs no generator.
 
 ## Completed Target: zlib
 

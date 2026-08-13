@@ -926,11 +926,16 @@ target("openssl_test")
         local perl = "$(projectdir)/in/perl/perl/bin/perl.exe"
 
         os.vrunv(perl,
-            {"Configure", "VC-WIN64A", "no-shared", "no-module", "no-apps", "no-tests", "no-docs"},
+            {"Configure", "VC-WIN64A", "no-shared", "no-module", "no-tests", "no-docs"},
             {curdir = root, addenvs = {PATH = path.absolute("in/perl/c/bin")}})
 
         os.vrunv(perl, {"util/mkbuildinf.pl", "cl /MD /O2", "VC-WIN64A"},
             {curdir = root, stdout = path.join(root, "crypto/buildinf.h")})
+
+        os.vrunv(perl, {"apps/progs.pl", "-C", "apps/openssl"},
+            {curdir = root, stdout = path.join(root, "apps/progs.c")})
+        os.vrunv(perl, {"apps/progs.pl", "-H", "apps/openssl"},
+            {curdir = root, stdout = path.join(root, "apps/progs.h")})
 
         for _, input in ipairs(os.files(path.join(root, "**/*.[ch].in"))) do
             local output = input:sub(1, -4)
