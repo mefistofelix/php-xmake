@@ -689,6 +689,13 @@ target("libxml2")
         "in/deps/libxml2/xzlib.c"
     )
 
+target("libxml2_smoke")
+    set_default(false)
+    set_kind("binary")
+    set_targetdir(get_config("builddir"))
+    add_deps("libxml2")
+    add_files("in/deps/libxml2/doc/examples/parse3.c")
+
 
 target("php")
     set_enabled(false)
