@@ -144,6 +144,8 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-13 — `.\xmake.exe -j8 openssl_test` at commit `cc19cdc`: the exact `ktls_meth.c` exclusion passed and compilation advanced from 74% into the test tree, failing at `test/bn_internal_test.c` because its test-only generated `bn_prime.h` is absent. The configuration uses `no-tests`; Xmake's `test/**.c` glob selects all 288 test C sources, exactly matching the union of 251 direct and 37 nested files.
+
 - 2026-08-13 — `.\xmake.exe -j8 openssl_test` at commit `4682cde`: the VC-WIN64A seeding selection compiled only `rand_cpu_x86.c`, `rand_tsc.c`, `rand_unix.c`, and `rand_win.c`, passing the previous platform-source failure. Compilation reached 72% and failed at `ssl/record/methods/ktls_meth.c`; upstream `build.info` selects that source only when KTLS is enabled, while the generated configuration records both `no-ktls` and `OPENSSL_NO_KTLS`.
 
 - 2026-08-13 — `.\xmake.exe -j8 openssl_test` at commit `4e847c2`: excluding the macro-parameterized Blake2 implementation fragment preserved and compiled both concrete Blake2 MAC wrappers. Compilation reached the platform seeding directory and failed at VMS-only `rand_vms.c`; VC-WIN64A selects `rand_cpu_x86.c`, `rand_tsc.c`, `rand_unix.c`, and `rand_win.c`, while omitting ARM64 `rand_cpu_arm64.c` and the two `rand_v*.c` VMS/VxWorks variants.
