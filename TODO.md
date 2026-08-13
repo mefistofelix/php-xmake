@@ -24,7 +24,8 @@ Last updated: 2026-08-13
 - [x] Use the unrestricted `**/*x86_64*.pl` generator pattern in `openssl_test` without procedural directory filtering; all matches execute, including the helper/translator scripts under `crypto/perlasm` and the uplink generator under `ms`.
 - [x] Consolidate repeated OpenSSL-root and Perl-program expressions in `openssl_test:on_prepare` into two local values; the simplified callback preserves the validated template and perlasm preparation behavior.
 - [x] Run the independent `mkbuildinf.pl` invocation directly after `Configure`, before the template loop; it depends only on its arguments and optional `SOURCE_DATE_EPOCH`.
-- [ ] Revalidate the OpenSSL template pass after replacing the output-extension `if` with the union of the complete `**/*.c.in` and `**/*.h.in` input globs.
+- [x] Replace the OpenSSL template output-extension `if` with the union of the complete `**/*.c.in` and `**/*.h.in` input globs; they select the same 50 templates directly.
+- [ ] Revalidate the equivalent single `**/*.[ch].in` Xmake glob, which the local Xmake 3.1 pattern engine resolves to the same 50 template inputs.
 
 ## Completed Target: zlib
 
@@ -140,6 +141,7 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-13 — `.\xmake.exe -vD -j1 openssl_test` at commit `758bb4f`: the complete `**/*.c.in` and `**/*.h.in` glob union selected 10 C templates and 40 header templates, regenerated all 50 outputs, and left zero missing outputs. The former output-extension `if` is unnecessary; the complete target retained its separate post-preparation failure.
 - 2026-08-13 — `.\xmake.exe -vD -j1 openssl_test` at commit `0f08bd0`: `mkbuildinf.pl` ran successfully immediately after `Configure` and before the first `dofile.pl` template invocation. The remaining preparation behavior was unchanged, confirming that build-info generation has no dependency on the generated-template loop.
 - 2026-08-13 — `.\xmake.exe -vD -j1 openssl_test` at commit `a2362dd`: consolidating the repeated OpenSSL root and Perl executable expressions into `root` and `perl` preserved Configure, all 50 uniform template generations, build-info generation, and the unrestricted perlasm loop. The complete broad target retained its existing post-preparation failure; no new failure was introduced by the callback simplification.
 - 2026-08-13 — `.\xmake.exe -vD -j1 openssl_test` at commit `0d6edea`: the unrestricted `**/*x86_64*.pl` loop completed after removing the `crypto/perlasm` and `ms` directory filter. `x86_64-support.pl` produced no output because it is a helper module, `x86_64-xlate.pl` emitted a 64-byte NASM preamble, `uplink-x86_64.pl` emitted its assembly, and the remaining generators reached `e_padlock-x86_64.asm`. The complete broad target still failed after preparation, independently of the removed procedural filter.

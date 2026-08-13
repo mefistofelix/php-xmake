@@ -932,9 +932,7 @@ target("openssl_test")
         os.vrunv(perl, {"util/mkbuildinf.pl", "cl /MD /O2", "VC-WIN64A"},
             {curdir = root, stdout = path.join(root, "crypto/buildinf.h")})
 
-        for _, input in ipairs(table.join(
-            os.files(path.join(root, "**/*.c.in")),
-            os.files(path.join(root, "**/*.h.in")))) do
+        for _, input in ipairs(os.files(path.join(root, "**/*.[ch].in"))) do
             local output = input:sub(1, -4)
             os.vrunv(perl,
                 {"-I.", "-Iutil/perl", "-Iproviders/common/der", "-Mconfigdata",
