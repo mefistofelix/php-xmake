@@ -138,7 +138,7 @@ Integrate zstd as one dependency target:
 ## Next Target: nghttp3
 
 - [x] Inspect the upstream CMake and Automake source manifests, Windows configuration, public static definition, and version-header generation.
-- [ ] Fetch the exact `sfparse` submodule commit omitted by the GitHub source archive and validate clean and repeated preparation.
+- [ ] Fetch the release's exact `sfparse` gitlink with hx `--recursive` and validate clean and repeated preparation.
 - [ ] Add one 32-source static target with direct per-source compilation and no unity.
 - [ ] Build and validate architecture, `/MD`, static decoration, and the complete public header API surface.
 
@@ -178,6 +178,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-13 — clean `nghttp3` preparation at commit `4170b01`: the separate pinned `sfparse` fetch populated the release's formerly empty gitlink successfully, but inspection of hx's own help showed that `--recursive` provides this behavior natively. Replace the redundant second command and repeat the clean preparation before accepting it.
 
 - 2026-08-13 — `.\xmake.exe -vD -j8 libuv` plus `uv.h` API comparison at commit `aa908fe`: all 37 sources compiled independently with `/MD /O2`, and `out/libuv.lib` archived in 1.7 seconds. All 37 members are x64 and request `MSVCRT`, with zero `LIBCMT` or `/EXPORT:` directives; all 318 public header APIs are present and none uses an import thunk. MSVC 14.50 reports two investigated upstream C4090 warnings where libuv frees its owned `const char *` CPU-model field.
 

@@ -214,7 +214,7 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 
 ### nghttp3 upstream build analysis
 
-- Use the prepared official `ngtcp2/nghttp3` repository pinned to `v1.18.0`. Its `lib/sfparse` input is a Git submodule, which GitHub source archives leave empty; fetch the exact recorded `ngtcp2/sfparse` commit `4b313cfd2e1b389ae632b36dcd50402307289af2` into that directory during `xmake prepare`.
+- Use the prepared official `ngtcp2/nghttp3` repository pinned to `v1.18.0`. Its `lib/sfparse` input is a Git submodule, which plain GitHub source archives leave empty; use hx's native `--recursive` flag so `xmake prepare` materializes the exact gitlink commit recorded by the release.
 - Upstream `lib/CMakeLists.txt` and `lib/Makefile.am` agree on 31 direct `lib/nghttp3_*.c` sources plus `lib/sfparse/sfparse.c`. Compile those 32 inputs independently without unity.
 - Define `BUILDING_NGHTTP3` privately and propagate `NGHTTP3_STATICLIB`, which suppresses DLL decoration in the public header. The library has no external link dependency.
 - The generated CMake configuration only supplies Unix feature probes and a fallback `ssize_t` typedef. The selected Windows implementation does not use `ssize_t`, and its endian conversion takes the explicit `_byteswap_*` path, so the target does not need `HAVE_CONFIG_H` or a generated `config.h`.
