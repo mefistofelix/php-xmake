@@ -144,6 +144,8 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-13 — `.\xmake.exe -j8 openssl_test` at commit `9ffb5ab`: the ACVP glob removed both disabled ACVP C sources, allowing compilation to traverse the remaining `crypto` tree and reach 52%. The next failure came from Unix-only `demos/http3/ossl-nghttp3-demo-server.c`; all 69 C files below `demos` are example programs, and the configured `no-demos` option omits the complete directory.
+
 - 2026-08-13 — `.\xmake.exe -j8 openssl_test` at commit `888b9f4`: excluding the five disabled low-level RC5 sources and two legacy-provider RC5 sources preserved upstream-selected `crypto/evp/e_rc5.c`, which compiled successfully under `OPENSSL_NO_RC5`. Compilation advanced to `crypto/rsa/rsa_acvp_test_params.c`; this unguarded FIPS ACVP helper is omitted by `no-acvp-tests`, and the verified `**/*acvp*.c` glob matches it plus only the independently disabled `test/acvp_test.c`.
 
 - 2026-08-13 — `.\xmake.exe -j8 openssl_test` at commit `ad7bfa9`: the `crypto/poly1305/poly1305_*.c` exclusion removed exactly the three unselected alternative implementations while retaining and compiling upstream-selected `poly1305.c`. Compilation advanced to the disabled RC5 implementation at `crypto/rc5/rc5cfb64.c`; the configured `OPENSSL_NO_RC5` skips all five low-level `crypto/rc5` sources and both legacy-provider `cipher_rc5` sources while retaining the guarded `crypto/evp/e_rc5.c` adapter.

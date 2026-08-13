@@ -971,6 +971,7 @@ target("openssl_test")
         "in/deps/openssl/crypto/ec/ecp_nist*.c",
         "in/deps/openssl/crypto/poly1305/poly1305_*.c",
         "in/deps/openssl/crypto/rc5/*.c",
+        "in/deps/openssl/demos/**/*.c",
         "in/deps/openssl/providers/implementations/ciphers/cipher_rc5*.c"
     )
 
