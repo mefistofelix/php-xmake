@@ -106,7 +106,7 @@ Integrate zstd as one dependency target:
 - [x] Verify the official `libssh2/libssh2` tag `libssh2-1.11.1`, matching the previously downloaded PHP SDK package version.
 - [x] Replace the prebuilt libssh2 package with the pinned official source and validate `xmake prepare` from a clean absence and on a no-change repeat.
 - [x] Inspect libssh2's upstream manifest, hand-written MSVC configuration, OpenSSL backend selection, default-disabled zlib support, public API decoration, and Windows libraries.
-- [x] Add one 26-source static libssh2 target using direct per-source compilation without unity; first build and symbol validation remain.
+- [x] Add and validate one 26-source static libssh2 target using direct per-source compilation without unity.
 - [ ] Inspect and integrate the already prepared official nghttp2 `v1.69.0` source as one static target without unity, including its generated version header.
 
 ## Following Target: libcurl
@@ -154,6 +154,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-13 — `.\xmake.exe -vD -j8 libssh2` plus `dll_compare/libssh2.dll` comparison at commit `1750338`: all 26 sources compiled independently with `/MD /O2`, and `out/libssh2.lib` archived successfully in 1.5 seconds. The archive contains all 137 reference exports, 26 x64 members, 26 `MSVCRT` and zero `LIBCMT` directives, no `/EXPORT:` directives, and no `__imp_libssh2*` thunks.
 
 - 2026-08-13 — `.\xmake.exe prepare` at commit `e5d38b4`: the no-change repeat completed successfully in 0.8 seconds with the official libssh2 source tree already present, validating preparation idempotence.
 
