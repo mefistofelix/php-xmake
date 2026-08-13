@@ -144,6 +144,8 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-13 — `.\xmake.exe -j8 openssl_test` at commit `888b9f4`: excluding the five disabled low-level RC5 sources and two legacy-provider RC5 sources preserved upstream-selected `crypto/evp/e_rc5.c`, which compiled successfully under `OPENSSL_NO_RC5`. Compilation advanced to `crypto/rsa/rsa_acvp_test_params.c`; this unguarded FIPS ACVP helper is omitted by `no-acvp-tests`, and the verified `**/*acvp*.c` glob matches it plus only the independently disabled `test/acvp_test.c`.
+
 - 2026-08-13 — `.\xmake.exe -j8 openssl_test` at commit `ad7bfa9`: the `crypto/poly1305/poly1305_*.c` exclusion removed exactly the three unselected alternative implementations while retaining and compiling upstream-selected `poly1305.c`. Compilation advanced to the disabled RC5 implementation at `crypto/rc5/rc5cfb64.c`; the configured `OPENSSL_NO_RC5` skips all five low-level `crypto/rc5` sources and both legacy-provider `cipher_rc5` sources while retaining the guarded `crypto/evp/e_rc5.c` adapter.
 
 - 2026-08-13 — `.\xmake.exe -j8 openssl_test` at commit `9efaf6f`: excluding the six `LPdir_*.c` backend fragments let the broad source experiment advance from 34% to 39%. Compilation stopped at `crypto/poly1305/poly1305_base2_44.c`, a standalone assembly-development template requiring a 128-bit integer type unavailable in MSVC. Upstream VC-WIN64A selects only `poly1305.c` plus generated `poly1305-x86_64.asm`; the `crypto/poly1305/poly1305_*.c` glob matches exactly the three unselected alternative C implementations.
