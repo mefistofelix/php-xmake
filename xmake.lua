@@ -420,8 +420,8 @@ target("icu")
     on_prepare(function ()
         os.vrunv("$(projectdir)/in/tools/icu/genccode.exe", {
             "-q", "-o", "--skip-dll-export", "-e", "icudt77",
-            "-d", "$(projectdir)/in/deps/ICU/icu4c/source/data/in",
-            "$(projectdir)/in/deps/ICU/icu4c/source/data/in/icudt77l.dat"
+            "-d", "in/deps/ICU/icu4c/source/data/in",
+            "in/deps/ICU/icu4c/source/data/in/icudt77l.dat"
         })
     end)
     add_includedirs(

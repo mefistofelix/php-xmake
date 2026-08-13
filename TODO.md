@@ -194,6 +194,8 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-13 — `.\xmake.exe -vD -j8 icu` at commit `4a17fff` stopped in the target callback before compilation: Xmake expanded `$(projectdir)` in the `os.vrunv` program path but passed placeholders in the argument table literally, so `genccode` could not open its input. Keep the executable placeholder and use direct project-relative data paths in the argument list before retrying.
+
 - 2026-08-13 — unchanged expanded ICU preparation after commit `17b02f2`: `xmake prepare` completed in 0.7 seconds with source, data archive, and minimal generator runtime already present, validating the complete ICU preparation's idempotence.
 
 - 2026-08-13 — expanded clean ICU preparation at commit `15227d9`: after revalidating and moving the exact `in/deps/ICU` direct child to the Recycle Bin, `xmake prepare` recreated the official source, extracted the 31,895,376-byte `icudt77l.dat`, and retained only `genccode.exe` plus its four required ICU runtime DLLs from the official Win64 release under `in/tools/icu`. The complete preparation finished in 9.9 seconds; an unchanged repeat remains.
