@@ -160,7 +160,7 @@ Integrate zstd as one dependency target:
 ## Next Target: libiconv
 
 - [x] Verify GNU's official libiconv 1.19 release tarball, matching the previous PHP SDK dependency version.
-- [ ] Replace the prebuilt SDK package with the official release source and validate preparation from clean absence and on an unchanged repeat.
+- [x] Replace the prebuilt SDK package with the official release source and validate preparation from clean absence and on an unchanged repeat.
 - [ ] Inspect the upstream build for exact library sources, generated configuration, Windows definitions, public static interface, and dependencies.
 - [ ] Add a direct per-source static target without unity, then build and validate it.
 
@@ -200,6 +200,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-13 — unchanged libiconv preparation after commit `9d93681`: `xmake prepare` completed in 0.8 seconds with the official GNU 1.19 source already present, validating the new fetch's idempotence.
 
 - 2026-08-13 — clean libiconv preparation at commit `cb595ee`: after verifying the old binary-package directory as the exact `in/deps/libiconv` direct child and moving it to the Recycle Bin, `xmake prepare` recreated the directory from GNU's official libiconv 1.19 tarball in 2.4 seconds. The complete release source and matching hx provenance marker are present; an unchanged repeat remains.
 
