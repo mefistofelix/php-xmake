@@ -90,7 +90,6 @@ target("gen_ir_fold_hash")
     add_defines("IR_TARGET_X86_64")
 
 target("zlib")
-    set_enabled(false)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     add_includedirs("in/deps/zlib", {public = true})
@@ -100,7 +99,6 @@ target("zlib")
     add_files("in/deps/zlib/gz*.c", "in/deps/zlib/inf*.c", "in/deps/zlib/zutil.c", {unity_ignored = true})
 
 target("brotli")
-    set_enabled(false)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     add_includedirs("in/deps/brotli/c/include", {public = true})
@@ -112,7 +110,6 @@ target("brotli")
     add_files("in/deps/brotli/c/enc/static_dict.c", {unity_ignored = true})
 
 target("zstd")
-    set_enabled(false)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     add_includedirs("in/deps/zstd/lib", {public = true})
@@ -186,7 +183,6 @@ target("liblzma")
         "in/deps/xz/src/liblzma/lzma/lzma_encoder*.c", {unity_group = "conflict_4"})
 
 target("libssh2")
-    set_enabled(false)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
@@ -209,7 +205,6 @@ target("libssh2")
     )
 
 target("nghttp2")
-    set_enabled(false)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
@@ -230,6 +225,52 @@ target("nghttp2")
         "ssize_t=int"
     )
     add_files("in/deps/nghttp2/lib/*.c")
+
+target("libcurl")
+    set_kind("static")
+    set_targetdir(get_config("builddir"))
+    set_optimize("fastest")
+    add_deps(
+        "brotli",
+        "libssh2",
+        "nghttp2",
+        "openssl",
+        "zlib",
+        "zstd"
+    )
+    add_includedirs("in/deps/libcurl/include", {public = true})
+    add_includedirs(
+        "in/deps/libcurl/lib",
+        "in/deps/openssl/include"
+    )
+    add_defines("CURL_STATICLIB", {public = true})
+    add_defines(
+        "BUILDING_LIBCURL",
+        "HAVE_BROTLI",
+        "HAVE_LIBZ",
+        "HAVE_ZSTD",
+        "USE_IPV6",
+        "USE_LIBSSH2",
+        "USE_NGHTTP2",
+        "USE_OPENSSL",
+        "USE_WIN32_IDN"
+    )
+    add_syslinks(
+        "advapi32",
+        "bcrypt",
+        "crypt32",
+        "iphlpapi",
+        "normaliz",
+        "winmm",
+        "wldap32",
+        "ws2_32",
+        {public = true}
+    )
+    add_files(
+        "in/deps/libcurl/lib/*.c",
+        "in/deps/libcurl/lib/**/*.c"
+    )
+    remove_files("in/deps/libcurl/lib/dllmain.c")
 
 
 target("php")

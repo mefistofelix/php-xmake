@@ -115,9 +115,9 @@ Integrate zstd as one dependency target:
 - [x] Verify the official `curl/curl` tag `curl-8_21_0`, matching the previous PHP SDK dependency version.
 - [x] Replace the prebuilt SDK archive with the pinned official source and validate `xmake prepare` from a clean absence and on a no-change repeat.
 - [x] Confirm that broad direct/recursive `lib/*.c` patterns minus `dllmain.c` reproduce all 192 sources in upstream `lib/Makefile.inc`.
-- [ ] Complete the remaining feature defines, include paths, dependency edges, and Windows system-library analysis after libssh2 and nghttp2 are available.
-- [ ] Add one static libcurl target using direct per-source Xmake compilation without unity.
-- [ ] Build and validate `/MD`, the static public interface, archive architecture, and representative curl symbols before moving to libssh2.
+- [x] Complete the feature defines, include paths, dependency edges, and Windows system-library analysis; enable the complete OpenSSL/compression/SSH/HTTP2 dependency closure for the focused build test.
+- [x] Add one static libcurl target using direct per-source Xmake compilation without unity.
+- [ ] Build and validate `/MD`, the static public interface, archive architecture, and every symbol in upstream `libcurl.def` before moving to the next dependency.
 
 ## Dependency Targets
 
