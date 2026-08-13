@@ -96,7 +96,7 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 | `libintl` | Disabled | Static library | Direct per-source C inputs under `gettext-runtime/intl` and `gettext-runtime/intl/gnulib-lib` | `out/libintl.lib` | GNU message catalogs and locale handling for PHP and dependent libraries | Deferred during the broad Gnulib configuration pass; not yet validated |
 | `libxml2` | Disabled | Static library | 43 native Windows library sources selected from `in/deps/libxml2/*.c` | `out/libxml2.lib` | XML, HTML, XPath, schema, catalog, and network parsing for PHP and dependent libraries | Build, SDK symbol surface, CRT, architecture, static linkage, and upstream parser smoke validation passed |
 | `libxslt` | Disabled | Static library | `in/deps/libxslt/libxslt/*.c`, `in/deps/libxslt/libexslt/*.c` | `out/libxslt.lib` | XSLT and EXSLT transformation support for PHP | Build, complete SDK/DLL symbol surface, CRT, architecture, static linkage, and upstream XSLT/EXSLT runtime validation passed |
-| `oniguruma` | Enabled | Static library | 50 native Windows sources selected from `in/deps/libonig/src/*.c` | `out/oniguruma.lib` | Multibyte regular expressions for PHP mbstring | Direct per-source `/MD` build passed; archive and runtime validation pending |
+| `oniguruma` | Enabled | Static library | 50 native Windows sources selected from `in/deps/libonig/src/*.c` | `out/oniguruma.lib` | Multibyte regular expressions for PHP mbstring | Direct per-source build and complete SDK/DLL archive-interface validation passed; runtime validation pending |
 | `minilua` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/dynasm/minilua.c` | `out/minilua.exe` | Runs DynASM for the PHP JIT IR emitter | Defined; build validation pending |
 | `gen_ir_fold_hash` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c` | `out/gen_ir_fold_hash.exe` | Generates the JIT IR fold hash header | Defined; build validation pending |
 | `php` | Disabled | Object prototype | `in/php-src/Zend/zend.c`, `in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm` | `out/` | Becomes the static PHP build after dependency, configuration, codegen, and source integration | Prototype only; real `on_prepare` codegen pending |
@@ -339,7 +339,7 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 
 | Owner | Tool | Input | Output | Handling | Status |
 | --- | --- | --- | --- | --- | --- |
-| `oniguruma` | Xmake file copy | `src/config.h.win64` | `src/config.h` | Copy the committed x64 MSVC configuration in the target's only `on_prepare` callback | Build validated |
+| `oniguruma` | Xmake file copy | `src/config.h.win64` | `src/config.h` | Copy the committed x64 MSVC configuration in the target's only `on_prepare` callback | Build and archive validation passed |
 
 ## PHP Code-generation Inventory
 
