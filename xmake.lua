@@ -548,6 +548,8 @@ target("libintl")
         "BUILDING_LIBINTL",
         "BUILDING_LIBRARY",
         "HAVE_CONFIG_H",
+        "LIBDIR=\".\"",
+        "LOCALEDIR=\".\"",
         "_CRT_SECURE_NO_WARNINGS",
         "_WIN32_WINNT=0x0601"
     )
