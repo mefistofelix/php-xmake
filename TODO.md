@@ -175,7 +175,7 @@ Integrate zstd as one dependency target:
 ## Next Target: libxml2
 
 - [x] Identify GNOME's official libxml2 2.11.9 release archive, matching the current dependency package.
-- [ ] Replace any prebuilt package with pinned upstream source and validate clean and repeated preparation.
+- [x] Replace the prebuilt package with pinned upstream source and validate clean and repeated preparation.
 - [ ] Inspect the upstream native build declarations for the exact source manifest, generated configuration, definitions, and dependency edges.
 - [ ] Add a direct per-source static target without unity, then build and validate it.
 
@@ -215,6 +215,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-14 — unchanged libxml2 preparation after commit `82bab6f`: `xmake prepare` completed in 0.8 seconds with the official 2.11.9 source already present, validating idempotence.
 
 - 2026-08-14 — clean libxml2 preparation at commit `4e444e4`: after preserving the PHP SDK package under `%TEMP%`, validating `in/deps/libxml2` as the exact direct child of `in/deps`, and moving it to the Recycle Bin, `xmake prepare` recreated the official GNOME 2.11.9 release source in 2.4 seconds. The source's release macros and hx provenance match 2.11.9; an unchanged repeat remains.
 
