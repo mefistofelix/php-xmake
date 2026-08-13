@@ -142,12 +142,12 @@ Integrate zstd as one dependency target:
 - [x] Add one 32-source static target with direct per-source compilation and no unity.
 - [x] Build and validate architecture, `/MD`, static decoration, and the complete public header API surface.
 
-## Next Target: ngtcp2
+## Completed Target: ngtcp2
 
 - [x] Inspect the upstream core and OpenSSL-adapter CMake/Automake manifests, C11 requirement, Windows configuration, static interface, generation, and dependency edges.
 - [x] Keep the core and OpenSSL adapter as two targets because upstream and PHP require the distinct `ngtcp2.lib` and `ngtcp2_crypto_ossl.lib` outputs.
 - [x] Add direct per-source targets for all 46 core sources and the two adapter sources without unity.
-- [ ] Build the complete core/OpenSSL closure and validate both archives, their public header API surfaces, architecture, `/MD`, and static decoration.
+- [x] Build the complete core/OpenSSL closure and validate both archives, their public header API surfaces, architecture, `/MD`, and static decoration.
 
 ## Dependency Targets
 
@@ -155,7 +155,7 @@ Every library must receive its own static target. Integrate and validate them on
 
 - [x] Foundation compression: zlib, Brotli, zstd, bzip2, liblzma.
 - [x] Cryptography and transport: OpenSSL, libcurl, libssh2, libsodium.
-- [ ] HTTP/async: libuv, nghttp2, nghttp3, ngtcp2.
+- [x] HTTP/async: libuv, nghttp2, nghttp3, ngtcp2.
 - [ ] Data/text: ICU, libiconv, libintl, libxml2, libxslt, Oniguruma, SQLite, LMDB, QDBM.
 - [ ] Database/directory clients: PostgreSQL, Firebird, OpenLDAP.
 - [ ] Image/font stack: FreeType, libjpeg-turbo, libpng, libtiff, libwebp, libavif, libheif, libjxl, libultrahdr, libxpm.
@@ -185,6 +185,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-13 — `.\xmake.exe -vD -j8 ngtcp2_crypto_ossl` plus public-header API comparisons at commit `ceb9e69`: all 46 core and two OpenSSL-adapter sources compiled independently with `/MD /O2 /std:c11`, producing both PHP-required archives without warnings in 3.2 seconds. Every member is x64 and requests `MSVCRT`, with zero `LIBCMT`, `/EXPORT:`, ngtcp2 import thunks, or OpenSSL import thunks. `ngtcp2.lib` contains all 168 core APIs; `ngtcp2_crypto_ossl.lib` contains all 54 generic/ossl crypto APIs. The generated version header contains `1.25.0` and `0x011900`.
 
 - 2026-08-13 — `.\xmake.exe -vD -j8 nghttp3` plus public-header API comparison at commit `d52a7f1`: all 32 sources compiled independently with `/MD /O2 /std:c11`, and `out/nghttp3.lib` archived without warnings in 1.0 second. All 32 members are x64 and request `MSVCRT`, with zero `LIBCMT` or `/EXPORT:` directives; all 91 public header APIs are present and none uses an import thunk. The generated version header contains `1.18.0` and `0x011200`.
 
