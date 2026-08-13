@@ -149,13 +149,13 @@ Integrate zstd as one dependency target:
 - [x] Add direct per-source targets for all 46 core sources and the two adapter sources without unity.
 - [x] Build the complete core/OpenSSL closure and validate both archives, their public header API surfaces, architecture, `/MD`, and static decoration.
 
-## Next Target: ICU
+## Completed Target: ICU
 
 - [x] Verify the official `unicode-org/icu` release tag `release-77-1`, matching the previous PHP SDK dependency version.
 - [x] Replace the prebuilt SDK package with the pinned official source and validate clean and repeated preparation.
 - [x] Fetch the official little-endian data archive and minimal Win64 `genccode` runtime, then validate the expanded preparation from clean absence and on a repeat.
 - [x] Inspect the upstream Windows build for exact common, i18n, data, generation, definitions, and dependency edges before declaring the target.
-- [ ] Add a direct per-source static target without unity, then build and validate it.
+- [x] Add a direct per-source static target without unity, then build and validate it.
 
 ## Dependency Targets
 
@@ -193,6 +193,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-13 — `.\xmake.exe -vD -j8 icu` plus archive/reference checks and the official C++ transliteration sample at commit `c7e4a01`: all 455 C++ sources rebuilt independently without warnings using `/MD /O2 /std:c++17 /EHs-c-`, and `genccode` inserted the packaged data as one intentional machine-neutral object. The 70,195,496-byte archive has 456 members: 455 x64 objects requesting `MSVCRT` and one machine-neutral data object, with zero `LIBCMT`, `/EXPORT:`, or ICU import thunks. All 1,635 C/data exports from the reference common, i18n, and data DLLs are present; the official C++ sample linked statically, exercised calendar, date formatting, normalization, and transliteration against the embedded data, and exited successfully.
 
 - 2026-08-13 — `.\xmake.exe -vD -j8 icu` at commit `8032603` built all 455 C++ sources and the generated data object without warnings in 32.3 seconds. The 456-member archive contains one intentional machine-neutral data object and 455 x64 objects; every compiled object requests `MSVCRT`, with zero `LIBCMT`, `/EXPORT:`, or ICU import thunks. It contains all 1,635 C/data exports from the reference `icuuc77.dll`, `icuin77.dll`, and `icudt77.dll`; the official C++ transliteration sample also linked statically and ran successfully against the archive and embedded data. The verbose command exposed Xmake's default `/EHsc`, so disable C++ exceptions with the native target setting before the final rebuild, matching ICU's no-exception library configuration.
 
