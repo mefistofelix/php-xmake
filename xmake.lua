@@ -982,7 +982,9 @@ target("openssl_test")
         "in/deps/openssl/providers/fips/*.c",
         "in/deps/openssl/providers/implementations/ciphers/cipher_rc5*.c",
         "in/deps/openssl/providers/implementations/macs/blake2_mac_impl.c",
-        "in/deps/openssl/providers/implementations/rands/fips_crng_test.c"
+        "in/deps/openssl/providers/implementations/rands/fips_crng_test.c",
+        "in/deps/openssl/providers/implementations/rands/seeding/rand_cpu_arm64.c",
+        "in/deps/openssl/providers/implementations/rands/seeding/rand_v*.c"
     )
 
     add_asflags("-Ox", "-f", "win64", "-DNEAR", "-g", {force = true})
@@ -999,42 +1001,42 @@ target("openssl_test")
         "in/deps/openssl/providers/fips/include"
     )
     add_defines(
-        "L_ENDIAN",
-        "OPENSSL_PIC",
-        "OPENSSL_BUILDING_OPENSSL",
-        "OPENSSL_SUPPRESS_DEPRECATED=",
-        "OPENSSL_SYS_WIN32",
-        "WIN32_LEAN_AND_MEAN",
-        "UNICODE",
-        "_UNICODE",
-        "_CRT_SECURE_NO_DEPRECATE",
-        "_WINSOCK_DEPRECATED_NO_WARNINGS",
-        "NDEBUG",
-        "STATIC_LEGACY",
         "AES_ASM",
         "BSAES_ASM",
         "CMLL_ASM",
         "ECP_NISTZ256_ASM",
+        [[ENGINESDIR="C:\\Program Files\\OpenSSL\\lib\\engines-3"]],
         "GHASH_ASM",
         "KECCAK1600_ASM",
+        "L_ENDIAN",
         "MD5_ASM",
+        [[MODULESDIR="C:\\Program Files\\OpenSSL\\lib\\ossl-modules"]],
+        "NDEBUG",
         "OPENSSL_BN_ASM_GF2m",
         "OPENSSL_BN_ASM_MONT",
         "OPENSSL_BN_ASM_MONT5",
+        "OPENSSL_BUILDING_OPENSSL",
         "OPENSSL_CPUID_OBJ",
         "OPENSSL_IA32_SSE2",
+        "OPENSSL_PIC",
+        "OPENSSL_SUPPRESS_DEPRECATED=",
+        "OPENSSL_SYS_WIN32",
+        [[OPENSSLDIR="C:\\Program Files\\Common Files\\SSL"]],
         "PADLOCK_ASM",
         "POLY1305_ASM",
         "RC4_ASM",
         "SHA1_ASM",
         "SHA256_ASM",
         "SHA512_ASM",
+        "STATIC_LEGACY",
+        "UNICODE",
         "VPAES_ASM",
         "WHIRLPOOL_ASM",
+        "WIN32_LEAN_AND_MEAN",
         "X25519_ASM",
-        [[OPENSSLDIR="C:\\Program Files\\Common Files\\SSL"]],
-        [[ENGINESDIR="C:\\Program Files\\OpenSSL\\lib\\engines-3"]],
-        [[MODULESDIR="C:\\Program Files\\OpenSSL\\lib\\ossl-modules"]]
+        "_CRT_SECURE_NO_DEPRECATE",
+        "_UNICODE",
+        "_WINSOCK_DEPRECATED_NO_WARNINGS"
     )
     -- add_cflags("/Gs0", "/GF", "/Gy", "/W3", "/wd4090", {force = true})
 
