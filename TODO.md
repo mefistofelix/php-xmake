@@ -208,6 +208,8 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-14 — second direct `libintl` build at commit `c544fe4`: the corrected configuration compiled the initial core sources through 12%, then `intl-exports.c` failed because its DLL-only declaration machinery is not active for a static build. Remove that shared-library source and the independently identified OS/2-only `os2compat.c`; retain the broad root and recursive Gnulib patterns for the next pass.
+
 - 2026-08-14 — initial direct `libintl` build at commit `925ef5a`: Xmake invoked MSVC directly on the broad per-source C declarations with `/MD /O2`; compilation stopped in the first core batch because the Windows configuration lacked `FLEXIBLE_ARRAY_MEMBER=1`. The callback's substitutions for `PACKAGE` and `HAVE_STDINT_H` also matched longer macro names and produced harmless redefinition warnings; make those substitutions exact and add the required flexible-array setting before retrying.
 
 - 2026-08-13 — unchanged libintl preparation after commit `5c571ee`: `.\xmake.exe prepare` completed in 0.8 seconds with the official GNU Gettext 1.0 tree already present, validating the new source fetch's idempotence.

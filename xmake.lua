@@ -556,6 +556,10 @@ target("libintl")
         "in/deps/libintl/gettext-runtime/intl/*.c",
         "in/deps/libintl/gettext-runtime/intl/gnulib-lib/**/*.c"
     )
+    remove_files(
+        "in/deps/libintl/gettext-runtime/intl/intl-exports.c",
+        "in/deps/libintl/gettext-runtime/intl/os2compat.c"
+    )
 
 
 target("php")
