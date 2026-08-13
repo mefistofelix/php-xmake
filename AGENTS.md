@@ -278,6 +278,12 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 | --- | --- | --- | --- | --- | --- |
 | `libiconv` | Xmake Lua I/O | `include/iconv.h.build.in`, `libcharset/include/localcharset.h.build.in`, MSVC/platform configuration | `include/iconv.h`, `libcharset/include/localcharset.h`, `lib/config.h` | Substitute the upstream header templates and write the selected configuration macros in the target's only `on_prepare` callback | Build validated |
 
+### libintl source identity
+
+- GNU Gettext 1.0 is the authoritative release corresponding to the current PHP SDK `libintl-1.0` package. Fetch the official `gettext-1.0.tar.gz` release from `ftp.gnu.org` and strip its single top-level directory into `in/deps/libintl`.
+- The package SBOM identifies `winlibs/gettext` tag `libintl-1.0`, commit `cd6fcaeffc493305f9c0081310efa0e063060da6`, as its build input and GNU Savannah tag `v1.0` as upstream. A complete file-level comparison shows that the fork tag and official release tarball contain identical source trees; only the hx provenance marker differs. Use the official release rather than the packaging fork.
+- The PHP package was produced by the public `winlibs/winlib-builder` Cygwin workflow. It configured `gettext-runtime` for x64 MSVC with both static and shared libraries, `/MD /O2`, `_WIN32_WINNT=0x0601`, and then built and installed only the `intl` subdirectory. Treat the official `gettext-runtime/intl/Makefile.am`, generated configuration, and that Windows workflow as the source/build authorities for the direct Xmake conversion.
+
 ## PHP Code-generation Inventory
 
 All paths below are relative to `in/php-src` unless prefixed with `out/`. Entries marked "planned" reproduce the known PHP generation commands but are not yet wired into the `php` target's `on_prepare` callback.

@@ -166,7 +166,7 @@ Integrate zstd as one dependency target:
 
 ## Next Target: libintl
 
-- [ ] Identify the authoritative source and version corresponding to the current PHP SDK package.
+- [x] Identify the authoritative source and version corresponding to the current PHP SDK package.
 - [ ] Replace the prebuilt package with pinned upstream source and validate clean and repeated preparation.
 - [ ] Inspect the upstream Windows build for its exact source manifest, generated configuration, static interface, and libiconv dependency.
 - [ ] Add a direct per-source static target without unity, then build and validate it.
