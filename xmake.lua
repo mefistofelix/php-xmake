@@ -65,7 +65,7 @@ task("prepare")
         os.run("hx %s/libtiff-4.7.2rc2-vs18-x64.zip in/deps/libtiff",bp)
         os.run("hx %s/libultrahdr-1.4.0-1-vs18-x64.zip in/deps/libultrahdr",bp)
         os.run("hx %s/libwebp-1.6.0-vs18-x64.zip in/deps/libwebp",bp)
-        os.run("hx -delpathseg 1 https://download.gnome.org/sources/libxml2/2.11/libxml2-2.11.9.tar.xz in/deps/libxml2")
+        os.run("hx github://winlibs/libxml2?ref=libxml2-2.11.9-7 in/deps/libxml2")
         os.run("hx %s/libxpm-3.5.19-vs18-x64.zip in/deps/libxpm",bp)
         os.run("hx %s/libxslt-1.1.43-2-vs18-x64.zip in/deps/libxslt",bp)
         os.run("hx %s/libzip-1.11.4-vs18-x64.zip in/deps/libzip",bp)
@@ -665,7 +665,6 @@ target("libxml2")
     add_includedirs("in/deps/libxml2")
     add_defines("LIBXML_STATIC", {public = true})
     add_defines(
-        "HAVE_COMPILER_TLS",
         "LIBXML_STATIC_FOR_DLL",
         "NDEBUG",
         "NOLIBTOOL",

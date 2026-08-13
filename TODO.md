@@ -172,10 +172,10 @@ Integrate zstd as one dependency target:
 - [ ] Add a direct per-source static target without unity, then build and validate it.
 - [ ] Resume the generated Gnulib locale-wrapper configuration after the dependency baseline is complete.
 
-## Next Target: libxml2
+## Current Target: libxml2
 
-- [x] Identify GNOME's official libxml2 2.11.9 release archive, matching the current dependency package.
-- [x] Replace the prebuilt package with pinned upstream source and validate clean and repeated preparation.
+- [x] Identify the SDK's exact pinned `winlibs/libxml2` 2.11.9-7 source and its GNOME 2.11.9 base.
+- [ ] Replace the vanilla upstream tree with the SDK's security-backported source and validate clean and repeated preparation.
 - [x] Inspect the upstream native build declarations for the exact source manifest, generated configuration, definitions, and dependency edges.
 - [ ] Add a direct per-source static target without unity, then build and validate it.
 
@@ -215,6 +215,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-14 — initial `libxml2` archive inspection after commit `7436b4a`: all 43 objects are x64 and select `MSVCRT`; no object selects `LIBCMT`, emits `/EXPORT:`, or contains libxml/libiconv import thunks. The vanilla GNOME 2.11.9 tree nevertheless differs from the current PHP SDK 2.11.9-7 package by the security-backported `xmlRelaxParserSetIncLImit` symbol. The SDK SBOM identifies its exact source as `winlibs/libxml2` tag `libxml2-2.11.9-7` at commit `f06d784607050c08a9b28b1fce2faa4236c052cf`; switch preparation to that source. The SDK's `libxml2_a_dll.lib` also contains `xmlDllMain`, and PHP calls it from `win32/dllmain.c`, so use the native Windows TLS path and remove the incompatible `HAVE_COMPILER_TLS` define before final validation.
 
 - 2026-08-14 — initial direct `libxml2` build at commit `3f6dbc7`: Xmake copied/substituted the two committed configuration headers, compiled exactly the 43 native Windows library sources independently with `/MD /O2`, rebuilt the `libiconv` dependency, and archived `out/libxml2.lib` successfully in 3.5 seconds. Only the already accepted generated-table warnings from `libiconv` appeared; archive, symbol-surface, and parser runtime validation remain.
 
