@@ -144,6 +144,8 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-13 — `.\xmake.exe -j8 openssl_test` at commit `ad7bfa9`: the `crypto/poly1305/poly1305_*.c` exclusion removed exactly the three unselected alternative implementations while retaining and compiling upstream-selected `poly1305.c`. Compilation advanced to the disabled RC5 implementation at `crypto/rc5/rc5cfb64.c`; the configured `OPENSSL_NO_RC5` skips all five low-level `crypto/rc5` sources and both legacy-provider `cipher_rc5` sources while retaining the guarded `crypto/evp/e_rc5.c` adapter.
+
 - 2026-08-13 — `.\xmake.exe -j8 openssl_test` at commit `9efaf6f`: excluding the six `LPdir_*.c` backend fragments let the broad source experiment advance from 34% to 39%. Compilation stopped at `crypto/poly1305/poly1305_base2_44.c`, a standalone assembly-development template requiring a 128-bit integer type unavailable in MSVC. Upstream VC-WIN64A selects only `poly1305.c` plus generated `poly1305-x86_64.asm`; the `crypto/poly1305/poly1305_*.c` glob matches exactly the three unselected alternative C implementations.
 
 - 2026-08-13 — `.\xmake.exe -j8 openssl_test` at commit `832c52b`: excluding `crypto/*cap.c` removed all six non-x64 CPU-capability implementations while preserving the x64 CPUID C/assembly pair. Compilation stopped at `crypto/LPdir_win.c`; upstream compiles only `o_dir.c`, which selects `LPdir_win32.c` and transitively includes `LPdir_win.c`. All six `LPdir_*.c` files are backend fragments rather than independent translation units and must remain out of the broad source glob.

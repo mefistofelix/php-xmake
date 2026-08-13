@@ -965,7 +965,8 @@ target("openssl_test")
     add_files("in/deps/openssl/**/*.c")
     remove_files("in/deps/openssl/crypto/ec/ecp_nist*.c", "in/deps/openssl/**/*md2*.c",
         "in/deps/openssl/crypto/*cap.c", "in/deps/openssl/crypto/LPdir_*.c",
-        "in/deps/openssl/crypto/poly1305/poly1305_*.c")
+        "in/deps/openssl/crypto/poly1305/poly1305_*.c", "in/deps/openssl/crypto/rc5/*.c",
+        "in/deps/openssl/providers/implementations/ciphers/cipher_rc5*.c")
 
     add_asflags("-Ox", "-f", "win64", "-DNEAR", "-g", {force = true})
     add_files("in/deps/openssl/**/*x86_64*.asm")
