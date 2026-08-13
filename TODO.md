@@ -164,11 +164,19 @@ Integrate zstd as one dependency target:
 - [x] Inspect the upstream build for exact library sources, generated configuration, Windows definitions, public static interface, and dependencies.
 - [x] Add a direct per-source static target without unity, then build and validate it.
 
-## Next Target: libintl
+## Deferred Target: libintl
 
 - [x] Identify the authoritative source and version corresponding to the current PHP SDK package.
 - [x] Replace the prebuilt package with pinned upstream source and validate clean and repeated preparation.
 - [x] Inspect the upstream Windows build for its exact source manifest, generated configuration, static interface, and libiconv dependency.
+- [ ] Add a direct per-source static target without unity, then build and validate it.
+- [ ] Resume the generated Gnulib locale-wrapper configuration after the dependency baseline is complete.
+
+## Next Target: libxml2
+
+- [ ] Identify the authoritative source and pinned version corresponding to the current dependency package.
+- [ ] Replace any prebuilt package with pinned upstream source and validate clean and repeated preparation.
+- [ ] Inspect the upstream native build declarations for the exact source manifest, generated configuration, definitions, and dependency edges.
 - [ ] Add a direct per-source static target without unity, then build and validate it.
 
 ## Dependency Targets
@@ -207,6 +215,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-14 — broad `libintl` build at commit `bbeabc6`: the generated `unistd.h` wrapper compiled `rpl_getcwd` successfully and advanced the pass to 32%. The selected `getlocalename_l-unsafe.c` then required Gnulib's generated `locale.h` and Windows `locale_t` model. Per current priority, disable and defer this incomplete target rather than expanding its wrapper configuration now.
 
 - 2026-08-14 — broad `libintl` build at commit `47e56f6`: the replacement exclusion passed and compilation advanced into the selected Gnulib runtime. `getcwd-lgpl.c`, which is present in the native static manifest, then stopped at its required generated `unistd.h`; generate that wrapper directly from `unistd.in.h` with the Windows replacement declaration, without invoking `configure`.
 
