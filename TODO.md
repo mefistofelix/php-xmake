@@ -1,6 +1,6 @@
 # Build Roadmap
 
-Last updated: 2026-08-12
+Last updated: 2026-08-13
 
 ## Current State
 
@@ -19,6 +19,7 @@ Last updated: 2026-08-12
 - [x] Follow upstream Windows PHP and select the dynamic multithreaded MSVC CRT globally with `set_runtimes("MD")` for loadable-extension compatibility.
 - [x] Verify a forced zstd build uses `/MD` in every MSVC compile command.
 - [ ] Replace the object-only `php` prototype and add its real `cb` callback when PHP codegen is implemented.
+- [ ] Replace the custom file-configuration `cb` adapter with native target `on_prepare` callbacks, which expose build APIs directly without injecting `import` or `os.vrunv`; validate the approach first on `openssl_test` before changing the validated `openssl` target.
 
 ## Completed Target: zlib
 

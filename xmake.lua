@@ -925,15 +925,13 @@ target("openssl_test")
     set_targetdir(get_config("builddir"))
     set_toolset("as", "nasm@$(projectdir)/in/perl/c/bin/nasm.exe")
     -- add_rules("c.unity_build")
-    add_files("in/deps/openssl/crypto/params_idx.c.in", {rules = {"cb"}, cb = function (target, sourcefile, opt, depend, runv)
-        local root = path.join(os.projectdir(), "in/deps/openssl")
-        local perl = path.join(os.projectdir(), "in/perl/perl/bin/perl.exe")
-        local envs = {PATH = path.join(os.projectdir(), "in/perl/c/bin") .. ";" .. os.getenv("PATH")}
+    on_prepare(function ()
+        os.vrunv("$(projectdir)/in/perl/perl/bin/perl.exe",
+            {"Configure", "VC-WIN64A", "no-shared", "no-module", "no-apps", "no-tests", "no-docs"},
+            {curdir = path.absolute("in/deps/openssl"),
+             addenvs = {PATH = path.absolute("in/perl/c/bin")}})
 
-        runv(perl, {"Configure", "VC-WIN64A", "no-shared", "no-module", "no-apps", "no-tests", "no-docs"},
-            {curdir = root, envs = envs})
-
-        for _, input in ipairs(os.files(path.join(root, "**/*.in"))) do
+        for _, input in ipairs(os.files("$(projectdir)/in/deps/openssl/**/*.in")) do
             local output = input:sub(1, -4)
             if output:match("%.[ch]$") then
                 local template = io.readfile(input)
@@ -947,22 +945,26 @@ target("openssl_test")
                 end
                 table.insert(args, "util/dofile.pl")
                 table.insert(args, "-omakefile")
-                table.insert(args, path.relative(input, root))
-                runv(perl, args, {curdir = root, envs = envs, stdout = output})
+                table.insert(args, path.relative(input, path.absolute("in/deps/openssl")))
+                os.vrunv("$(projectdir)/in/perl/perl/bin/perl.exe", args,
+                    {curdir = path.absolute("in/deps/openssl"), stdout = output})
             end
         end
 
-        runv(perl, {"util/mkbuildinf.pl", "cl /MD /O2", "VC-WIN64A"},
-            {curdir = root, envs = envs, stdout = path.join(root, "crypto/buildinf.h")})
+        os.vrunv("$(projectdir)/in/perl/perl/bin/perl.exe",
+            {"util/mkbuildinf.pl", "cl /MD /O2", "VC-WIN64A"},
+            {curdir = path.absolute("in/deps/openssl"),
+             stdout = path.absolute("in/deps/openssl/crypto/buildinf.h")})
 
-        for _, generator in ipairs(os.files(path.join(root, "**/*x86_64*.pl"))) do
-            local relative = path.relative(generator, root):gsub("\\", "/")
+        for _, generator in ipairs(os.files("$(projectdir)/in/deps/openssl/**/*x86_64*.pl")) do
+            local relative = path.relative(generator, path.absolute("in/deps/openssl")):gsub("\\", "/")
             if not relative:startswith("crypto/perlasm/") and not relative:startswith("ms/") then
                 local output = relative:gsub("/asm/", "/"):gsub("%.pl$", ".asm")
-                runv(perl, {relative, "nasm", output}, {curdir = root, envs = envs})
+                os.vrunv("$(projectdir)/in/perl/perl/bin/perl.exe", {relative, "nasm", output},
+                    {curdir = path.absolute("in/deps/openssl")})
             end
         end
-    end})
+    end)
     add_files("in/deps/openssl/**/*.c")
 
     add_asflags("-Ox", "-f", "win64", "-DNEAR", "-g", {force = true})
