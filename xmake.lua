@@ -600,13 +600,13 @@ extern wchar_t *wgetcwd (wchar_t *, size_t);
         "HAVE_CONFIG_H",
         "LIBDIR=\".\"",
         "LOCALEDIR=\".\"",
-        "alignof=__alignof",
         "_CRT_SECURE_NO_WARNINGS",
         "_WIN32_WINNT=0x0601"
     )
     add_syslinks("advapi32", {public = true})
     add_files(
         "in/deps/libintl/gettext-runtime/intl/*.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/*.c",
         "in/deps/libintl/gettext-runtime/intl/gnulib-lib/**/*.c"
     )
     remove_files(
