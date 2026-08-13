@@ -144,6 +144,8 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-13 — `.\xmake.exe -j8 openssl_test` at commit `37aa64a`: excluding all seven documentation C snippets removed the `sys/poll.h` failure. Compilation next stopped at the Linux AF_ALG engine source `engines/e_afalg.c`; VC-WIN64A enables only the CAPI and PadLock engines, while `no-afalgeng` omits both `e_afalg.c` and its generated `e_afalg_err.c` companion.
+
 - 2026-08-13 — `.\xmake.exe -j8 openssl_test` at commit `b53263b`: excluding all demo C sources removed the Unix-only HTTP/3 failure. Compilation immediately reached the seven C examples under `doc/designs/ddd` and failed on `ddd-06-mem-uv.c` requiring `sys/poll.h`; none of these documentation snippets occurs in the upstream compile graph, and the configuration also uses `no-docs`.
 
 - 2026-08-13 — `.\xmake.exe -j8 openssl_test` at commit `9ffb5ab`: the ACVP glob removed both disabled ACVP C sources, allowing compilation to traverse the remaining `crypto` tree and reach 52%. The next failure came from Unix-only `demos/http3/ossl-nghttp3-demo-server.c`; all 69 C files below `demos` are example programs, and the configured `no-demos` option omits the complete directory.
