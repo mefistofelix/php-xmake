@@ -742,6 +742,13 @@ target("libxslt")
         "in/deps/libxslt/libxslt/*.c"
     )
 
+target("libxslt_smoke")
+    set_default(false)
+    set_kind("binary")
+    set_targetdir(get_config("builddir"))
+    add_deps("libxslt")
+    add_files("in/deps/libxslt/xsltproc/xsltproc.c")
+
 
 target("php")
     set_enabled(false)
