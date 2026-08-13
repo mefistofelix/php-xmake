@@ -453,6 +453,7 @@ target("icu")
     add_files("in/deps/ICU/icu4c/source/data/in/icudt77l_dat.obj", {always_added = true})
 
 target("libiconv")
+    set_enabled(false)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")

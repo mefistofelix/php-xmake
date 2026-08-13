@@ -157,11 +157,18 @@ Integrate zstd as one dependency target:
 - [x] Inspect the upstream Windows build for exact common, i18n, data, generation, definitions, and dependency edges before declaring the target.
 - [x] Add a direct per-source static target without unity, then build and validate it.
 
-## Next Target: libiconv
+## Completed Target: libiconv
 
 - [x] Verify GNU's official libiconv 1.19 release tarball, matching the previous PHP SDK dependency version.
 - [x] Replace the prebuilt SDK package with the official release source and validate preparation from clean absence and on an unchanged repeat.
 - [x] Inspect the upstream build for exact library sources, generated configuration, Windows definitions, public static interface, and dependencies.
+- [x] Add a direct per-source static target without unity, then build and validate it.
+
+## Next Target: libintl
+
+- [ ] Identify the authoritative source and version corresponding to the current PHP SDK package.
+- [ ] Replace the prebuilt package with pinned upstream source and validate clean and repeated preparation.
+- [ ] Inspect the upstream Windows build for its exact source manifest, generated configuration, static interface, and libiconv dependency.
 - [ ] Add a direct per-source static target without unity, then build and validate it.
 
 ## Dependency Targets
@@ -200,6 +207,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-13 — final `libiconv` validation at commit `fc8e535`: all three upstream sources built independently with `/MD /O2` in 0.7 seconds; the accepted generated-table C4311 and nested-qualifier C4090 diagnostics did not block the baseline. The archive contains exactly three x64 members, all requesting `MSVCRT`, with zero `LIBCMT`, `/EXPORT:`, iconv import thunks, or unresolved header-template tokens. All nine reference DLL exports are defined, and upstream `tests/test-to-wchar.c` linked against `libiconv.lib` and passed its incomplete UTF-8 conversion check.
 
 - 2026-08-13 — `.\xmake.exe -vD -j8 libiconv` plus archive/reference checks at commit `8d9bfea`: all three upstream sources compiled with `/MD /O2` and archived in 0.7 seconds. The three members are x64 and request `MSVCRT`, with zero `LIBCMT`, `/EXPORT:`, import thunks, or unresolved template tokens; all nine exports from the reference PHP SDK `libiconv.dll` are present. Per the revised baseline policy, remove warning-only suppressions and retain the simpler functional configuration for the final build.
 

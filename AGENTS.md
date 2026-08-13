@@ -92,7 +92,7 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 | `ngtcp2` | Disabled | Static library | All 46 direct C children of `in/deps/ngtcp2/lib` | `out/ngtcp2.lib` | QUIC transport required by PHP HTTP/3 | Build and complete 168-API header-surface validation passed with C11 and `/MD` on MSVC x64 |
 | `ngtcp2_crypto_ossl` | Disabled | Static library | `crypto/ossl/ossl.c` and `crypto/shared.c` | `out/ngtcp2_crypto_ossl.lib` | OpenSSL 3.5 QUIC glue required by PHP HTTP/3 | Build and complete 54-API header-surface validation passed with C11 and `/MD` on MSVC x64 |
 | `icu` | Disabled | Static library | All 201 common and 254 i18n C++ sources plus generated `icudt77l_dat.obj` | `out/icu.lib` | Unicode common, internationalization, and packaged data for PHP intl | Build, C/data symbol surface, CRT, architecture, and C++ runtime smoke validation passed |
-| `libiconv` | Enabled | Static library | `lib/iconv.c`, `libcharset/lib/localcharset.c`, and `lib/compat.c` | `out/libiconv.lib` | Character-set conversion for PHP iconv and dependent libraries | Upstream analysis complete; direct per-source build pending |
+| `libiconv` | Disabled | Static library | `lib/iconv.c`, `libcharset/lib/localcharset.c`, and `lib/compat.c` | `out/libiconv.lib` | Character-set conversion for PHP iconv and dependent libraries | Build, complete 9-symbol surface, CRT, architecture, and upstream runtime validation passed |
 | `minilua` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/dynasm/minilua.c` | `out/minilua.exe` | Runs DynASM for the PHP JIT IR emitter | Defined; build validation pending |
 | `gen_ir_fold_hash` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c` | `out/gen_ir_fold_hash.exe` | Generates the JIT IR fold hash header | Defined; build validation pending |
 | `php` | Disabled | Object prototype | `in/php-src/Zend/zend.c`, `in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm` | `out/` | Becomes the static PHP build after dependency, configuration, codegen, and source integration | Prototype only; real `on_prepare` codegen pending |
@@ -276,7 +276,7 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 
 | Owner | Tool | Input | Output | Handling | Status |
 | --- | --- | --- | --- | --- | --- |
-| `libiconv` | Xmake Lua I/O | `include/iconv.h.build.in`, `libcharset/include/localcharset.h.build.in`, MSVC/platform configuration | `include/iconv.h`, `libcharset/include/localcharset.h`, `lib/config.h` | Substitute the upstream header templates and write the six selected configuration macros in the target's only `on_prepare` callback | Build pending |
+| `libiconv` | Xmake Lua I/O | `include/iconv.h.build.in`, `libcharset/include/localcharset.h.build.in`, MSVC/platform configuration | `include/iconv.h`, `libcharset/include/localcharset.h`, `lib/config.h` | Substitute the upstream header templates and write the selected configuration macros in the target's only `on_prepare` callback | Build validated |
 
 ## PHP Code-generation Inventory
 
