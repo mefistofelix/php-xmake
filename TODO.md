@@ -127,13 +127,13 @@ Integrate zstd as one dependency target:
 - [x] Add one direct per-source static target without unity.
 - [x] Build and validate all 141 x64 `/MD` members, the static public interface, and the complete `dll_compare/libsodium.dll` export surface.
 
-## Next Target: libuv
+## Completed Target: libuv
 
 - [x] Confirm the prepared official `libuv/libuv` tag `v1.52.1` exceeds True Async's minimum supported version.
 - [x] Inspect upstream CMake and confirm the Windows library contains exactly 12 common plus 25 Windows C sources.
 - [x] Record the private Windows defines, public-header decoration behavior, and nine system-library edges.
 - [x] Add one direct per-source static target without unity or a callback.
-- [ ] Build and validate all 37 x64 `/MD` members, the static public interface, and representative `uv.h` APIs.
+- [x] Build and validate all 37 x64 `/MD` members and every one of the 318 APIs declared by `uv.h`.
 
 ## Dependency Targets
 
@@ -171,6 +171,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-13 — `.\xmake.exe -vD -j8 libuv` plus `uv.h` API comparison at commit `aa908fe`: all 37 sources compiled independently with `/MD /O2`, and `out/libuv.lib` archived in 1.7 seconds. All 37 members are x64 and request `MSVCRT`, with zero `LIBCMT` or `/EXPORT:` directives; all 318 public header APIs are present and none uses an import thunk. MSVC 14.50 reports two investigated upstream C4090 warnings where libuv frees its owned `const char *` CPU-model field.
 
 - 2026-08-13 — `.\xmake.exe -vD -j8 libsodium` plus `dll_compare/libsodium.dll` comparison at commit `b80cb81`: the committed MSVC version header was copied exactly, all 141 sources compiled independently with `/MD /O2`, and `out/libsodium.lib` archived without warnings in 3.5 seconds. All 141 members are x64 and request `MSVCRT`, with zero `LIBCMT` or `/EXPORT:` directives. The archive contains all 756 reference exports and no public-API import thunks.
 

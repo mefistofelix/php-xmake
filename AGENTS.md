@@ -87,7 +87,7 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 | `nghttp2` | Disabled | Static library | All 26 C sources under `in/deps/nghttp2/lib/*.c` | `out/nghttp2.lib` | HTTP/2 transport required by libcurl/PHP | Build and 181-export static-interface validation passed with `/MD` on MSVC x64 |
 | `libcurl` | Disabled | Static library | 192 sources under `in/deps/libcurl/lib` after removing `dllmain.c` | `out/libcurl.lib` | PHP curl transport library | Complete dependency build and 100-symbol static-interface validation passed with `/MD` on MSVC x64 |
 | `libsodium` | Disabled | Static library | All 141 C files under `in/deps/libsodium/src/libsodium` | `out/libsodium.lib` | Modern cryptography used by PHP sodium | Build and 756-export static-interface validation passed with `/MD` on MSVC x64 |
-| `libuv` | Active | Static library | 12 common and 25 Windows C sources | `out/libuv.lib` | Event loop and async I/O required by True Async | Defined from the exact upstream CMake manifest; direct per-source build validation pending |
+| `libuv` | Disabled | Static library | 12 common and 25 Windows C sources | `out/libuv.lib` | Event loop and async I/O required by True Async | Build and complete 318-API header-surface validation passed with `/MD` on MSVC x64 |
 | `minilua` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/dynasm/minilua.c` | `out/minilua.exe` | Runs DynASM for the PHP JIT IR emitter | Defined; build validation pending |
 | `gen_ir_fold_hash` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c` | `out/gen_ir_fold_hash.exe` | Generates the JIT IR fold hash header | Defined; build validation pending |
 | `php` | Disabled | Object prototype | `in/php-src/Zend/zend.c`, `in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm` | `out/` | Becomes the static PHP build after dependency, configuration, codegen, and source integration | Prototype only; real `on_prepare` codegen pending |
@@ -210,6 +210,7 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 - The public header applies DLL decoration only when `BUILDING_UV_SHARED` or `USING_UV_SHARED` is defined. Define neither for this static target; consumers require no propagated definition.
 - Propagate the exact CMake Windows library closure in its declared order: `psapi`, `user32`, `advapi32`, `iphlpapi`, `userenv`, `ws2_32`, `dbghelp`, `ole32`, and `shell32`. PHP True Async also explicitly expects `Dbghelp` and `Userenv`.
 - There is no library code generation or assembly. Compile every source independently without a callback or unity; validate the archive architecture, `/MD`, static decoration, and representative APIs from `uv.h` because `dll_compare` has no libuv DLL.
+- MSVC 14.50 emits C4090 at `uv-common.c:960` and `win/util.c:644`: the public `uv_cpu_info_t.model` field is intentionally `const char *`, while libuv owns and frees its allocation through `uv__free(void *)`. This is source-level upstream const qualification, not an Xmake configuration or unity issue; retain and document the warnings rather than patching the pinned source or adding a blanket suppression.
 
 ## PHP Code-generation Inventory
 
