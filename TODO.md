@@ -25,7 +25,7 @@ Last updated: 2026-08-13
 - [x] Consolidate repeated OpenSSL-root and Perl-program expressions in `openssl_test:on_prepare` into two local values; the simplified callback preserves the validated template and perlasm preparation behavior.
 - [x] Run the independent `mkbuildinf.pl` invocation directly after `Configure`, before the template loop; it depends only on its arguments and optional `SOURCE_DATE_EPOCH`.
 - [x] Replace the OpenSSL template output-extension `if` with the union of the complete `**/*.c.in` and `**/*.h.in` input globs; they select the same 50 templates directly.
-- [ ] Revalidate the equivalent single `**/*.[ch].in` Xmake glob, which the local Xmake 3.1 pattern engine resolves to the same 50 template inputs.
+- [x] Use the single `**/*.[ch].in` Xmake glob for the true single-character `c`/`h` alternative; it resolves to and regenerates the same 50 template outputs.
 
 ## Completed Target: zlib
 
@@ -141,6 +141,7 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-13 — `.\xmake.exe -vD -j1 openssl_test` at commit `49ed4a4`: Xmake's `**/*.[ch].in` character-class glob selected all 50 C/header templates and regenerated all 50 outputs with zero missing. `[ch]` is the correct single-character alternative; `[c|h]` would also admit a literal `|`. The complete target retained its independent post-preparation failure.
 - 2026-08-13 — `.\xmake.exe -vD -j1 openssl_test` at commit `758bb4f`: the complete `**/*.c.in` and `**/*.h.in` glob union selected 10 C templates and 40 header templates, regenerated all 50 outputs, and left zero missing outputs. The former output-extension `if` is unnecessary; the complete target retained its separate post-preparation failure.
 - 2026-08-13 — `.\xmake.exe -vD -j1 openssl_test` at commit `0f08bd0`: `mkbuildinf.pl` ran successfully immediately after `Configure` and before the first `dofile.pl` template invocation. The remaining preparation behavior was unchanged, confirming that build-info generation has no dependency on the generated-template loop.
 - 2026-08-13 — `.\xmake.exe -vD -j1 openssl_test` at commit `a2362dd`: consolidating the repeated OpenSSL root and Perl executable expressions into `root` and `perl` preserved Configure, all 50 uniform template generations, build-info generation, and the unrestricted perlasm loop. The complete broad target retained its existing post-preparation failure; no new failure was introduced by the callback simplification.
