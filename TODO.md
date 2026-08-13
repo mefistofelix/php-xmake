@@ -122,9 +122,10 @@ Integrate zstd as one dependency target:
 ## Next Target: libsodium
 
 - [x] Verify the exact official `jedisct1/libsodium` tag `1.0.22`, matching the previous PHP SDK dependency version.
-- [ ] Replace the prebuilt SDK archive with the pinned official source and validate `xmake prepare` from a clean absence and on a no-change repeat.
-- [ ] Inspect the upstream Visual Studio and autotools manifests for sources, generated files, architecture implementations, defines, includes, and Windows libraries.
-- [ ] Add and validate one direct per-source static target without unity.
+- [x] Replace the prebuilt SDK archive with the pinned official source and validate `xmake prepare` from a clean absence and on a no-change repeat.
+- [x] Inspect the upstream Visual Studio and autotools manifests for sources, generated files, architecture implementations, defines, includes, and Windows libraries.
+- [x] Add one direct per-source static target without unity.
+- [ ] Build and validate all 141 x64 `/MD` members, the static public interface, and the complete `dll_compare/libsodium.dll` export surface.
 
 ## Dependency Targets
 
@@ -162,6 +163,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-13 — `.\xmake.exe prepare` at commit `acabee7`: the unchanged repeat completed successfully in 0.8 seconds with the official libsodium source already present, validating preparation idempotence.
 
 - 2026-08-13 — `.\xmake.exe prepare` at commit `2d281bb`: after verifying that `in/deps/libsodium` was the intended direct child and moving the previous PHP SDK binary package to the Recycle Bin, preparation recreated the official `1.0.22` source tree in 1.8 seconds with the correct hx marker. An unchanged repeat remains.
 

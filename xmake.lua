@@ -278,6 +278,34 @@ target("libcurl")
     )
     remove_files("in/deps/libcurl/lib/dllmain.c")
 
+target("libsodium")
+    set_kind("static")
+    set_targetdir(get_config("builddir"))
+    set_optimize("fastest")
+    on_prepare(function ()
+        os.cp(
+            "in/deps/libsodium/builds/msvc/version.h",
+            "in/deps/libsodium/src/libsodium/include/sodium/version.h"
+        )
+    end)
+    add_includedirs("in/deps/libsodium/src/libsodium/include", {public = true})
+    add_includedirs("in/deps/libsodium/src/libsodium/include/sodium")
+    add_defines("SODIUM_STATIC", {public = true})
+    add_defines(
+        "NATIVE_LITTLE_ENDIAN",
+        "NDEBUG",
+        "UNICODE",
+        "WIN32",
+        "WIN64",
+        "_CRT_SECURE_NO_WARNINGS",
+        "_LIB",
+        "_UNICODE",
+        "inline=__inline"
+    )
+    add_cflags("/UndefIntOverflow-", {force = true})
+    add_syslinks("advapi32", {public = true})
+    add_files("in/deps/libsodium/src/libsodium/**/*.c")
+
 
 target("php")
     set_enabled(false)
