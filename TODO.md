@@ -144,6 +144,8 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-13 — `.\xmake.exe -j8 openssl_test` at commit `169f7d9`: the single `test/**.c` exclusion removed the complete disabled test tree. The incremental compilation resumed at 94%, compiled the two explicitly retained engines, archived `openssl_test.lib`, and completed successfully. A clean parallel rebuild remains to verify the complete simplified declaration without cached objects.
+
 - 2026-08-13 — `.\xmake.exe -j8 openssl_test` at commit `cc19cdc`: the exact `ktls_meth.c` exclusion passed and compilation advanced from 74% into the test tree, failing at `test/bn_internal_test.c` because its test-only generated `bn_prime.h` is absent. The configuration uses `no-tests`; Xmake's `test/**.c` glob selects all 288 test C sources, exactly matching the union of 251 direct and 37 nested files.
 
 - 2026-08-13 — `.\xmake.exe -j8 openssl_test` at commit `4682cde`: the VC-WIN64A seeding selection compiled only `rand_cpu_x86.c`, `rand_tsc.c`, `rand_unix.c`, and `rand_win.c`, passing the previous platform-source failure. Compilation reached 72% and failed at `ssl/record/methods/ktls_meth.c`; upstream `build.info` selects that source only when KTLS is enabled, while the generated configuration records both `no-ktls` and `OPENSSL_NO_KTLS`.
