@@ -94,6 +94,7 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 | `icu` | Disabled | Static library | All 201 common and 254 i18n C++ sources plus generated `icudt77l_dat.obj` | `out/icu.lib` | Unicode common, internationalization, and packaged data for PHP intl | Build, C/data symbol surface, CRT, architecture, and C++ runtime smoke validation passed |
 | `libiconv` | Disabled | Static library | `lib/iconv.c`, `libcharset/lib/localcharset.c`, and `lib/compat.c` | `out/libiconv.lib` | Character-set conversion for PHP iconv and dependent libraries | Build, complete 9-symbol surface, CRT, architecture, and upstream runtime validation passed |
 | `libintl` | Disabled | Static library | Direct per-source C inputs under `gettext-runtime/intl` and `gettext-runtime/intl/gnulib-lib` | `out/libintl.lib` | GNU message catalogs and locale handling for PHP and dependent libraries | Deferred during the broad Gnulib configuration pass; not yet validated |
+| `libxml2` | Enabled | Static library | 43 native Windows library sources selected from `in/deps/libxml2/*.c` | `out/libxml2.lib` | XML, HTML, XPath, schema, catalog, and network parsing for PHP and dependent libraries | Direct per-source target defined; build validation pending |
 | `minilua` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/dynasm/minilua.c` | `out/minilua.exe` | Runs DynASM for the PHP JIT IR emitter | Defined; build validation pending |
 | `gen_ir_fold_hash` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c` | `out/gen_ir_fold_hash.exe` | Generates the JIT IR fold hash header | Defined; build validation pending |
 | `php` | Disabled | Object prototype | `in/php-src/Zend/zend.c`, `in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm` | `out/` | Becomes the static PHP build after dependency, configuration, codegen, and source integration | Prototype only; real `on_prepare` codegen pending |
@@ -292,6 +293,21 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 - The direct Xmake baseline deliberately compiles the C trees per source without unity or delegated native build tooling. Begin with broad `intl/*.c` and `intl/gnulib-lib/**/*.c` patterns as requested, then remove only sources proven to be platform-only or mutually exclusive by the compiler or final link validation.
 - Generate only `config.h`, `libgnuintl.h`, and public `libintl.h` in the target callback. They are configuration/template products, not generated implementation sources. Static headers must not add `dllimport` or `dllexport` decoration.
 - Define the upstream Windows library mode directly, use the validated `libiconv` target, and link `advapi32`, which is the only extra Windows library selected by the upstream `intl` build. Do not invoke Cygwin, `configure`, Make, NMake, MSBuild, a solution, or a project file.
+
+### libxml2 upstream build analysis
+
+- Use GNOME's official libxml2 2.11.9 release archive, matching the previous PHP SDK package. The GitHub repository identifies itself as a read-only mirror and directs releases to `download.gnome.org`, so preparation fetches the authoritative GNOME tarball and strips its single top-level directory.
+- Upstream `win32/Makefile.msvc` and the preserved PHP SDK `libxml2_a.lib` agree on exactly 43 root C sources. Select them with one broad `*.c` declaration and remove the 17 root programs, tests, optional Trio implementations, and disabled compression wrapper through `run*.c`, `test*.c`, `trio*.c`, `xmlcatalog.c`, `xmllint.c`, and `xzlib.c`. The native Makefile adds `xzlib.c` only for the optional compression configuration; the reference package enables neither zlib nor LZMA.
+- Match the reference feature surface: native Windows threads with compiler TLS; XML tree/output/push/reader/pattern/writer/SAX1/FTP/HTTP/validation/HTML/legacy/C14N/catalog/XPath/XPointer/XInclude/debug/Unicode/regexp/automata/schema/Schematron/module support; and libiconv conversion. Keep XPointer locations, ICU, ISO-8859 fallback, memory debugging, zlib, LZMA, thread-local allocation hooks, and Trio disabled.
+- The Windows configuration step performs no implementation-source generation. It copies committed `include/win32config.h` to `config.h` and substitutes the committed public `include/libxml/xmlversion.h.in`; reproduce those two actions in the target's only `on_prepare` callback. Do not execute `configure.js`, CMake, NMake, MSBuild, a solution, or a project file.
+- Compile every source independently without unity using `/MD /O2`. Define the static public interface with propagated `LIBXML_STATIC`; keep `LIBXML_STATIC_FOR_DLL`, `HAVE_COMPILER_TLS`, `_REENTRANT`, `_WINDOWS`, `_MBCS`, `NOLIBTOOL`, and the implementation warning-compatibility macros private. `LIBXML_STATIC_FOR_DLL` selects the native static-archive variant intended for inclusion in a DLL, matching the eventual PHP DLL.
+- Depend on the direct `libiconv` target and propagate the native Windows networking link edge. The reference archive contains 43 x64 `/MD` objects, standard undecorated libxml APIs, and direct `libiconv*` references; use its DLL export surface and a parser smoke test for final validation.
+
+### libxml2 code-generation inventory
+
+| Owner | Tool | Input | Output | Handling | Status |
+| --- | --- | --- | --- | --- | --- |
+| `libxml2` | Xmake Lua I/O | `include/win32config.h`, `include/libxml/xmlversion.h.in`, pinned Windows feature selection | `config.h`, `include/libxml/xmlversion.h` | Copy the committed Windows configuration and substitute version/feature placeholders in the target's only `on_prepare` callback | Build pending |
 
 ## PHP Code-generation Inventory
 

@@ -176,7 +176,7 @@ Integrate zstd as one dependency target:
 
 - [x] Identify GNOME's official libxml2 2.11.9 release archive, matching the current dependency package.
 - [x] Replace the prebuilt package with pinned upstream source and validate clean and repeated preparation.
-- [ ] Inspect the upstream native build declarations for the exact source manifest, generated configuration, definitions, and dependency edges.
+- [x] Inspect the upstream native build declarations for the exact source manifest, generated configuration, definitions, and dependency edges.
 - [ ] Add a direct per-source static target without unity, then build and validate it.
 
 ## Dependency Targets
