@@ -962,7 +962,11 @@ target("openssl_test")
         end, {total = #generators, comax = jobs})
     end)
 
-    add_files("in/deps/openssl/**/*.c")
+    add_files(
+        "in/deps/openssl/**/*.c|engines/*.c",
+        "in/deps/openssl/engines/e_capi.c",
+        "in/deps/openssl/engines/e_padlock.c"
+    )
     remove_files(
         "in/deps/openssl/**/*acvp*.c",
         "in/deps/openssl/**/*md2*.c",
@@ -973,7 +977,6 @@ target("openssl_test")
         "in/deps/openssl/crypto/rc5/*.c",
         "in/deps/openssl/demos/**/*.c",
         "in/deps/openssl/doc/**/*.c",
-        "in/deps/openssl/engines/e_afalg*.c",
         "in/deps/openssl/providers/implementations/ciphers/cipher_rc5*.c"
     )
 
