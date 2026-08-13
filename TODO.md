@@ -144,6 +144,8 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-13 — symbol comparison at commit `4a88c59`: the root OpenSSL 3.5.7 x64 DLLs export 5,872 `libcrypto` names and 603 `libssl` names. The combined `openssl_test.lib` contains 6,474 of those 6,475 exports; only `EC_GFp_nist_method` is absent because `ecp_nist*.c` also removes the configured `ecp_nist.c`. The archive additionally carries `/EXPORT:OPENSSL_Applink` from non-library source `ms/applink.c`. Narrow the EC exclusion to disabled `ecp_nistp*.c` plus included table fragment `ecp_nistz256_table.c`, and remove `ms/applink.c` before rebuilding.
+
 - 2026-08-13 — clean `.\xmake.exe clean openssl_test` plus `.\xmake.exe -j8 openssl_test` at commit `6eadcf1`: Xmake rebuilt the complete simplified C and x64 assembly selection from zero, compiled both explicitly retained engines, and archived `openssl_test.lib` successfully in 24.39 seconds. The broad source-glob experiment is build-complete; its existing upstream-style MSVC warnings remain non-fatal.
 
 - 2026-08-13 — `.\xmake.exe -j8 openssl_test` at commit `169f7d9`: the single `test/**.c` exclusion removed the complete disabled test tree. The incremental compilation resumed at 94%, compiled the two explicitly retained engines, archived `openssl_test.lib`, and completed successfully. A clean parallel rebuild remains to verify the complete simplified declaration without cached objects.
