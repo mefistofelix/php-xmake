@@ -215,9 +215,9 @@ target("nghttp2")
     on_prepare(function ()
         io.writefile(
             "in/deps/nghttp2/lib/includes/nghttp2/nghttp2ver.h",
-            io.readfile("in/deps/nghttp2/lib/includes/nghttp2/nghttp2ver.h.in")
+            (io.readfile("in/deps/nghttp2/lib/includes/nghttp2/nghttp2ver.h.in")
                 :gsub("@PACKAGE_VERSION@", "1.69.0")
-                :gsub("@PACKAGE_VERSION_NUM@", "0x014500")
+                :gsub("@PACKAGE_VERSION_NUM@", "0x014500"))
         )
     end)
     add_includedirs("in/deps/nghttp2/lib/includes", {public = true})

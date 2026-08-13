@@ -156,6 +156,8 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-13 — `.\xmake.exe -vD -j8 nghttp2` at commit `e23a5cc`: preparation stopped before compilation because the final Lua `gsub` returned both the transformed text and replacement count, so `io.writefile` received the count as its options argument. Parenthesize the chained expression to collapse it to one value before retesting.
+
 - 2026-08-13 — `.\xmake.exe -vD -j8 libssh2` plus `dll_compare/libssh2.dll` comparison at commit `1750338`: all 26 sources compiled independently with `/MD /O2`, and `out/libssh2.lib` archived successfully in 1.5 seconds. The archive contains all 137 reference exports, 26 x64 members, 26 `MSVCRT` and zero `LIBCMT` directives, no `/EXPORT:` directives, and no `__imp_libssh2*` thunks.
 
 - 2026-08-13 — `.\xmake.exe prepare` at commit `e5d38b4`: the no-change repeat completed successfully in 0.8 seconds with the official libssh2 source tree already present, validating preparation idempotence.
