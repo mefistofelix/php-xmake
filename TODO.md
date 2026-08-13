@@ -189,7 +189,7 @@ Integrate zstd as one dependency target:
 ## Next Target: Oniguruma
 
 - [x] Identify the official `kkos/oniguruma` v6.9.10 source matching the current PHP SDK package.
-- [ ] Replace the prebuilt package with pinned source and validate clean and repeated preparation.
+- [x] Replace the prebuilt package with pinned source and validate clean and repeated preparation.
 - [ ] Inspect the upstream native build declarations for exact sources, configuration, static interface, and dependencies.
 - [ ] Add a direct per-source static target without unity, then build and validate it.
 
@@ -229,6 +229,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-14 — unchanged Oniguruma preparation after commit `6e432af`: `xmake prepare` completed in 0.8 seconds with the exact official v6.9.10 source already present, validating idempotence.
 
 - 2026-08-14 — clean Oniguruma preparation at commit `98b6789`: after preserving the SDK package under `%TEMP%`, validating `in/deps/libonig` as the exact direct child of `in/deps`, and moving it to the Recycle Bin, `xmake prepare` recreated the official source from `github://kkos/oniguruma?ref=v6.9.10` in 1.5 seconds. The hx provenance records that exact ref and the public header declares version 6.9.10. An unchanged repeat remains.
 
