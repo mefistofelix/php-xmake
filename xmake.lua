@@ -489,11 +489,10 @@ target("libiconv")
     )
     add_defines(
         "BUILDING_LIBCHARSET",
-        "BUILDING_LIBICONV",
-        "_CRT_SECURE_NO_WARNINGS"
+        "BUILDING_LIBICONV"
     )
-    add_files("in/deps/libiconv/lib/iconv.c", {cflags = {"/wd4090", "/wd4311"}})
     add_files(
+        "in/deps/libiconv/lib/iconv.c",
         "in/deps/libiconv/libcharset/lib/localcharset.c",
         "in/deps/libiconv/lib/compat.c"
     )
