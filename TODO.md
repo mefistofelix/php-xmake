@@ -183,7 +183,7 @@ Integrate zstd as one dependency target:
 
 - [x] Identify the SDK's exact pinned `winlibs/libxslt` 1.1.43-2 source and its GNOME 1.1.43 base.
 - [x] Replace the prebuilt package with pinned source and validate clean and repeated preparation.
-- [ ] Inspect the upstream native build declarations for exact sources, configuration, static interface, and dependency edges.
+- [x] Inspect the upstream native build declarations for exact sources, configuration, static interface, and dependency edges.
 - [ ] Add a direct per-source static target without unity, then build and validate it against libxml2.
 
 ## Dependency Targets
@@ -222,6 +222,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-14 — `libxslt` native-build analysis after commit `6789973`: upstream Windows, Automake, and CMake manifests match the SDK's 19-object libxslt plus 10-object libexslt static archives. Both source directories are pure library inputs. The SDK configuration enables XSLT diagnostics, debugger hooks, profiler, and modules while disabling Trio and crypto; it needs only two generated public configuration headers, the committed Windows configuration, libxml2, and `kernel32`. The component symbol sets have no API/implementation collision, so combine them in one per-source target. The two SDK DLLs export 252 and 17 APIs; the `dll_compare` copies are a strict subset missing only the SDK backport's `xsltReleaseRVTList`.
 
 - 2026-08-14 — unchanged `libxslt` preparation after commit `60bf81d`: `xmake prepare` completed in 0.8 seconds with the exact 1.1.43-2 source already present, validating idempotence.
 

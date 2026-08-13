@@ -312,7 +312,18 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 ### libxslt upstream build analysis
 
 - The PHP SDK 1.1.43-2 SBOM identifies GNOME libxslt 1.1.43 as upstream and the exact package source as `winlibs/libxslt` tag `libxslt-1.1.43-2`, commit `9f399f8d223ddddeaeacd15285a2e993ec326c0f`. Prepare that pinned PHP-maintained source so the direct build retains the 1.1.43 ABI and the SDK's CVE-2025-10911, CVE-2025-11731, and CVE-2025-7424 backports.
-- The preserved SDK package provides separate `libxslt_a.lib` and `libexslt_a.lib` references. Treat them as the two native components of one dependency and combine them in one Xmake target unless source or link validation proves that impossible.
+- Upstream `win32/Makefile.msvc`, Automake, CMake, and the preserved SDK archives agree on exactly 19 `libxslt/*.c` and 10 `libexslt/*.c` sources. Both directories contain only library C inputs, so select them with two broad declarations and no exclusions. Do not compile `xsltproc`, tests, examples, Python bindings, or documentation tools.
+- The preserved SDK package splits those sources into `libxslt_a.lib` and `libexslt_a.lib`, but this project combines both native components in one `libxslt` target. Their defined-symbol sets overlap only on five link-once compiler constants and contain no duplicate API or implementation symbol, so separate targets would add structure without solving a technical constraint.
+- Match the SDK public configuration: libxslt 1.1.43, libexslt 0.8.24, XSLT diagnostics, external debugger hooks, profiler, and `.dll` extension modules enabled; Trio and EXSLT crypto disabled. Crypto remains compiled as its upstream disabled stub, so the target needs neither CryptoAPI nor libgcrypt. Module loading uses the Windows loader API and propagates `kernel32`.
+- Generate `libxslt/xsltconfig.h` and `libexslt/exsltconfig.h` directly from their committed templates in the target's only callback. The selected Windows sources include committed `libxslt/win32config.h` directly, so no `config.h`, implementation code generation, or configure execution is required. Do not invoke `configure.js`, CMake, NMake, MSBuild, a solution, or a project file.
+- Compile all 29 sources independently without unity using `/MD /O2`. Propagate `LIBXSLT_STATIC` and `LIBEXSLT_STATIC`, which are required by the public headers to suppress `dllimport`; `LIBXML_STATIC` arrives from the direct libxml2 dependency. Keep `_WINDOWS`, `_MBCS`, `_REENTRANT`, `NDEBUG`, and the native implementation warning-compatibility definitions private.
+- The SDK references contain 19 plus 10 x64 objects, all selecting `MSVCRT` and none selecting `LIBCMT` or emitting export directives. Their union defines 334 unique symbols. The SDK DLLs export 252 libxslt and 17 libexslt APIs; the copies in `dll_compare` are a strict subset, differing only by the SDK source's additional `xsltReleaseRVTList`, so final validation must cover both and use the exact SDK 1.1.43-2 package as the authoritative surface.
+
+### libxslt code-generation inventory
+
+| Owner | Tool | Input | Output | Handling | Status |
+| --- | --- | --- | --- | --- | --- |
+| `libxslt` | Xmake Lua I/O | `libxslt/xsltconfig.h.in`, `libexslt/exsltconfig.h.in`, pinned SDK feature selection | `libxslt/xsltconfig.h`, `libexslt/exsltconfig.h` | Substitute version and feature placeholders in the target's only `on_prepare` callback | Build pending |
 
 ## PHP Code-generation Inventory
 
