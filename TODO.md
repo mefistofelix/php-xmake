@@ -24,6 +24,7 @@ Last updated: 2026-08-13
 - [x] Use the unrestricted `**/*x86_64*.pl` generator pattern in `openssl_test` without procedural directory filtering; all matches execute, including the helper/translator scripts under `crypto/perlasm` and the uplink generator under `ms`.
 - [x] Consolidate repeated OpenSSL-root and Perl-program expressions in `openssl_test:on_prepare` into two local values; the simplified callback preserves the validated template and perlasm preparation behavior.
 - [x] Run the independent `mkbuildinf.pl` invocation directly after `Configure`, before the template loop; it depends only on its arguments and optional `SOURCE_DATE_EPOCH`.
+- [ ] Revalidate the OpenSSL template pass after replacing the output-extension `if` with the union of the complete `**/*.c.in` and `**/*.h.in` input globs.
 
 ## Completed Target: zlib
 

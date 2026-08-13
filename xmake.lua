@@ -932,15 +932,15 @@ target("openssl_test")
         os.vrunv(perl, {"util/mkbuildinf.pl", "cl /MD /O2", "VC-WIN64A"},
             {curdir = root, stdout = path.join(root, "crypto/buildinf.h")})
 
-        for _, input in ipairs(os.files(path.join(root, "**/*.in"))) do
+        for _, input in ipairs(table.join(
+            os.files(path.join(root, "**/*.c.in")),
+            os.files(path.join(root, "**/*.h.in")))) do
             local output = input:sub(1, -4)
-            if output:match("%.[ch]$") then
-                os.vrunv(perl,
-                    {"-I.", "-Iutil/perl", "-Iproviders/common/der", "-Mconfigdata",
-                     "-MOpenSSL::paramnames", "-Moids_to_c", "util/dofile.pl", "-omakefile",
-                     path.relative(input, root)},
-                    {curdir = root, stdout = output})
-            end
+            os.vrunv(perl,
+                {"-I.", "-Iutil/perl", "-Iproviders/common/der", "-Mconfigdata",
+                 "-MOpenSSL::paramnames", "-Moids_to_c", "util/dofile.pl", "-omakefile",
+                 path.relative(input, root)},
+                {curdir = root, stdout = output})
         end
 
         for _, generator in ipairs(os.files(path.join(root, "**/*x86_64*.pl"))) do
