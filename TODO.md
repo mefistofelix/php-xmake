@@ -152,7 +152,7 @@ Integrate zstd as one dependency target:
 ## Next Target: ICU
 
 - [x] Verify the official `unicode-org/icu` release tag `release-77-1`, matching the previous PHP SDK dependency version.
-- [ ] Replace the prebuilt SDK package with the pinned official source and validate clean and repeated preparation.
+- [ ] Replace the prebuilt SDK package with the pinned official source and validate clean and repeated preparation. The clean fetch passed; the unchanged repeat remains.
 - [ ] Inspect the upstream Windows build for exact common, i18n, data, generation, definitions, and dependency edges before declaring the target.
 - [ ] Add a direct per-source static target without unity, then build and validate it.
 
@@ -192,6 +192,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-13 — clean ICU preparation at commit `c11de6e`: after validating and moving the exact prebuilt `in/deps/ICU` direct child to the Recycle Bin, `xmake prepare` recreated it from official tag `release-77-1` in 11.4 seconds. The complete ICU4C source and committed data inputs are present; an unchanged repeat remains.
 
 - 2026-08-13 — `.\xmake.exe -vD -j8 ngtcp2_crypto_ossl` plus public-header API comparisons at commit `ceb9e69`: all 46 core and two OpenSSL-adapter sources compiled independently with `/MD /O2 /std:c11`, producing both PHP-required archives without warnings in 3.2 seconds. Every member is x64 and requests `MSVCRT`, with zero `LIBCMT`, `/EXPORT:`, ngtcp2 import thunks, or OpenSSL import thunks. `ngtcp2.lib` contains all 168 core APIs; `ngtcp2_crypto_ossl.lib` contains all 54 generic/ossl crypto APIs. The generated version header contains `1.25.0` and `0x011900`.
 
