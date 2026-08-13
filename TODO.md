@@ -208,6 +208,8 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-14 — expanded Gnulib build at commit `e3369b2`: defining the native Windows 16-bit `wchar_t` model resolved the C32 checks and compilation advanced to 31%. The broad source experiment then proved that `frexp.c` and `frexpl.c` are replacement implementations rather than Windows target inputs: MSVC already defines `frexpl`, so compiling the Gnulib replacement produces C2084. Exclude this paired substitute and continue the broad compiler-driven pass.
+
 - 2026-08-14 — expanded Gnulib build at commit `0f36ebd`: the direct-root source pattern was active and compilation reached the C32 character helpers. Their static assertion failed because the omitted generated `uchar.h` normally identifies native Windows' 16-bit `wchar_t`; supply Gnulib's `_GL_SMALL_WCHAR_T=1` platform fact privately instead of shadowing MSVC's standard header.
 
 - 2026-08-14 — `libintl` build at commit `98be709`: Xmake completed successfully in 1.8 seconds, but archive inspection found only 42 C objects because `gnulib-lib/**/*.c` matches nested directories and not the 83 direct-root Gnulib files. This is not yet a valid completed target. Add the adjacent `gnulib-lib/*.c` declaration and remove the ineffective command-line `alignof` mapping, which the upstream source intentionally replaces locally and which only added a redefinition warning.

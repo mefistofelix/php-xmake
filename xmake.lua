@@ -611,6 +611,8 @@ extern wchar_t *wgetcwd (wchar_t *, size_t);
         "in/deps/libintl/gettext-runtime/intl/gnulib-lib/**/*.c"
     )
     remove_files(
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/frexp.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/frexpl.c",
         "in/deps/libintl/gettext-runtime/intl/intl-exports.c",
         "in/deps/libintl/gettext-runtime/intl/os2compat.c"
     )
