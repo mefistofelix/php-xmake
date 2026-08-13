@@ -635,6 +635,61 @@ extern wchar_t *wgetcwd (wchar_t *, size_t);
         defines = {"SETLOCALE_NULL_ALL_MAX=3221"}
     })
 
+target("libxml2")
+    set_enabled(true)
+    set_kind("static")
+    set_targetdir(get_config("builddir"))
+    set_optimize("fastest")
+    on_prepare(function ()
+        os.cp("in/deps/libxml2/include/win32config.h", "in/deps/libxml2/config.h")
+        io.writefile(
+            "in/deps/libxml2/include/libxml/xmlversion.h",
+            (io.readfile("in/deps/libxml2/include/libxml/xmlversion.h.in")
+                :gsub("@VERSION@", "2.11.9")
+                :gsub("@LIBXML_VERSION_NUMBER@", "21109")
+                :gsub("@LIBXML_VERSION_EXTRA@", "")
+                :gsub("@MODULE_EXTENSION@", ".dll")
+                :gsub("@WITH_TRIO@", "0")
+                :gsub("@WITH_THREAD_ALLOC@", "0")
+                :gsub("@WITH_XPTR_LOCS@", "0")
+                :gsub("@WITH_ICU@", "0")
+                :gsub("@WITH_ISO8859X@", "0")
+                :gsub("@WITH_MEM_DEBUG@", "0")
+                :gsub("@WITH_ZLIB@", "0")
+                :gsub("@WITH_LZMA@", "0")
+                :gsub("@[^@\r\n]+@", "1"))
+        )
+    end)
+    add_deps("libiconv")
+    add_includedirs("in/deps/libxml2/include", {public = true})
+    add_includedirs("in/deps/libxml2")
+    add_defines("LIBXML_STATIC", {public = true})
+    add_defines(
+        "HAVE_COMPILER_TLS",
+        "LIBXML_STATIC_FOR_DLL",
+        "NDEBUG",
+        "NOLIBTOOL",
+        "_CRT_NONSTDC_NO_DEPRECATE",
+        "_CRT_SECURE_NO_DEPRECATE",
+        "_MBCS",
+        "_REENTRANT",
+        "_WINDOWS"
+    )
+    add_syslinks(
+        "kernel32",
+        "ws2_32",
+        {public = true}
+    )
+    add_files("in/deps/libxml2/*.c")
+    remove_files(
+        "in/deps/libxml2/run*.c",
+        "in/deps/libxml2/test*.c",
+        "in/deps/libxml2/trio*.c",
+        "in/deps/libxml2/xmlcatalog.c",
+        "in/deps/libxml2/xmllint.c",
+        "in/deps/libxml2/xzlib.c"
+    )
+
 
 target("php")
     set_enabled(false)
