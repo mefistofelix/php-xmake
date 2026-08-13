@@ -153,7 +153,7 @@ Integrate zstd as one dependency target:
 
 - [x] Verify the official `unicode-org/icu` release tag `release-77-1`, matching the previous PHP SDK dependency version.
 - [x] Replace the prebuilt SDK package with the pinned official source and validate clean and repeated preparation.
-- [ ] Fetch the official little-endian data archive and minimal Win64 `genccode` runtime, then validate the expanded preparation from clean absence and on a repeat.
+- [ ] Fetch the official little-endian data archive and minimal Win64 `genccode` runtime, then validate the expanded preparation from clean absence and on a repeat. The clean fetch passed; the unchanged repeat remains.
 - [ ] Inspect the upstream Windows build for exact common, i18n, data, generation, definitions, and dependency edges before declaring the target.
 - [ ] Add a direct per-source static target without unity, then build and validate it.
 
@@ -193,6 +193,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-13 — expanded clean ICU preparation at commit `15227d9`: after revalidating and moving the exact `in/deps/ICU` direct child to the Recycle Bin, `xmake prepare` recreated the official source, extracted the 31,895,376-byte `icudt77l.dat`, and retained only `genccode.exe` plus its four required ICU runtime DLLs from the official Win64 release under `in/tools/icu`. The complete preparation finished in 9.9 seconds; an unchanged repeat remains.
 
 - 2026-08-13 — unchanged ICU source preparation after commit `6bc5e02`: `xmake prepare` completed in 0.7 seconds with official tag `release-77-1` already present, validating source-fetch idempotence. The forthcoming official data archive and build-time `genccode` inputs require their own clean preparation validation.
 
