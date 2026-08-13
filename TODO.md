@@ -152,7 +152,7 @@ Integrate zstd as one dependency target:
 ## Next Target: ICU
 
 - [x] Verify the official `unicode-org/icu` release tag `release-77-1`, matching the previous PHP SDK dependency version.
-- [ ] Replace the prebuilt SDK package with the pinned official source and validate clean and repeated preparation. The clean fetch passed; the unchanged repeat remains.
+- [x] Replace the prebuilt SDK package with the pinned official source and validate clean and repeated preparation.
 - [ ] Inspect the upstream Windows build for exact common, i18n, data, generation, definitions, and dependency edges before declaring the target.
 - [ ] Add a direct per-source static target without unity, then build and validate it.
 
@@ -192,6 +192,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-13 — unchanged ICU source preparation after commit `6bc5e02`: `xmake prepare` completed in 0.7 seconds with official tag `release-77-1` already present, validating source-fetch idempotence. The forthcoming official data archive and build-time `genccode` inputs require their own clean preparation validation.
 
 - 2026-08-13 — clean ICU preparation at commit `c11de6e`: after validating and moving the exact prebuilt `in/deps/ICU` direct child to the Recycle Bin, `xmake prepare` recreated it from official tag `release-77-1` in 11.4 seconds. The complete ICU4C source and committed data inputs are present; an unchanged repeat remains.
 
