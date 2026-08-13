@@ -922,8 +922,12 @@ target("openssl_test")
     set_toolset("as", "nasm@$(projectdir)/in/perl/c/bin/nasm.exe")
     -- add_rules("c.unity_build")
     on_prepare(function ()
+        import("async.runjobs")
+        import("core.base.option")
+
         local root = path.absolute("in/deps/openssl")
         local perl = "$(projectdir)/in/perl/perl/bin/perl.exe"
+        local jobs = option.get("jobs") or os.default_njob()
 
         os.vrunv(perl,
             {"Configure", "VC-WIN64A", "no-shared", "no-module", "no-tests", "no-docs"},
@@ -937,21 +941,24 @@ target("openssl_test")
         os.vrunv(perl, {"apps/progs.pl", "-H", "apps/openssl"},
             {curdir = root, stdout = path.join(root, "apps/progs.h")})
 
-        for _, input in ipairs(os.files(path.join(root, "**/*.[ch].in"))) do
+        local templates = os.files(path.join(root, "**/*.[ch].in"))
+        runjobs("openssl_test.templates", function (index)
+            local input = templates[index]
             local output = input:sub(1, -4)
             os.vrunv(perl,
                 {"-I.", "-Iutil/perl", "-Iproviders/common/der", "-Mconfigdata",
                  "-MOpenSSL::paramnames", "-Moids_to_c", "util/dofile.pl", "-omakefile",
                  path.relative(input, root)},
                 {curdir = root, stdout = output})
-        end
+        end, {total = #templates, comax = jobs})
 
-        for _, generator in ipairs(os.files(path.join(root,
-            "**/*x86_64*.pl|crypto/perlasm/**"))) do
+        local generators = os.files(path.join(root, "**/*x86_64*.pl|crypto/perlasm/**"))
+        runjobs("openssl_test.perlasm", function (index)
+            local generator = generators[index]
             local relative = path.relative(generator, root):gsub("\\", "/")
             local output = relative:gsub("/asm/", "/"):gsub("%.pl$", ".asm")
             os.vrunv(perl, {relative, "nasm", output}, {curdir = root})
-        end
+        end, {total = #generators, comax = jobs})
     end)
     add_files("in/deps/openssl/**/*.c")
 
