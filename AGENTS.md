@@ -263,6 +263,11 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 | --- | --- | --- | --- | --- | --- |
 | `icu` | Official ICU 77.1 Win64 `genccode.exe` | `source/data/in/icudt77l.dat` | `source/data/in/icudt77l_dat.obj` | Generate a machine-neutral, 16-byte-aligned COFF data object with entry point `icudt77` and no DLL export directive in the target's only `on_prepare` callback; merge it directly into `icu.lib` | Build validated |
 
+### libiconv upstream build analysis
+
+- Replace the PHP SDK binary package with the authoritative GNU libiconv 1.19 release tarball from `ftp.gnu.org`, matching the selected package version. Strip its single top-level directory into `in/deps/libiconv`; do not substitute an unofficial GitHub mirror merely to use a Git transport.
+- Complete the library source, generated configuration, Windows definitions, public static interface, and dependency analysis before declaring the Xmake target.
+
 ## PHP Code-generation Inventory
 
 All paths below are relative to `in/php-src` unless prefixed with `out/`. Entries marked "planned" reproduce the known PHP generation commands but are not yet wired into the `php` target's `on_prepare` callback.

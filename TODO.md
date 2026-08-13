@@ -157,6 +157,13 @@ Integrate zstd as one dependency target:
 - [x] Inspect the upstream Windows build for exact common, i18n, data, generation, definitions, and dependency edges before declaring the target.
 - [x] Add a direct per-source static target without unity, then build and validate it.
 
+## Next Target: libiconv
+
+- [x] Verify GNU's official libiconv 1.19 release tarball, matching the previous PHP SDK dependency version.
+- [ ] Replace the prebuilt SDK package with the official release source and validate preparation from clean absence and on an unchanged repeat.
+- [ ] Inspect the upstream build for exact library sources, generated configuration, Windows definitions, public static interface, and dependencies.
+- [ ] Add a direct per-source static target without unity, then build and validate it.
+
 ## Dependency Targets
 
 Every library must receive its own static target. Integrate and validate them one at a time in dependency order.
