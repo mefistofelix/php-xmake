@@ -453,7 +453,7 @@ target("icu")
     add_files("in/deps/ICU/icu4c/source/data/in/icudt77l_dat.obj", {always_added = true})
 
 target("libiconv")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
@@ -496,6 +496,64 @@ target("libiconv")
         "in/deps/libiconv/lib/iconv.c",
         "in/deps/libiconv/libcharset/lib/localcharset.c",
         "in/deps/libiconv/lib/compat.c"
+    )
+
+target("libintl")
+    set_enabled(true)
+    set_kind("static")
+    set_targetdir(get_config("builddir"))
+    set_optimize("fastest")
+    on_prepare(function ()
+        io.writefile(
+            "in/deps/libintl/gettext-runtime/intl/config.h",
+            (io.readfile("in/deps/libintl/gettext-runtime/intl/config.h.in")
+                :gsub("#undef ENABLE_NLS", "#define ENABLE_NLS 1")
+                :gsub("#undef HAVE_C_BOOL", "#define HAVE_C_BOOL 1")
+                :gsub("#undef HAVE_C_STATIC_ASSERT", "#define HAVE_C_STATIC_ASSERT 1")
+                :gsub("#undef HAVE_ICONV", "#define HAVE_ICONV 1")
+                :gsub("#undef HAVE_LONG_LONG_INT", "#define HAVE_LONG_LONG_INT 1")
+                :gsub("#undef HAVE_MBRTOWC", "#define HAVE_MBRTOWC 1")
+                :gsub("#undef HAVE_MBSINIT", "#define HAVE_MBSINIT 1")
+                :gsub("#undef HAVE_MBSTATE_T", "#define HAVE_MBSTATE_T 1")
+                :gsub("#undef HAVE_STDBOOL_H", "#define HAVE_STDBOOL_H 1")
+                :gsub("#undef HAVE_STDINT_H", "#define HAVE_STDINT_H 1")
+                :gsub("#undef HAVE_STDINT_H_WITH_UINTMAX", "#define HAVE_STDINT_H_WITH_UINTMAX 1")
+                :gsub("#undef HAVE_UNSIGNED_LONG_LONG_INT", "#define HAVE_UNSIGNED_LONG_LONG_INT 1")
+                :gsub("#undef HAVE_WCHAR_H", "#define HAVE_WCHAR_H 1")
+                :gsub("#undef HAVE_WCRTOMB", "#define HAVE_WCRTOMB 1")
+                :gsub("#undef HAVE_WINT_T", "#define HAVE_WINT_T 1")
+                :gsub("#undef ICONV_CONST", "#define ICONV_CONST")
+                :gsub("#undef PACKAGE", "#define PACKAGE \"gettext\"")
+                :gsub("#undef PACKAGE_NAME", "#define PACKAGE_NAME \"libintl\"")
+                :gsub("#undef PACKAGE_VERSION", "#define PACKAGE_VERSION \"1.0\"")
+                :gsub("#undef USE_WINDOWS_THREADS", "#define USE_WINDOWS_THREADS 1")
+                :gsub("#undef VERSION", "#define VERSION \"1.0\""))
+        )
+        local header = io.readfile("in/deps/libintl/gettext-runtime/intl/libgnuintl.in.h")
+            :gsub("@HAVE_POSIX_PRINTF@", "0")
+            :gsub("@HAVE_ASPRINTF@", "0")
+            :gsub("@HAVE_SNPRINTF@", "0")
+            :gsub("@HAVE_WPRINTF@", "0")
+            :gsub("@HAVE_NEWLOCALE@", "0")
+            :gsub("@ENHANCE_LOCALE_FUNCS@", "0")
+            :gsub("@WOE32DLL@", "0")
+        io.writefile("in/deps/libintl/gettext-runtime/intl/libgnuintl.h", header)
+        io.writefile("in/deps/libintl/gettext-runtime/intl/libintl.h", header)
+    end)
+    add_deps("libiconv")
+    add_includedirs("in/deps/libintl/gettext-runtime/intl", {public = true})
+    add_includedirs("in/deps/libintl/gettext-runtime/intl/gnulib-lib")
+    add_defines(
+        "BUILDING_LIBINTL",
+        "BUILDING_LIBRARY",
+        "HAVE_CONFIG_H",
+        "_CRT_SECURE_NO_WARNINGS",
+        "_WIN32_WINNT=0x0601"
+    )
+    add_syslinks("advapi32", {public = true})
+    add_files(
+        "in/deps/libintl/gettext-runtime/intl/*.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/**/*.c"
     )
 
 
