@@ -20,7 +20,7 @@ Last updated: 2026-08-13
 - [x] Verify a forced zstd build uses `/MD` in every MSVC compile command.
 - [ ] Replace the object-only `php` prototype and add its real `on_prepare` callback when PHP codegen is implemented.
 - [x] Replace the custom file-configuration `cb` adapter with native target `on_prepare` callbacks. The callback imports the dependency module in its own body and calls `os.vrunv` directly; no Xmake API is injected through callback arguments.
-- [ ] Test one uniform Perl include/module prefix for every OpenSSL `.in` template in `openssl_test`, removing template-content inspection and specialized argument construction if all generators accept the superset.
+- [x] Use one uniform Perl include/module prefix for every OpenSSL `.in` template in `openssl_test`; all 50 C/header templates accept the superset, so template-content inspection and specialized argument construction are unnecessary.
 
 ## Completed Target: zlib
 
@@ -136,6 +136,7 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-13 — `.\xmake.exe -vD -j1 openssl_test` at commit `6e93bad`: all 50 `.in` templates that produce C or header outputs completed with the uniform `-I. -Iutil/perl -Iproviders/common/der -Mconfigdata -MOpenSSL::paramnames -Moids_to_c` prefix; every expected output exists and was regenerated during the run. The complete experimental target still exited later in its intentionally broad perlasm/source experiment, so only the uniform template invocation is validated by this run.
 - 2026-08-13 — `.\xmake.exe -vD -j1 openssl` at commit `8aa0c2a`: the migrated native `on_prepare` callback directly imported `core.project.depend`, called `os.vrunv` without injected arguments, completed the authoritative Configure/template/DER/perlasm generation, rebuilt the target, and archived `out/openssl.lib` successfully in 61.2 seconds. Restore the validated `openssl` target to disabled and return `openssl_test` to active pattern experimentation.
 - 2026-08-13 — `.\xmake.exe -vD -j1 openssl` at commit `a7268d1`: Xmake stopped before target preparation because the validated `openssl` target was still disabled and therefore unavailable even by explicit name. Temporarily make `openssl` the sole active priority target before testing its native `on_prepare` migration.
 - 2026-08-13 — `.\xmake.exe -vD -j1 openssl_test` at commit `c000c49`: the native target `on_prepare` callback directly exposed `os.vrunv` and successfully ran `perl Configure`, the broad `.in` template pass, `mkbuildinf.pl`, and the pattern-selected perlasm scripts without injected callback arguments. The complete experimental target still exited unsuccessfully after the generator pass; its broad generator/source patterns remain intentionally unvalidated and are separate from the callback-environment result.
