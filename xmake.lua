@@ -743,7 +743,7 @@ target("libxslt")
     )
 
 target("oniguruma")
-    set_enabled(true)
+    set_enabled(false)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
@@ -767,14 +767,6 @@ target("oniguruma")
         "in/deps/libonig/src/unicode_property_data_posix.c",
         "in/deps/libonig/src/unicode_wb_data.c"
     )
-
-target("oniguruma_smoke")
-    set_default(false)
-    set_kind("binary")
-    set_targetdir(get_config("builddir"))
-    add_deps("oniguruma")
-    add_cflags("/utf-8", {force = true})
-    add_files("in/deps/libonig/test/test_utf8.c")
 
 
 target("php")

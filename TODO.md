@@ -186,11 +186,18 @@ Integrate zstd as one dependency target:
 - [x] Inspect the upstream native build declarations for exact sources, configuration, static interface, and dependency edges.
 - [x] Add a direct per-source static target without unity, then build and validate it against libxml2.
 
-## Next Target: Oniguruma
+## Completed Target: Oniguruma
 
 - [x] Identify the official `kkos/oniguruma` v6.9.10 source matching the current PHP SDK package.
 - [x] Replace the prebuilt package with pinned source and validate clean and repeated preparation.
 - [x] Inspect the upstream native build declarations for exact sources, configuration, static interface, and dependencies.
+- [x] Add a direct per-source static target without unity, then build and validate it.
+
+## Next Target: SQLite
+
+- [ ] Identify the authoritative source and exact version corresponding to the current PHP SDK package.
+- [ ] Replace the prebuilt package with pinned source and validate clean and repeated preparation.
+- [ ] Inspect the upstream native build declarations for exact sources, configuration, static interface, and dependencies.
 - [ ] Add a direct per-source static target without unity, then build and validate it.
 
 ## Dependency Targets
@@ -229,6 +236,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-14 — Oniguruma runtime validation at commit `9bc8c94`: the complete upstream UTF-8 suite ran against the direct static archive and reported 1,529 successes, zero failures, zero errors, and Oniguruma 6.9.10, exiting 0 in 30 ms. The executable imports only Kernel32, VCRuntime, and UCRT libraries, confirming static Oniguruma linkage with the dynamic MSVC CRT. Remove the temporary test target and disable the completed library.
 
 - 2026-08-14 — Oniguruma upstream-test build at commit `4f94492`: the temporary non-default Xmake target compiled `test/test_utf8.c` with the upstream-required UTF-8 source mode and linked it directly against `oniguruma.lib` in 0.344 seconds. Execute the full suite and inspect its runtime dependencies before removing the temporary target.
 
