@@ -216,6 +216,8 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-14 — patched `libxml2` build and archive inspection after commit `c201401`: Xmake compiled the same 43 independent sources with `/MD /O2` and archived them successfully in 3.5 seconds. All 43 members are x64 and request `MSVCRT`; none requests `LIBCMT`, emits `/EXPORT:`, or contains libxml/libiconv import thunks. The archive contains every one of the SDK reference `libxml2_a_dll.lib`'s 1,770 defined symbols, including `xmlDllMain` and `xmlRelaxParserSetIncLImit`; its only additional symbol is the current MSVC compiler artifact `_Avx2WmemEnabledWeakValue`. It also covers all 1,622 reference DLL exports except the DLL entry point `DllMain`, and the generated public `xmlversion.h` matches the SDK header line for line. Runtime parser validation remains.
+
 - 2026-08-14 — unchanged patched `libxml2` preparation after commit `8921be0`: `xmake prepare` completed in 0.8 seconds with the exact 2.11.9-7 source already present, validating idempotence.
 
 - 2026-08-14 — clean patched `libxml2` preparation at commit `3f7cd25`: after validating `in/deps/libxml2` as the exact direct child of `in/deps`, the vanilla GNOME tree was moved to the Recycle Bin and `xmake prepare` recreated it from `github://winlibs/libxml2?ref=libxml2-2.11.9-7` in 2.9 seconds. The hx provenance records that exact ref, the CVE-2026-0989 function is present in the public header, implementation, and regression test, and the existing declarative filter still selects exactly 43 library sources. An unchanged repeat remains.
