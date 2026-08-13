@@ -930,19 +930,10 @@ target("openssl_test")
         for _, input in ipairs(os.files("$(projectdir)/in/deps/openssl/**/*.in")) do
             local output = input:sub(1, -4)
             if output:match("%.[ch]$") then
-                local template = io.readfile(input)
-                local args = {"-I.", "-Mconfigdata"}
-                if template:find("OpenSSL::paramnames", 1, true) then
-                    table.insert(args, 2, "-Iutil/perl")
-                    table.insert(args, "-MOpenSSL::paramnames")
-                elseif template:find("oids_to_c::", 1, true) then
-                    table.insert(args, 2, "-Iproviders/common/der")
-                    table.insert(args, "-Moids_to_c")
-                end
-                table.insert(args, "util/dofile.pl")
-                table.insert(args, "-omakefile")
-                table.insert(args, path.relative(input, path.absolute("in/deps/openssl")))
-                os.vrunv("$(projectdir)/in/perl/perl/bin/perl.exe", args,
+                os.vrunv("$(projectdir)/in/perl/perl/bin/perl.exe",
+                    {"-I.", "-Iutil/perl", "-Iproviders/common/der", "-Mconfigdata",
+                     "-MOpenSSL::paramnames", "-Moids_to_c", "util/dofile.pl", "-omakefile",
+                     path.relative(input, path.absolute("in/deps/openssl"))},
                     {curdir = path.absolute("in/deps/openssl"), stdout = output})
             end
         end

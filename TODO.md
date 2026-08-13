@@ -20,6 +20,7 @@ Last updated: 2026-08-13
 - [x] Verify a forced zstd build uses `/MD` in every MSVC compile command.
 - [ ] Replace the object-only `php` prototype and add its real `on_prepare` callback when PHP codegen is implemented.
 - [x] Replace the custom file-configuration `cb` adapter with native target `on_prepare` callbacks. The callback imports the dependency module in its own body and calls `os.vrunv` directly; no Xmake API is injected through callback arguments.
+- [ ] Test one uniform Perl include/module prefix for every OpenSSL `.in` template in `openssl_test`, removing template-content inspection and specialized argument construction if all generators accept the superset.
 
 ## Completed Target: zlib
 
