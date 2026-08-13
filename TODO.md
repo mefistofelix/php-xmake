@@ -201,6 +201,8 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-13 — `.\xmake.exe -vD -j8 libiconv` at commit `4c686c0` built and archived all three sources with `/MD /O2` in 0.7 seconds. One C4090 remained at `iconv.c:499`, where the standard `qsort(void *)` API reorders an array of pointers to const strings; suppress this understood nested-qualifier warning only on `iconv.c` before the final rebuild.
+
 - 2026-08-13 — `.\xmake.exe -vD -j8 libiconv` at commit `3c5848e` stopped while compiling `iconv.c`: the minimal generated config omitted upstream's empty `ICONV_CONST`, making the function definition invalid. MSVC also reports C4311 for the generated gperf tables' deliberate pointer-to-offset casts through `long`; add the missing empty macro and suppress that warning only for `iconv.c` before retrying.
 
 - 2026-08-13 — unchanged libiconv preparation after commit `9d93681`: `xmake prepare` completed in 0.8 seconds with the official GNU 1.19 source already present, validating the new fetch's idempotence.
