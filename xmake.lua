@@ -232,6 +232,7 @@ target("nghttp2")
     add_files("in/deps/nghttp2/lib/*.c")
 
 target("nghttp3")
+    set_enabled(false)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")

@@ -135,12 +135,12 @@ Integrate zstd as one dependency target:
 - [x] Add one direct per-source static target without unity or a callback.
 - [x] Build and validate all 37 x64 `/MD` members and every one of the 318 APIs declared by `uv.h`.
 
-## Next Target: nghttp3
+## Completed Target: nghttp3
 
 - [x] Inspect the upstream CMake and Automake source manifests, Windows configuration, public static definition, and version-header generation.
 - [x] Fetch the release's exact `sfparse` gitlink with hx `--recursive` and validate clean and repeated preparation.
 - [x] Add one 32-source static target with direct per-source compilation and no unity.
-- [ ] Build and validate architecture, `/MD`, static decoration, and the complete public header API surface.
+- [x] Build and validate architecture, `/MD`, static decoration, and the complete public header API surface.
 
 ## Dependency Targets
 
@@ -178,6 +178,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-13 — `.\xmake.exe -vD -j8 nghttp3` plus public-header API comparison at commit `d52a7f1`: all 32 sources compiled independently with `/MD /O2 /std:c11`, and `out/nghttp3.lib` archived without warnings in 1.0 second. All 32 members are x64 and request `MSVCRT`, with zero `LIBCMT` or `/EXPORT:` directives; all 91 public header APIs are present and none uses an import thunk. The generated version header contains `1.18.0` and `0x011200`.
 
 - 2026-08-13 — `.\xmake.exe -vD -j8 nghttp3` at commit `736a6eb` stopped in `nghttp3_ksl.h` because the initial target omitted upstream's required C11 language level and MSVC parsed the `_Generic` min/max macro as legacy C. Add target-scoped `c11` so Xmake emits `/std:c11`, then retry.
 
