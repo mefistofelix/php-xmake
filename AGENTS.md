@@ -187,7 +187,7 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 ### libsodium upstream source
 
 - Replace the PHP SDK binary package with the official `jedisct1/libsodium` repository pinned to tag `1.0.22`, which resolves to the same release version.
-- Validate preparation from a clean absence and on an unchanged repeat before inspecting the upstream Visual Studio and autotools manifests for the Xmake target.
+- Clean-absence preparation passes and recreates the official source tree with the correct hx marker. Complete the unchanged repeat before inspecting the upstream Visual Studio and autotools manifests for the Xmake target.
 
 ## PHP Code-generation Inventory
 

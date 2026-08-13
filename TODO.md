@@ -163,6 +163,8 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-13 — `.\xmake.exe prepare` at commit `2d281bb`: after verifying that `in/deps/libsodium` was the intended direct child and moving the previous PHP SDK binary package to the Recycle Bin, preparation recreated the official `1.0.22` source tree in 1.8 seconds with the correct hx marker. An unchanged repeat remains.
+
 - 2026-08-13 — `.\xmake.exe -vD -j8 libcurl` plus static-archive inspection at commit `9df6001`: the enabled OpenSSL/compression/SSH/HTTP2 closure and all 192 libcurl sources built successfully in 34.7 seconds. Every libcurl object is x64 and requests `MSVCRT`, with zero `LIBCMT` or `/EXPORT:` directives. The archive contains all 100 APIs from upstream `libcurl.def`, no `__imp_curl*`, `__imp_nghttp2*`, or `__imp_libssh2*` thunks, and real references to OpenSSL, zlib, Brotli, zstd, nghttp2, and libssh2. The dependency build emitted the already documented upstream OpenSSL C4133 warning at `obj_dat.c:238`.
 
 - 2026-08-13 — `.\xmake.exe -vD -j8 nghttp2` plus `dll_compare/nghttp2.dll` comparison at commit `317c34f`: the generated header contains version `1.69.0`/`0x014500`; all 26 sources compiled independently with `/MD /O2`, and `out/nghttp2.lib` archived in 1.2 seconds. The archive contains all 181 reference exports, 26 x64 members, 26 `MSVCRT` and zero `LIBCMT` directives, no `/EXPORT:` directives, and no `__imp_nghttp2*` thunks.
