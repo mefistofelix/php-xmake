@@ -21,7 +21,7 @@ Last updated: 2026-08-13
 - [ ] Replace the object-only `php` prototype and add its real `on_prepare` callback when PHP codegen is implemented.
 - [x] Replace the custom file-configuration `cb` adapter with native target `on_prepare` callbacks. The callback imports the dependency module in its own body and calls `os.vrunv` directly; no Xmake API is injected through callback arguments.
 - [x] Use one uniform Perl include/module prefix for every OpenSSL `.in` template in `openssl_test`; all 50 C/header templates accept the superset, so template-content inspection and specialized argument construction are unnecessary.
-- [ ] Revalidate the broad `**/*x86_64*.pl|crypto/perlasm/**` generator pattern in `openssl_test`; the declarative exclusion must prevent the stdin-driven `x86_64-xlate.pl` helper from hanging an interactive build.
+- [x] Use `**/*x86_64*.pl|crypto/perlasm/**` in `openssl_test`; the declarative exclusion prevents the stdin-driven `x86_64-xlate.pl` helper from hanging an interactive build while retaining the standalone generator matches.
 - [x] Consolidate repeated OpenSSL-root and Perl-program expressions in `openssl_test:on_prepare` into two local values; the simplified callback preserves the validated template and perlasm preparation behavior.
 - [x] Run the independent `mkbuildinf.pl` invocation directly after `Configure`, before the template loop; it depends only on its arguments and optional `SOURCE_DATE_EPOCH`.
 - [x] Replace the OpenSSL template output-extension `if` with the union of the complete `**/*.c.in` and `**/*.h.in` input globs; they select the same 50 templates directly.
@@ -141,6 +141,7 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-13 — `.\xmake.exe -j1 openssl_test` at commit `1d23c6f`: excluding `crypto/perlasm/**` removed the interactive stdin hang. Preparation completed and Xmake advanced to C compilation, where the deliberately broad source glob now fails normally at `apps/asn1parse.c` because `progs.h` is unavailable. The next experiment must narrow or exclude application sources; perlasm generation is no longer blocking progress.
 - 2026-08-13 — `.\xmake.exe -vD -j1 openssl_test` at commit `49ed4a4`: Xmake's `**/*.[ch].in` character-class glob selected all 50 C/header templates and regenerated all 50 outputs with zero missing. `[ch]` is the correct single-character alternative; `[c|h]` would also admit a literal `|`. The complete target retained its independent post-preparation failure.
 - 2026-08-13 — `.\xmake.exe -vD -j1 openssl_test` at commit `758bb4f`: the complete `**/*.c.in` and `**/*.h.in` glob union selected 10 C templates and 40 header templates, regenerated all 50 outputs, and left zero missing outputs. The former output-extension `if` is unnecessary; the complete target retained its separate post-preparation failure.
 - 2026-08-13 — `.\xmake.exe -vD -j1 openssl_test` at commit `0f08bd0`: `mkbuildinf.pl` ran successfully immediately after `Configure` and before the first `dofile.pl` template invocation. The remaining preparation behavior was unchanged, confirming that build-info generation has no dependency on the generated-template loop.
