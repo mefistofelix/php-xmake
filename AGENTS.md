@@ -83,7 +83,7 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 | `bzip2` | Disabled | Static library | `in/deps/bzip2/*.c` minus upstream programs/tests via `remove_files` | `out/bzip2.lib` | bzip2 compression library for the PHP bz2 extension | Exactly seven library sources in one unity translation unit; declarative selection validated with `/MD` on MSVC x64 |
 | `liblzma` | Disabled | Static library | Upstream-default library sources under `in/deps/xz/src/{common,liblzma}` | `out/liblzma.lib` | XZ/LZMA compression for PHP consumers including zip, GD, and fileinfo | One target; five-unit minimum unity partition; build and static-interface validation passed with `/MD` on MSVC x64 |
 | `openssl` | Active | Static library | Broad C selection plus pattern-selected x86-64 NASM inputs | `out/openssl.lib` | TLS and cryptography | Former `openssl_test` target promoted unchanged except for its name; prior clean build and 6,475-symbol check passed |
-| `libssh2` | Not yet defined | Static library | Official `libssh2-1.11.1` source tree | `out/libssh2.lib` | SSH transport required by libcurl/PHP | Clean and no-change source preparation passed; target pending |
+| `libssh2` | Active | Static library | 26 sources from `in/deps/libssh2/src/*.c` after seven backend/platform removals | `out/libssh2.lib` | OpenSSL-backed SSH transport required by libcurl/PHP | Direct per-source target defined; first build pending |
 | `nghttp2` | Not yet defined | Static library | Official `v1.69.0` source tree | `out/nghttp2.lib` | HTTP/2 transport required by libcurl/PHP | Source prepared; upstream analysis and target pending |
 | `libcurl` | Not yet defined | Static library | Official `curl-8_21_0` library sources | `out/libcurl.lib` | PHP curl transport library | Waits for libssh2 and nghttp2 targets; direct per-source build required |
 | `minilua` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/dynasm/minilua.c` | `out/minilua.exe` | Runs DynASM for the PHP JIT IR emitter | Defined; build validation pending |
@@ -153,7 +153,11 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 ### libssh2 upstream build analysis
 
 - Replace the PHP SDK binary package with the official `libssh2/libssh2` repository pinned to `libssh2-1.11.1`, matching the package version previously selected by `prepare`.
-- Validate the source fetch from a clean absence and on a no-change repeat before declaring the target. Then inspect upstream CMake/Makefile and Windows configuration for exact sources, OpenSSL/zlib integration, generated headers, public static-link macros, and system libraries.
+- Clean-absence and no-change preparation both pass. `src/Makefile.inc` defines 26 static-library C sources. The broad `src/*.c` pattern finds those plus exactly seven backend/platform fragments, so one `remove_files` list reproduces the manifest.
+- `crypto.c` textually includes the selected backend implementation. Define `LIBSSH2_OPENSSL` and do not compile `openssl.c` separately. The other crypto backend C files, `agent_win.c`, and `blowfish.c` are likewise not independent manifest inputs.
+- Do not define `HAVE_CONFIG_H`: `libssh2_setup.h` contains the authoritative hand-written MSVC configuration. The static public headers require no consumer define because they apply import/export decoration only for shared-library modes.
+- Upstream disables zlib compression by default, and the reference `dll_compare/libssh2.dll` imports OpenSSL but no zlib DLL. Keep zlib disabled to match that interface. Propagate the Windows static-link libraries `ws2_32`, `crypt32`, and `bcrypt`.
+- Compile all 26 C sources independently with no callback and no unity rule. Validate the archive against all 137 exports from `dll_compare/libssh2.dll`, plus x64 and `/MD` directives.
 
 ### nghttp2 upstream build analysis
 

@@ -185,6 +185,28 @@ target("liblzma")
         "in/deps/xz/src/liblzma/lz/lz_encoder_mf.c",
         "in/deps/xz/src/liblzma/lzma/lzma_encoder*.c", {unity_group = "conflict_4"})
 
+target("libssh2")
+    set_kind("static")
+    set_targetdir(get_config("builddir"))
+    set_optimize("fastest")
+    add_includedirs("in/deps/libssh2/include", {public = true})
+    add_includedirs(
+        "in/deps/libssh2/src",
+        "in/deps/openssl/include"
+    )
+    add_defines("LIBSSH2_OPENSSL")
+    add_syslinks("ws2_32", "crypt32", "bcrypt", {public = true})
+    add_files("in/deps/libssh2/src/*.c")
+    remove_files(
+        "in/deps/libssh2/src/agent_win.c",
+        "in/deps/libssh2/src/blowfish.c",
+        "in/deps/libssh2/src/libgcrypt.c",
+        "in/deps/libssh2/src/mbedtls.c",
+        "in/deps/libssh2/src/openssl.c",
+        "in/deps/libssh2/src/os400qc3.c",
+        "in/deps/libssh2/src/wincng.c"
+    )
+
 
 target("php")
     set_enabled(false)

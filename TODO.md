@@ -105,7 +105,8 @@ Integrate zstd as one dependency target:
 
 - [x] Verify the official `libssh2/libssh2` tag `libssh2-1.11.1`, matching the previously downloaded PHP SDK package version.
 - [x] Replace the prebuilt libssh2 package with the pinned official source and validate `xmake prepare` from a clean absence and on a no-change repeat.
-- [ ] Inspect and integrate libssh2 as one static target using direct per-source compilation without unity.
+- [x] Inspect libssh2's upstream manifest, hand-written MSVC configuration, OpenSSL backend selection, default-disabled zlib support, public API decoration, and Windows libraries.
+- [x] Add one 26-source static libssh2 target using direct per-source compilation without unity; first build and symbol validation remain.
 - [ ] Inspect and integrate the already prepared official nghttp2 `v1.69.0` source as one static target without unity, including its generated version header.
 
 ## Following Target: libcurl
