@@ -8,18 +8,18 @@ Last updated: 2026-08-13
 - [x] Add an idempotent-oriented `prepare` task for sources, binary dependencies, Perl, MSVC, and the Windows SDK.
 - [x] Complete one successful `xmake prepare` run with all currently pinned inputs.
 - [x] Repeat `xmake prepare` with every current input present and validate idempotence.
-- [x] Add the `cb` rule skeleton for target-owned code generation.
+- [x] Use native target `on_prepare` callbacks for target-owned code generation.
 - [x] Define the `minilua` and `gen_ir_fold_hash` helper targets.
 - [x] Record the known PHP code-generation inventory in `AGENTS.md`.
 - [x] Disable non-priority targets by default so focused builds only exercise the target under integration.
 - [x] Build and archive `out/zlib.lib` successfully with MSVC x64.
 - [x] Build and archive the complete single-target `out/brotli.lib` successfully with MSVC x64.
 - [ ] Validate the current Xmake configuration and helper targets.
-- [x] Remove empty and placeholder callbacks; only targets with real codegen/configuration work may attach a `cb` callback.
+- [x] Remove empty and placeholder callbacks; only targets with real codegen/configuration work may define `on_prepare`.
 - [x] Follow upstream Windows PHP and select the dynamic multithreaded MSVC CRT globally with `set_runtimes("MD")` for loadable-extension compatibility.
 - [x] Verify a forced zstd build uses `/MD` in every MSVC compile command.
-- [ ] Replace the object-only `php` prototype and add its real `cb` callback when PHP codegen is implemented.
-- [ ] Replace the custom file-configuration `cb` adapter with native target `on_prepare` callbacks, which expose build APIs directly without injecting `import` or `os.vrunv`; validate the approach first on `openssl_test` before changing the validated `openssl` target.
+- [ ] Replace the object-only `php` prototype and add its real `on_prepare` callback when PHP codegen is implemented.
+- [x] Replace the custom file-configuration `cb` adapter with native target `on_prepare` callbacks. The callback imports the dependency module in its own body and calls `os.vrunv` directly; no Xmake API is injected through callback arguments.
 
 ## Completed Target: zlib
 
@@ -27,7 +27,7 @@ Last updated: 2026-08-13
 
 - [x] Inspect upstream `CMakeLists.txt` and `win32/Makefile.msc` for exact sources, Windows defines, output naming, configuration, and optional assembly.
 - [x] Add one static-library target with the broadest safe source pattern.
-- [x] Confirm that shipped Windows configuration needs no zlib codegen and therefore no `cb` callback.
+- [x] Confirm that shipped Windows configuration needs no zlib codegen and therefore no `on_prepare` callback.
 - [x] Use the default maximal unity group for compatible core sources; reapply file config only to `zutil.c`, `gz*.c`, and `inf*.c` to isolate their unguarded internal headers and macro conflicts.
 - [x] Build and record the validation result before moving to the next dependency.
 
@@ -48,7 +48,7 @@ Integrate zstd as one dependency target:
 
 - [x] Inspect upstream CMake, Makefiles, and Visual Studio project for exact library sources, exclusions, Windows defines, generated inputs, assembly/intrinsics, and feature toggles.
 - [x] Keep common, compression, decompression, dictionary-builder, and legacy modules in one `zstd` target.
-- [x] Add broad source patterns and no `cb` callback because the upstream library has no build-time codegen.
+- [x] Add broad source patterns and no `on_prepare` callback because the upstream library has no build-time codegen.
 - [x] Keep 29 current sources in one unity group; isolate FastCover because `cover.h` is unguarded, and isolate the seven legacy sources whose inspected private symbols collide across historical versions.
 - [x] Build the complete target once and validate its source/unity layout.
 - [x] Rebuild with the final `/MD` selection, verify the compiler command, and record the validation result before moving to bzip2.
@@ -82,7 +82,7 @@ Integrate zstd as one dependency target:
 - [x] Remove `in/deps/openssl` and validate the pinned source fetch from a clean absence.
 - [x] Repeat `xmake prepare` with every input present to validate idempotence.
 - [x] Inspect upstream Configure/build metadata and Windows notes for the exact crypto/SSL source set, generated files, assembly, public/private defines, providers, and system libraries.
-- [x] Implement OpenSSL code generation with `perl Configure` and the required Perl generators only; do not invoke `nmake` from the target callback.
+- [x] Implement OpenSSL code generation with `perl Configure` and the required Perl generators only; do not invoke `nmake` from the target's `on_prepare` callback.
 - [x] Declare all selected C and generated assembly sources directly in Xmake and let Xmake perform compilation, NASM assembly, and archiving.
 - [x] Add one static OpenSSL dependency target; the configured closure contains no source compiled with incompatible duplicate settings.
 - [x] Validate that the Xmake source declaration matches the configured 1,100-C plus 39-assembly upstream closure exactly.
@@ -120,7 +120,7 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Build and invoke `minilua` programmatically for DynASM output.
 - [ ] Build and invoke `gen_ir_fold_hash` programmatically with redirected input/output.
 - [ ] Generate PHP Windows configuration headers/defines using Xmake detection APIs.
-- [ ] Consolidate all PHP generation into the single `php` target callback.
+- [ ] Consolidate all PHP generation into the single `php` target `on_prepare` callback.
 
 ## PHP Target and Final Link
 
@@ -135,6 +135,8 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-13 — `.\xmake.exe -vD -j1 openssl_test` at commit `c000c49`: the native target `on_prepare` callback directly exposed `os.vrunv` and successfully ran `perl Configure`, the broad `.in` template pass, `mkbuildinf.pl`, and the pattern-selected perlasm scripts without injected callback arguments. The complete experimental target still exited unsuccessfully after the generator pass; its broad generator/source patterns remain intentionally unvalidated and are separate from the callback-environment result.
+- 2026-08-13 — isolated Xmake 3.1 environment probe: native target/rule hooks reported both `os.vrunv` and `import` as functions, while a function stored in custom `add_files` file configuration reported both names as `nil`. This confirms that the old adapter needed injection only because it stored a nested configuration-time closure; replacing it with native `on_prepare` removes that workaround.
 - 2026-08-12 — `.\xmake.exe prepare` at commit `040a065`: completed the no-change repeat successfully in 0.671 seconds, retaining the pinned official libcurl source and validating preparation idempotence.
 - 2026-08-12 — `.\xmake.exe prepare` at commit `6b62c7b`: after moving the previous prebuilt SDK directory out of `in/deps`, completed the clean official libcurl source preparation in 3.6 seconds. The recreated tree contains the complete upstream build metadata, and its hx marker records `github://curl/curl?ref=curl-8_21_0`. A no-change repeat is still required.
 - 2026-08-12 — final clean `.\xmake.exe clean openssl` plus `.\xmake.exe -vD -j1 openssl` at commit `3cd23c7`: direct compilation, NASM assembly, and archive creation passed with no errors. The warning set is exactly C4133/C4244/C4267/C4319/C4334, matching the captured official `nmake` build; unity-only C4005/C4090/C4129/C4996/C5332 are absent. Fresh archive inspection reports 148 x64 members, 109 `MSVCRT` and zero `LIBCMT` directives, no exports or OpenSSL-family import thunks, and all representative crypto, TLS, default/legacy provider, and assembly symbols.

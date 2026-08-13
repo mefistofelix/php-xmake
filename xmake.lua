@@ -8,14 +8,6 @@ set_config("vs_sdkver", "10.0.28000.0")
 
 set_config("builddir", "out")
 
-rule("cb")
-    on_prepare_file(function (target, sourcefile, opt)
-        local fileconfig = target:fileconfig(sourcefile)
-        if fileconfig and type(fileconfig.cb) == "function" then
-            fileconfig.cb(target, sourcefile, opt, import("core.project.depend"), os.vrunv)
-        end
-    end)
-
 task("prepare")
     set_menu({ usage = "xmake prepare" })
     on_run(function()
@@ -218,10 +210,9 @@ target("openssl")
     add_asflags("-Ox", "-f", "win64", "-DNEAR", "-g", {force = true})
     add_syslinks("ws2_32", "gdi32", "advapi32", "crypt32", "user32", {public = true})
     add_rules("c.unity_build")
-    add_files("in/deps/openssl/crypto/params_idx.c.in", {rules = {"cb"}, cb = function (target, sourcefile, opt, depend, runv)
+    on_prepare(function (target)
+        local depend = import("core.project.depend")
         local root = path.join(os.projectdir(), "in/deps/openssl")
-        local perl = path.join(os.projectdir(), "in/perl/perl/bin/perl.exe")
-        local runenvs = {PATH = path.join(os.projectdir(), "in/perl/c/bin") .. ";" .. os.getenv("PATH")}
         local regular_outputs = {
             "include/crypto/bn_conf.h", "include/crypto/dso_conf.h", "include/openssl/asn1.h",
             "include/openssl/asn1t.h", "include/openssl/bio.h", "include/openssl/cmp.h",
@@ -299,15 +290,18 @@ target("openssl")
         table.join2(generator_inputs, os.files(path.join(root, "providers/common/der/*.c.in")))
         table.join2(generator_inputs, os.files(path.join(root, "providers/common/include/prov/*.h.in")))
         depend.on_changed(function ()
-            runv(perl, {"Configure", "VC-WIN64A", "no-shared", "no-module", "no-apps", "no-tests", "no-docs"},
-                {curdir = root, envs = runenvs})
+            os.vrunv("$(projectdir)/in/perl/perl/bin/perl.exe",
+                {"Configure", "VC-WIN64A", "no-shared", "no-module", "no-apps", "no-tests", "no-docs"},
+                {curdir = root, addenvs = {PATH = path.absolute("in/perl/c/bin")}})
             for _, output in ipairs(regular_outputs) do
-                runv(perl, {"-I.", "-Mconfigdata", "util/dofile.pl", "-omakefile", output .. ".in"},
+                os.vrunv("$(projectdir)/in/perl/perl/bin/perl.exe",
+                    {"-I.", "-Mconfigdata", "util/dofile.pl", "-omakefile", output .. ".in"},
                     {curdir = root, stdout = path.join(root, output)})
             end
             for _, output in ipairs(param_outputs) do
-                runv(perl, {"-I.", "-Iutil/perl", "-Mconfigdata", "-MOpenSSL::paramnames",
-                    "util/dofile.pl", "-omakefile", output .. ".in"},
+                os.vrunv("$(projectdir)/in/perl/perl/bin/perl.exe",
+                    {"-I.", "-Iutil/perl", "-Mconfigdata", "-MOpenSSL::paramnames",
+                     "util/dofile.pl", "-omakefile", output .. ".in"},
                     {curdir = root, stdout = path.join(root, output)})
             end
             for _, name in ipairs(der_names) do
@@ -316,12 +310,14 @@ target("openssl")
                     "providers/common/include/prov/der_" .. name .. ".h"
                 }
                 for _, output in ipairs(outputs) do
-                    runv(perl, {"-I.", "-Iproviders/common/der", "-Mconfigdata", "-Moids_to_c",
-                        "util/dofile.pl", "-omakefile", output .. ".in"},
+                    os.vrunv("$(projectdir)/in/perl/perl/bin/perl.exe",
+                        {"-I.", "-Iproviders/common/der", "-Mconfigdata", "-Moids_to_c",
+                         "util/dofile.pl", "-omakefile", output .. ".in"},
                         {curdir = root, stdout = path.join(root, output)})
                 end
             end
-            runv(perl, {"util/mkbuildinf.pl", "cl /MD /O2", "VC-WIN64A"},
+            os.vrunv("$(projectdir)/in/perl/perl/bin/perl.exe",
+                {"util/mkbuildinf.pl", "cl /MD /O2", "VC-WIN64A"},
                 {curdir = root, stdout = path.join(root, "crypto/buildinf.h")})
             local perlasm = [[
                 use strict;
@@ -337,14 +333,14 @@ target("openssl")
             ]]
             local argv = {"-I.", "-Mconfigdata", "-e", perlasm}
             table.join2(argv, assembly_outputs)
-            runv(perl, argv, {curdir = root})
+            os.vrunv("$(projectdir)/in/perl/perl/bin/perl.exe", argv, {curdir = root})
         end, {
             files = generator_inputs,
             values = {"VC-WIN64A", "no-shared", "no-module", "no-apps", "no-tests", "no-docs"},
-            dependfile = target:dependfile(sourcefile) .. ".openssl",
+            dependfile = target:dependfile("in/deps/openssl/crypto/params_idx.c.in") .. ".openssl",
             changed = missing or target:is_rebuilt()
         })
-    end})
+    end)
     add_files("in/deps/openssl/crypto/bio/bf_buff.c")
     add_files("in/deps/openssl/crypto/bio/bf_lbuf.c", {unity_group = "conflict_1"})
     add_files("in/deps/openssl/crypto/bio/bf_nbio.c", {unity_group = "conflict_2"})
