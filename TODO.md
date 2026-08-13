@@ -135,6 +135,7 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-13 — `.\xmake.exe -vD -j1 openssl` at commit `a7268d1`: Xmake stopped before target preparation because the validated `openssl` target was still disabled and therefore unavailable even by explicit name. Temporarily make `openssl` the sole active priority target before testing its native `on_prepare` migration.
 - 2026-08-13 — `.\xmake.exe -vD -j1 openssl_test` at commit `c000c49`: the native target `on_prepare` callback directly exposed `os.vrunv` and successfully ran `perl Configure`, the broad `.in` template pass, `mkbuildinf.pl`, and the pattern-selected perlasm scripts without injected callback arguments. The complete experimental target still exited unsuccessfully after the generator pass; its broad generator/source patterns remain intentionally unvalidated and are separate from the callback-environment result.
 - 2026-08-13 — isolated Xmake 3.1 environment probe: native target/rule hooks reported both `os.vrunv` and `import` as functions, while a function stored in custom `add_files` file configuration reported both names as `nil`. This confirms that the old adapter needed injection only because it stored a nested configuration-time closure; replacing it with native `on_prepare` removes that workaround.
 - 2026-08-12 — `.\xmake.exe prepare` at commit `040a065`: completed the no-change repeat successfully in 0.671 seconds, retaining the pinned official libcurl source and validating preparation idempotence.
