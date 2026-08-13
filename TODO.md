@@ -144,6 +144,8 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-13 — `.\xmake.exe -j8 openssl_test` at commit `5944614`: the corrected direct-child `fuzz/*.c` pattern removed all 33 fuzz sources. Compilation advanced into providers and failed at the FIPS-only `providers/common/securitycheck_fips.c`; the configured `no-fips` closure also omits all five direct C sources in `providers/fips` and `providers/implementations/rands/fips_crng_test.c`, while retaining the default-provider sources whose filenames contain `fips`.
+
 - 2026-08-13 — `.\xmake.exe -j8 openssl_test` at commit `353a546`: the attempted `fuzz/**/*.c` exclusion matched no files because Xmake's `**/` requires at least one nested directory in this position, while all 33 fuzz sources are direct children of `fuzz`. Direct Xmake glob probes returned zero matches for `fuzz/**/*.c` and 33 for `fuzz/*.c`; use the direct-child pattern.
 
 - 2026-08-13 — `.\xmake.exe -j8 openssl_test` at commit `b47a95f`: the broad glob's `|engines/*.c` exclusion removed every unselected engine C source, while the explicit CAPI and PadLock sources remained selected. Compilation advanced directly to `fuzz/driver.c`; all 33 C files in `fuzz` are standalone fuzz or corpus-test program inputs, and none belongs to the library closure under `no-tests`, `no-fuzz-afl`, and `no-fuzz-libfuzzer`.

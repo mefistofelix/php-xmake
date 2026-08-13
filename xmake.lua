@@ -978,7 +978,10 @@ target("openssl_test")
         "in/deps/openssl/demos/**/*.c",
         "in/deps/openssl/doc/**/*.c",
         "in/deps/openssl/fuzz/*.c",
-        "in/deps/openssl/providers/implementations/ciphers/cipher_rc5*.c"
+        "in/deps/openssl/providers/common/securitycheck_fips.c",
+        "in/deps/openssl/providers/fips/*.c",
+        "in/deps/openssl/providers/implementations/ciphers/cipher_rc5*.c",
+        "in/deps/openssl/providers/implementations/rands/fips_crng_test.c"
     )
 
     add_asflags("-Ox", "-f", "win64", "-DNEAR", "-g", {force = true})
