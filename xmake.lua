@@ -945,11 +945,9 @@ target("openssl_test")
 
         for _, generator in ipairs(os.files("$(projectdir)/in/deps/openssl/**/*x86_64*.pl")) do
             local relative = path.relative(generator, path.absolute("in/deps/openssl")):gsub("\\", "/")
-            if not relative:startswith("crypto/perlasm/") and not relative:startswith("ms/") then
-                local output = relative:gsub("/asm/", "/"):gsub("%.pl$", ".asm")
-                os.vrunv("$(projectdir)/in/perl/perl/bin/perl.exe", {relative, "nasm", output},
-                    {curdir = path.absolute("in/deps/openssl")})
-            end
+            local output = relative:gsub("/asm/", "/"):gsub("%.pl$", ".asm")
+            os.vrunv("$(projectdir)/in/perl/perl/bin/perl.exe", {relative, "nasm", output},
+                {curdir = path.absolute("in/deps/openssl")})
         end
     end)
     add_files("in/deps/openssl/**/*.c")

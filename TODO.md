@@ -21,6 +21,7 @@ Last updated: 2026-08-13
 - [ ] Replace the object-only `php` prototype and add its real `on_prepare` callback when PHP codegen is implemented.
 - [x] Replace the custom file-configuration `cb` adapter with native target `on_prepare` callbacks. The callback imports the dependency module in its own body and calls `os.vrunv` directly; no Xmake API is injected through callback arguments.
 - [x] Use one uniform Perl include/module prefix for every OpenSSL `.in` template in `openssl_test`; all 50 C/header templates accept the superset, so template-content inspection and specialized argument construction are unnecessary.
+- [ ] Test the unrestricted `**/*x86_64*.pl` generator pattern in `openssl_test`, including the matches under `crypto/perlasm` and `ms` instead of filtering them procedurally.
 
 ## Completed Target: zlib
 
