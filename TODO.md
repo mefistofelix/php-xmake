@@ -107,7 +107,8 @@ Integrate zstd as one dependency target:
 - [x] Replace the prebuilt libssh2 package with the pinned official source and validate `xmake prepare` from a clean absence and on a no-change repeat.
 - [x] Inspect libssh2's upstream manifest, hand-written MSVC configuration, OpenSSL backend selection, default-disabled zlib support, public API decoration, and Windows libraries.
 - [x] Add and validate one 26-source static libssh2 target using direct per-source compilation without unity.
-- [ ] Inspect and integrate the already prepared official nghttp2 `v1.69.0` source as one static target without unity, including its generated version header.
+- [x] Inspect nghttp2 CMake/Automake/MSVC metadata and confirm that the current library manifest is exactly the 26 direct C children of `lib`.
+- [x] Add one direct per-source nghttp2 target without unity and generate its version header in the owning callback; first build and symbol validation remain.
 
 ## Following Target: libcurl
 

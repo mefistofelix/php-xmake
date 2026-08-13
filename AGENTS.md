@@ -84,7 +84,7 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 | `liblzma` | Disabled | Static library | Upstream-default library sources under `in/deps/xz/src/{common,liblzma}` | `out/liblzma.lib` | XZ/LZMA compression for PHP consumers including zip, GD, and fileinfo | One target; five-unit minimum unity partition; build and static-interface validation passed with `/MD` on MSVC x64 |
 | `openssl` | Active | Static library | Broad C selection plus pattern-selected x86-64 NASM inputs | `out/openssl.lib` | TLS and cryptography | Former `openssl_test` target promoted unchanged except for its name; prior clean build and 6,475-symbol check passed |
 | `libssh2` | Disabled | Static library | 26 sources from `in/deps/libssh2/src/*.c` after seven backend/platform removals | `out/libssh2.lib` | OpenSSL-backed SSH transport required by libcurl/PHP | Build and 137-export static-interface validation passed with `/MD` on MSVC x64 |
-| `nghttp2` | Not yet defined | Static library | Official `v1.69.0` source tree | `out/nghttp2.lib` | HTTP/2 transport required by libcurl/PHP | Source prepared; upstream analysis and target pending |
+| `nghttp2` | Active | Static library | All 26 C sources under `in/deps/nghttp2/lib/*.c` | `out/nghttp2.lib` | HTTP/2 transport required by libcurl/PHP | Direct per-source target and version-header callback defined; first build pending |
 | `libcurl` | Not yet defined | Static library | Official `curl-8_21_0` library sources | `out/libcurl.lib` | PHP curl transport library | Waits for libssh2 and nghttp2 targets; direct per-source build required |
 | `minilua` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/dynasm/minilua.c` | `out/minilua.exe` | Runs DynASM for the PHP JIT IR emitter | Defined; build validation pending |
 | `gen_ir_fold_hash` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c` | `out/gen_ir_fold_hash.exe` | Generates the JIT IR fold hash header | Defined; build validation pending |
@@ -162,7 +162,16 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 ### nghttp2 upstream build analysis
 
 - Use the already pinned official `nghttp2/nghttp2` repository at `v1.69.0`.
-- Inspect its library-only CMake/Makefile metadata and MSVC makefile before declaring the target. Generate `nghttp2ver.h` in the owning target callback and compile sources independently without unity.
+- Upstream `lib/CMakeLists.txt` and `lib/Makefile.am` agree on all 26 direct C children of `lib`; the older standalone MSVC makefile omits five newer sources, so use the current CMake/Automake manifest. The broad `lib/*.c` pattern matches it exactly.
+- The library has no external link dependency. Its Windows configuration needs `ssize_t=int`, `HAVE_WINDOWS_H`, and `HAVE_GETTICKCOUNT64`; define `BUILDING_NGHTTP2` privately. Propagate `NGHTTP2_STATICLIB` because consumers must suppress `dllimport` in the public header.
+- Generate `lib/includes/nghttp2/nghttp2ver.h` from its committed `.in` template in the single target callback, substituting version `1.69.0` and hexadecimal version `0x014500`. No other generated input or callback is required.
+- Compile all 26 sources independently without unity. Compare the archive with the 181 exports from `dll_compare/nghttp2.dll`, and verify x64 `/MD`, no `/EXPORT:` directives, and no `__imp_nghttp2*` thunks.
+
+### nghttp2 code-generation inventory
+
+| Owner | Tool | Input | Output | Handling | Status |
+| --- | --- | --- | --- | --- | --- |
+| `nghttp2` | Xmake Lua I/O | `lib/includes/nghttp2/nghttp2ver.h.in` | `lib/includes/nghttp2/nghttp2ver.h` | Replace `@PACKAGE_VERSION@` with `1.69.0` and `@PACKAGE_VERSION_NUM@` with `0x014500` in the target's only `on_prepare` callback | First build pending |
 
 ### libcurl upstream build analysis
 

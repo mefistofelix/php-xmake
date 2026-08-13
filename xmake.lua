@@ -208,6 +208,28 @@ target("libssh2")
         "in/deps/libssh2/src/wincng.c"
     )
 
+target("nghttp2")
+    set_kind("static")
+    set_targetdir(get_config("builddir"))
+    set_optimize("fastest")
+    on_prepare(function ()
+        io.writefile(
+            "in/deps/nghttp2/lib/includes/nghttp2/nghttp2ver.h",
+            io.readfile("in/deps/nghttp2/lib/includes/nghttp2/nghttp2ver.h.in")
+                :gsub("@PACKAGE_VERSION@", "1.69.0")
+                :gsub("@PACKAGE_VERSION_NUM@", "0x014500")
+        )
+    end)
+    add_includedirs("in/deps/nghttp2/lib/includes", {public = true})
+    add_defines("NGHTTP2_STATICLIB", {public = true})
+    add_defines(
+        "BUILDING_NGHTTP2",
+        "HAVE_GETTICKCOUNT64",
+        "HAVE_WINDOWS_H",
+        "ssize_t=int"
+    )
+    add_files("in/deps/nghttp2/lib/*.c")
+
 
 target("php")
     set_enabled(false)
