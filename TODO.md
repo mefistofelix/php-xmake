@@ -21,7 +21,8 @@ Last updated: 2026-08-13
 - [ ] Replace the object-only `php` prototype and add its real `on_prepare` callback when PHP codegen is implemented.
 - [x] Replace the custom file-configuration `cb` adapter with native target `on_prepare` callbacks. The callback imports the dependency module in its own body and calls `os.vrunv` directly; no Xmake API is injected through callback arguments.
 - [x] Use one uniform Perl include/module prefix for every OpenSSL `.in` template in `openssl_test`; all 50 C/header templates accept the superset, so template-content inspection and specialized argument construction are unnecessary.
-- [ ] Test the unrestricted `**/*x86_64*.pl` generator pattern in `openssl_test`, including the matches under `crypto/perlasm` and `ms` instead of filtering them procedurally.
+- [x] Use the unrestricted `**/*x86_64*.pl` generator pattern in `openssl_test` without procedural directory filtering; all matches execute, including the helper/translator scripts under `crypto/perlasm` and the uplink generator under `ms`.
+- [ ] Revalidate `openssl_test` preparation after consolidating its repeated OpenSSL-root and Perl-program expressions into two local values without changing generator behavior.
 
 ## Completed Target: zlib
 
@@ -137,6 +138,7 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-13 — `.\xmake.exe -vD -j1 openssl_test` at commit `0d6edea`: the unrestricted `**/*x86_64*.pl` loop completed after removing the `crypto/perlasm` and `ms` directory filter. `x86_64-support.pl` produced no output because it is a helper module, `x86_64-xlate.pl` emitted a 64-byte NASM preamble, `uplink-x86_64.pl` emitted its assembly, and the remaining generators reached `e_padlock-x86_64.asm`. The complete broad target still failed after preparation, independently of the removed procedural filter.
 - 2026-08-13 — `.\xmake.exe -vD -j1 openssl_test` at commit `6e93bad`: all 50 `.in` templates that produce C or header outputs completed with the uniform `-I. -Iutil/perl -Iproviders/common/der -Mconfigdata -MOpenSSL::paramnames -Moids_to_c` prefix; every expected output exists and was regenerated during the run. The complete experimental target still exited later in its intentionally broad perlasm/source experiment, so only the uniform template invocation is validated by this run.
 - 2026-08-13 — `.\xmake.exe -vD -j1 openssl` at commit `8aa0c2a`: the migrated native `on_prepare` callback directly imported `core.project.depend`, called `os.vrunv` without injected arguments, completed the authoritative Configure/template/DER/perlasm generation, rebuilt the target, and archived `out/openssl.lib` successfully in 61.2 seconds. Restore the validated `openssl` target to disabled and return `openssl_test` to active pattern experimentation.
 - 2026-08-13 — `.\xmake.exe -vD -j1 openssl` at commit `a7268d1`: Xmake stopped before target preparation because the validated `openssl` target was still disabled and therefore unavailable even by explicit name. Temporarily make `openssl` the sole active priority target before testing its native `on_prepare` migration.

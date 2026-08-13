@@ -922,32 +922,32 @@ target("openssl_test")
     set_toolset("as", "nasm@$(projectdir)/in/perl/c/bin/nasm.exe")
     -- add_rules("c.unity_build")
     on_prepare(function ()
-        os.vrunv("$(projectdir)/in/perl/perl/bin/perl.exe",
-            {"Configure", "VC-WIN64A", "no-shared", "no-module", "no-apps", "no-tests", "no-docs"},
-            {curdir = path.absolute("in/deps/openssl"),
-             addenvs = {PATH = path.absolute("in/perl/c/bin")}})
+        local root = path.absolute("in/deps/openssl")
+        local perl = "$(projectdir)/in/perl/perl/bin/perl.exe"
 
-        for _, input in ipairs(os.files("$(projectdir)/in/deps/openssl/**/*.in")) do
+        os.vrunv(perl,
+            {"Configure", "VC-WIN64A", "no-shared", "no-module", "no-apps", "no-tests", "no-docs"},
+            {curdir = root, addenvs = {PATH = path.absolute("in/perl/c/bin")}})
+
+        for _, input in ipairs(os.files(path.join(root, "**/*.in"))) do
             local output = input:sub(1, -4)
             if output:match("%.[ch]$") then
-                os.vrunv("$(projectdir)/in/perl/perl/bin/perl.exe",
+                os.vrunv(perl,
                     {"-I.", "-Iutil/perl", "-Iproviders/common/der", "-Mconfigdata",
                      "-MOpenSSL::paramnames", "-Moids_to_c", "util/dofile.pl", "-omakefile",
-                     path.relative(input, path.absolute("in/deps/openssl"))},
-                    {curdir = path.absolute("in/deps/openssl"), stdout = output})
+                     path.relative(input, root)},
+                    {curdir = root, stdout = output})
             end
         end
 
-        os.vrunv("$(projectdir)/in/perl/perl/bin/perl.exe",
+        os.vrunv(perl,
             {"util/mkbuildinf.pl", "cl /MD /O2", "VC-WIN64A"},
-            {curdir = path.absolute("in/deps/openssl"),
-             stdout = path.absolute("in/deps/openssl/crypto/buildinf.h")})
+            {curdir = root, stdout = path.join(root, "crypto/buildinf.h")})
 
-        for _, generator in ipairs(os.files("$(projectdir)/in/deps/openssl/**/*x86_64*.pl")) do
-            local relative = path.relative(generator, path.absolute("in/deps/openssl")):gsub("\\", "/")
+        for _, generator in ipairs(os.files(path.join(root, "**/*x86_64*.pl"))) do
+            local relative = path.relative(generator, root):gsub("\\", "/")
             local output = relative:gsub("/asm/", "/"):gsub("%.pl$", ".asm")
-            os.vrunv("$(projectdir)/in/perl/perl/bin/perl.exe", {relative, "nasm", output},
-                {curdir = path.absolute("in/deps/openssl")})
+            os.vrunv(perl, {relative, "nasm", output}, {curdir = root})
         end
     end)
     add_files("in/deps/openssl/**/*.c")
