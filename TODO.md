@@ -104,7 +104,7 @@ Integrate zstd as one dependency target:
 ## Next Targets: libssh2 and nghttp2 prerequisites
 
 - [x] Verify the official `libssh2/libssh2` tag `libssh2-1.11.1`, matching the previously downloaded PHP SDK package version.
-- [ ] Replace the prebuilt libssh2 package with the pinned official source and validate `xmake prepare` from a clean absence and on a no-change repeat.
+- [ ] Replace the prebuilt libssh2 package with the pinned official source and validate `xmake prepare` from a clean absence and on a no-change repeat; the clean-absence run passed, and the no-change repeat remains.
 - [ ] Inspect and integrate libssh2 as one static target using direct per-source compilation without unity.
 - [ ] Inspect and integrate the already prepared official nghttp2 `v1.69.0` source as one static target without unity, including its generated version header.
 
@@ -153,6 +153,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-13 — `.\xmake.exe prepare` at commit `f07525a`: after verifying that `in/deps/libssh2` was the intended direct child and moving the former prebuilt package to the Recycle Bin, preparation recreated it from official tag `libssh2-1.11.1` in 1.7 seconds. The new source tree and hx marker are correct; a no-change repeat remains.
 
 - 2026-08-13 — clean `.\xmake.exe clean openssl_test` plus `.\xmake.exe -j8 openssl_test` and root-DLL symbol comparison at commit `4f25734`: the complete target rebuilt and archived successfully in 24.781 seconds. The single combined `openssl_test.lib` contains all 6,475 names exported by the OpenSSL 3.5.7 x64 `libcrypto` and `libssl` DLLs, with zero missing names and zero embedded `/EXPORT:` directives.
 
