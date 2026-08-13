@@ -216,6 +216,8 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-14 — initial direct `libxml2` build at commit `3f6dbc7`: Xmake copied/substituted the two committed configuration headers, compiled exactly the 43 native Windows library sources independently with `/MD /O2`, rebuilt the `libiconv` dependency, and archived `out/libxml2.lib` successfully in 3.5 seconds. Only the already accepted generated-table warnings from `libiconv` appeared; archive, symbol-surface, and parser runtime validation remain.
+
 - 2026-08-14 — unchanged libxml2 preparation after commit `82bab6f`: `xmake prepare` completed in 0.8 seconds with the official 2.11.9 source already present, validating idempotence.
 
 - 2026-08-14 — clean libxml2 preparation at commit `4e444e4`: after preserving the PHP SDK package under `%TEMP%`, validating `in/deps/libxml2` as the exact direct child of `in/deps`, and moving it to the Recycle Bin, `xmake prepare` recreated the official GNOME 2.11.9 release source in 2.4 seconds. The source's release macros and hx provenance match 2.11.9; an unchanged repeat remains.
