@@ -208,6 +208,8 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-14 — initial direct `libintl` build at commit `925ef5a`: Xmake invoked MSVC directly on the broad per-source C declarations with `/MD /O2`; compilation stopped in the first core batch because the Windows configuration lacked `FLEXIBLE_ARRAY_MEMBER=1`. The callback's substitutions for `PACKAGE` and `HAVE_STDINT_H` also matched longer macro names and produced harmless redefinition warnings; make those substitutions exact and add the required flexible-array setting before retrying.
+
 - 2026-08-13 — unchanged libintl preparation after commit `5c571ee`: `.\xmake.exe prepare` completed in 0.8 seconds with the official GNU Gettext 1.0 tree already present, validating the new source fetch's idempotence.
 
 - 2026-08-13 — clean libintl preparation at commit `ee36d3b`: after preserving the PHP SDK static archive/header under `%TEMP%`, verifying `in/deps/libintl` as the exact direct child of `in/deps`, and moving the binary package to the Recycle Bin, `.\xmake.exe prepare` recreated the tree from GNU's official Gettext 1.0 tarball in 6.5 seconds. The source reports version 1.0 and retains the expected `gettext-runtime/intl` build metadata; an unchanged repeat remains.
