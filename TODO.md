@@ -230,6 +230,8 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-14 — Oniguruma upstream-test build at commit `4f94492`: the temporary non-default Xmake target compiled `test/test_utf8.c` with the upstream-required UTF-8 source mode and linked it directly against `oniguruma.lib` in 0.344 seconds. Execute the full suite and inspect its runtime dependencies before removing the temporary target.
+
 - 2026-08-14 — Oniguruma archive inspection after commit `45a4373`: `out/oniguruma.lib` contains the same 50 x64 members as the SDK reference, and every member selects `MSVCRT`; none selects `LIBCMT`, emits an export directive, or defines an `__imp_onig*` thunk. The direct archive covers all 211 APIs exported by both the preserved SDK DLL and `dll_compare/onig.dll`. Its 30 name differences from the SDK archive are paired MSVC-decorated internal string literals, not public or external interfaces. Runtime validation remains.
 
 - 2026-08-14 — initial direct Oniguruma build at commit `26f3570`: Xmake copied the committed Win64 configuration, compiled all 50 native-manifest sources independently with `/MD /O2`, and created `out/oniguruma.lib` successfully in 1.828 seconds without target warnings. Archive interface and runtime validation remain.
