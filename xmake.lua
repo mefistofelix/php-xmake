@@ -463,6 +463,7 @@ target("libiconv")
 #define HAVE_MBRTOWC 1
 #define HAVE_MBSINIT 1
 #define HAVE_WCRTOMB 1
+#define ICONV_CONST
 #define WORDS_LITTLEENDIAN 1
 ]])
         io.writefile(
@@ -491,8 +492,8 @@ target("libiconv")
         "BUILDING_LIBICONV",
         "_CRT_SECURE_NO_WARNINGS"
     )
+    add_files("in/deps/libiconv/lib/iconv.c", {cflags = "/wd4311"})
     add_files(
-        "in/deps/libiconv/lib/iconv.c",
         "in/deps/libiconv/libcharset/lib/localcharset.c",
         "in/deps/libiconv/lib/compat.c"
     )

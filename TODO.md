@@ -201,6 +201,8 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-13 — `.\xmake.exe -vD -j8 libiconv` at commit `3c5848e` stopped while compiling `iconv.c`: the minimal generated config omitted upstream's empty `ICONV_CONST`, making the function definition invalid. MSVC also reports C4311 for the generated gperf tables' deliberate pointer-to-offset casts through `long`; add the missing empty macro and suppress that warning only for `iconv.c` before retrying.
+
 - 2026-08-13 — unchanged libiconv preparation after commit `9d93681`: `xmake prepare` completed in 0.8 seconds with the official GNU 1.19 source already present, validating the new fetch's idempotence.
 
 - 2026-08-13 — clean libiconv preparation at commit `cb595ee`: after verifying the old binary-package directory as the exact `in/deps/libiconv` direct child and moving it to the Recycle Bin, `xmake prepare` recreated the directory from GNU's official libiconv 1.19 tarball in 2.4 seconds. The complete release source and matching hx provenance marker are present; an unchanged repeat remains.
