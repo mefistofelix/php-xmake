@@ -941,7 +941,8 @@ target("openssl_test")
                 {curdir = root, stdout = output})
         end
 
-        for _, generator in ipairs(os.files(path.join(root, "**/*x86_64*.pl"))) do
+        for _, generator in ipairs(os.files(path.join(root,
+            "**/*x86_64*.pl|crypto/perlasm/**"))) do
             local relative = path.relative(generator, root):gsub("\\", "/")
             local output = relative:gsub("/asm/", "/"):gsub("%.pl$", ".asm")
             os.vrunv(perl, {relative, "nasm", output}, {curdir = root})
