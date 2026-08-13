@@ -922,6 +922,7 @@ target("openssl_test")
     set_toolset("as", "nasm@$(projectdir)/in/perl/c/bin/nasm.exe")
     -- add_rules("c.unity_build")
     on_prepare(function ()
+        if true then return end -- disabled to debug fast
         import("async")
         import("core.base.option")
 
@@ -960,7 +961,9 @@ target("openssl_test")
             os.vrunv(perl, {relative, "nasm", output}, {curdir = root})
         end, {total = #generators, comax = jobs})
     end)
+
     add_files("in/deps/openssl/**/*.c")
+    remove_files("in/deps/openssl/crypto/ec/ecp_nistp*.c")
 
     add_asflags("-Ox", "-f", "win64", "-DNEAR", "-g", {force = true})
     add_files("in/deps/openssl/**/*x86_64*.asm")
@@ -970,9 +973,9 @@ target("openssl_test")
         "in/deps/openssl/include"
     )
 
-    -- add_includedirs("in/deps/openssl", "in/deps/openssl/crypto",
-    --     "in/deps/openssl/providers/common/include", "in/deps/openssl/providers/common/include/prov",
-    --     "in/deps/openssl/providers/implementations/include", "in/deps/openssl/providers/fips/include")
+    add_includedirs("in/deps/openssl", "in/deps/openssl/crypto",
+         "in/deps/openssl/providers/common/include", "in/deps/openssl/providers/common/include/prov",
+         "in/deps/openssl/providers/implementations/include", "in/deps/openssl/providers/fips/include")
     add_defines("L_ENDIAN", "OPENSSL_PIC", "OPENSSL_BUILDING_OPENSSL", "OPENSSL_SUPPRESS_DEPRECATED=",
         "OPENSSL_SYS_WIN32",
         "WIN32_LEAN_AND_MEAN", "UNICODE", "_UNICODE", "_CRT_SECURE_NO_DEPRECATE",

@@ -28,6 +28,7 @@ Last updated: 2026-08-13
 - [x] Use the single `**/*.[ch].in` Xmake glob for the true single-character `c`/`h` alternative; it resolves to and regenerates the same 50 template outputs.
 - [x] Validate the upstream application generation sequence in `openssl_test`: Configure with apps enabled, generate `apps/progs.c` with `apps/progs.pl -C apps\openssl`, then generate `apps/progs.h` with `-H`. `apps/include/apps.h` is already a committed input and needs no generator.
 - [x] Validate `async.runjobs` for the independent OpenSSL template and perlasm generators, with concurrency limited by the build action's `-j` value.
+- [ ] Continue the broad `openssl_test` source-glob experiment with preparation temporarily bypassed. Exclude only `crypto/ec/ecp_nistp*.c`: VC-WIN64A disables that complete `ec_nistp_64_gcc_128` group, while the broader `ecp_nist*.c` would incorrectly remove the selected generic and NISTZ256 implementations.
 
 ## Completed Target: zlib
 
