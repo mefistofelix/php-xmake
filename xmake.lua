@@ -565,6 +565,21 @@ extern wchar_t *wgetcwd (wchar_t *, size_t);
                 :gsub("@[^@\r\n]+@", "0"))
         )
         io.writefile(
+            "in/deps/libintl/gettext-runtime/intl/gnulib-lib/unistd.h",
+            [[#include "c++defs.h"
+#include "arg-nonnull.h"
+#include "warn-on-use.h"
+]] .. (io.readfile("in/deps/libintl/gettext-runtime/intl/gnulib-lib/unistd.in.h")
+                :gsub("@GUARD_PREFIX@", "GL")
+                :gsub("@PRAGMA_SYSTEM_HEADER@", "")
+                :gsub("@PRAGMA_COLUMNS@", "")
+                :gsub("@HAVE_UNISTD_H@", "0")
+                :gsub("@INCLUDE_NEXT@ @NEXT_UNISTD_H@", "include <unistd.h>")
+                :gsub("@GNULIB_GETCWD@", "1")
+                :gsub("@REPLACE_GETCWD@", "1")
+                :gsub("@[^@\r\n]+@", "0"))
+        )
+        io.writefile(
             "in/deps/libintl/gettext-runtime/intl/gnulib-lib/unicase.h",
             (io.readfile("in/deps/libintl/gettext-runtime/intl/gnulib-lib/unicase.in.h")
                 :gsub("@HAVE_UNISTRING_WOE32DLL_H@", "0")

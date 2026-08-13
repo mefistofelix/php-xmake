@@ -208,6 +208,8 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-14 — broad `libintl` build at commit `47e56f6`: the replacement exclusion passed and compilation advanced into the selected Gnulib runtime. `getcwd-lgpl.c`, which is present in the native static manifest, then stopped at its required generated `unistd.h`; generate that wrapper directly from `unistd.in.h` with the Windows replacement declaration, without invoking `configure`.
+
 - 2026-08-14 — expanded Gnulib build at commit `e3369b2`: defining the native Windows 16-bit `wchar_t` model resolved the C32 checks and compilation advanced to 31%. The broad source experiment then proved that `frexp.c` and `frexpl.c` are replacement implementations rather than Windows target inputs: MSVC already defines `frexpl`, so compiling the Gnulib replacement produces C2084. Exclude this paired substitute and continue the broad compiler-driven pass.
 
 - 2026-08-14 — expanded Gnulib build at commit `0f36ebd`: the direct-root source pattern was active and compilation reached the C32 character helpers. Their static assertion failed because the omitted generated `uchar.h` normally identifies native Windows' 16-bit `wchar_t`; supply Gnulib's `_GL_SMALL_WCHAR_T=1` platform fact privately instead of shadowing MSVC's standard header.
