@@ -216,6 +216,8 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-14 — clean libxml2 preparation at commit `4e444e4`: after preserving the PHP SDK package under `%TEMP%`, validating `in/deps/libxml2` as the exact direct child of `in/deps`, and moving it to the Recycle Bin, `xmake prepare` recreated the official GNOME 2.11.9 release source in 2.4 seconds. The source's release macros and hx provenance match 2.11.9; an unchanged repeat remains.
+
 - 2026-08-14 — broad `libintl` build at commit `bbeabc6`: the generated `unistd.h` wrapper compiled `rpl_getcwd` successfully and advanced the pass to 32%. The selected `getlocalename_l-unsafe.c` then required Gnulib's generated `locale.h` and Windows `locale_t` model. Per current priority, disable and defer this incomplete target rather than expanding its wrapper configuration now.
 
 - 2026-08-14 — broad `libintl` build at commit `47e56f6`: the replacement exclusion passed and compilation advanced into the selected Gnulib runtime. `getcwd-lgpl.c`, which is present in the native static manifest, then stopped at its required generated `unistd.h`; generate that wrapper directly from `unistd.in.h` with the Windows replacement declaration, without invoking `configure`.
