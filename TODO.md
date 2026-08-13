@@ -175,7 +175,7 @@ Integrate zstd as one dependency target:
 ## Current Target: libxml2
 
 - [x] Identify the SDK's exact pinned `winlibs/libxml2` 2.11.9-7 source and its GNOME 2.11.9 base.
-- [ ] Replace the vanilla upstream tree with the SDK's security-backported source and validate clean and repeated preparation.
+- [x] Replace the vanilla upstream tree with the SDK's security-backported source and validate clean and repeated preparation.
 - [x] Inspect the upstream native build declarations for the exact source manifest, generated configuration, definitions, and dependency edges.
 - [ ] Add a direct per-source static target without unity, then build and validate it.
 
@@ -215,6 +215,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-14 — unchanged patched `libxml2` preparation after commit `8921be0`: `xmake prepare` completed in 0.8 seconds with the exact 2.11.9-7 source already present, validating idempotence.
 
 - 2026-08-14 — clean patched `libxml2` preparation at commit `3f7cd25`: after validating `in/deps/libxml2` as the exact direct child of `in/deps`, the vanilla GNOME tree was moved to the Recycle Bin and `xmake prepare` recreated it from `github://winlibs/libxml2?ref=libxml2-2.11.9-7` in 2.9 seconds. The hx provenance records that exact ref, the CVE-2026-0989 function is present in the public header, implementation, and regression test, and the existing declarative filter still selects exactly 43 library sources. An unchanged repeat remains.
 
