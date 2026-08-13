@@ -279,6 +279,7 @@ target("libcurl")
     remove_files("in/deps/libcurl/lib/dllmain.c")
 
 target("libsodium")
+    set_enabled(false)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")

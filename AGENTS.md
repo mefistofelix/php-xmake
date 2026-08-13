@@ -86,7 +86,7 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 | `libssh2` | Disabled | Static library | 26 sources from `in/deps/libssh2/src/*.c` after seven backend/platform removals | `out/libssh2.lib` | OpenSSL-backed SSH transport required by libcurl/PHP | Build and 137-export static-interface validation passed with `/MD` on MSVC x64 |
 | `nghttp2` | Disabled | Static library | All 26 C sources under `in/deps/nghttp2/lib/*.c` | `out/nghttp2.lib` | HTTP/2 transport required by libcurl/PHP | Build and 181-export static-interface validation passed with `/MD` on MSVC x64 |
 | `libcurl` | Disabled | Static library | 192 sources under `in/deps/libcurl/lib` after removing `dllmain.c` | `out/libcurl.lib` | PHP curl transport library | Complete dependency build and 100-symbol static-interface validation passed with `/MD` on MSVC x64 |
-| `libsodium` | Active | Static library | All 141 C files under `in/deps/libsodium/src/libsodium` | `out/libsodium.lib` | Modern cryptography used by PHP sodium | Defined from the exact upstream MSVC manifest; direct per-source build validation pending |
+| `libsodium` | Disabled | Static library | All 141 C files under `in/deps/libsodium/src/libsodium` | `out/libsodium.lib` | Modern cryptography used by PHP sodium | Build and 756-export static-interface validation passed with `/MD` on MSVC x64 |
 | `minilua` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/dynasm/minilua.c` | `out/minilua.exe` | Runs DynASM for the PHP JIT IR emitter | Defined; build validation pending |
 | `gen_ir_fold_hash` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c` | `out/gen_ir_fold_hash.exe` | Generates the JIT IR fold hash header | Defined; build validation pending |
 | `php` | Disabled | Object prototype | `in/php-src/Zend/zend.c`, `in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm` | `out/` | Becomes the static PHP build after dependency, configuration, codegen, and source integration | Prototype only; real `on_prepare` codegen pending |
@@ -199,7 +199,7 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 
 | Owner | Tool | Input | Output | Handling | Status |
 | --- | --- | --- | --- | --- | --- |
-| `libsodium` | Xmake file copy | `builds/msvc/version.h` | `src/libsodium/include/sodium/version.h` | Idempotent copy in the target's only `on_prepare` callback, matching the official MSVC pre-build event | Build validation pending |
+| `libsodium` | Xmake file copy | `builds/msvc/version.h` | `src/libsodium/include/sodium/version.h` | Idempotent copy in the target's only `on_prepare` callback, matching the official MSVC pre-build event | Build validated |
 
 ## PHP Code-generation Inventory
 

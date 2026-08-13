@@ -119,20 +119,20 @@ Integrate zstd as one dependency target:
 - [x] Add one static libcurl target using direct per-source Xmake compilation without unity.
 - [x] Build and validate `/MD`, the static public interface, archive architecture, and every symbol in upstream `libcurl.def` before moving to the next dependency.
 
-## Next Target: libsodium
+## Completed Target: libsodium
 
 - [x] Verify the exact official `jedisct1/libsodium` tag `1.0.22`, matching the previous PHP SDK dependency version.
 - [x] Replace the prebuilt SDK archive with the pinned official source and validate `xmake prepare` from a clean absence and on a no-change repeat.
 - [x] Inspect the upstream Visual Studio and autotools manifests for sources, generated files, architecture implementations, defines, includes, and Windows libraries.
 - [x] Add one direct per-source static target without unity.
-- [ ] Build and validate all 141 x64 `/MD` members, the static public interface, and the complete `dll_compare/libsodium.dll` export surface.
+- [x] Build and validate all 141 x64 `/MD` members, the static public interface, and the complete `dll_compare/libsodium.dll` export surface.
 
 ## Dependency Targets
 
 Every library must receive its own static target. Integrate and validate them one at a time in dependency order.
 
 - [x] Foundation compression: zlib, Brotli, zstd, bzip2, liblzma.
-- [ ] Cryptography and transport: OpenSSL, libcurl, libssh2, libsodium.
+- [x] Cryptography and transport: OpenSSL, libcurl, libssh2, libsodium.
 - [ ] HTTP/async: libuv, nghttp2, nghttp3, ngtcp2.
 - [ ] Data/text: ICU, libiconv, libintl, libxml2, libxslt, Oniguruma, SQLite, LMDB, QDBM.
 - [ ] Database/directory clients: PostgreSQL, Firebird, OpenLDAP.
@@ -163,6 +163,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-13 — `.\xmake.exe -vD -j8 libsodium` plus `dll_compare/libsodium.dll` comparison at commit `b80cb81`: the committed MSVC version header was copied exactly, all 141 sources compiled independently with `/MD /O2`, and `out/libsodium.lib` archived without warnings in 3.5 seconds. All 141 members are x64 and request `MSVCRT`, with zero `LIBCMT` or `/EXPORT:` directives. The archive contains all 756 reference exports and no public-API import thunks.
 
 - 2026-08-13 — `.\xmake.exe prepare` at commit `acabee7`: the unchanged repeat completed successfully in 0.8 seconds with the official libsodium source already present, validating preparation idempotence.
 
