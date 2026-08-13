@@ -208,6 +208,8 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-13 — clean libintl preparation at commit `ee36d3b`: after preserving the PHP SDK static archive/header under `%TEMP%`, verifying `in/deps/libintl` as the exact direct child of `in/deps`, and moving the binary package to the Recycle Bin, `.\xmake.exe prepare` recreated the tree from GNU's official Gettext 1.0 tarball in 6.5 seconds. The source reports version 1.0 and retains the expected `gettext-runtime/intl` build metadata; an unchanged repeat remains.
+
 - 2026-08-13 — final `libiconv` validation at commit `fc8e535`: all three upstream sources built independently with `/MD /O2` in 0.7 seconds; the accepted generated-table C4311 and nested-qualifier C4090 diagnostics did not block the baseline. The archive contains exactly three x64 members, all requesting `MSVCRT`, with zero `LIBCMT`, `/EXPORT:`, iconv import thunks, or unresolved header-template tokens. All nine reference DLL exports are defined, and upstream `tests/test-to-wchar.c` linked against `libiconv.lib` and passed its incomplete UTF-8 conversion check.
 
 - 2026-08-13 — `.\xmake.exe -vD -j8 libiconv` plus archive/reference checks at commit `8d9bfea`: all three upstream sources compiled with `/MD /O2` and archived in 0.7 seconds. The three members are x64 and request `MSVCRT`, with zero `LIBCMT`, `/EXPORT:`, import thunks, or unresolved template tokens; all nine exports from the reference PHP SDK `libiconv.dll` are present. Per the revised baseline policy, remove warning-only suppressions and retain the simpler functional configuration for the final build.
