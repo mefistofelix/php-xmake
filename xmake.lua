@@ -253,6 +253,55 @@ target("nghttp3")
         "in/deps/nghttp3/lib/sfparse/sfparse.c"
     )
 
+target("ngtcp2")
+    set_kind("static")
+    set_targetdir(get_config("builddir"))
+    set_optimize("fastest")
+    set_languages("c11")
+    on_prepare(function ()
+        io.writefile(
+            "in/deps/ngtcp2/lib/includes/ngtcp2/version.h",
+            (io.readfile("in/deps/ngtcp2/lib/includes/ngtcp2/version.h.in")
+                :gsub("@PACKAGE_VERSION@", "1.25.0")
+                :gsub("@PACKAGE_VERSION_NUM@", "0x011900"))
+        )
+    end)
+    add_includedirs("in/deps/ngtcp2/lib/includes", {public = true})
+    add_defines("NGTCP2_STATICLIB", {public = true})
+    add_defines("BUILDING_NGTCP2")
+    add_files("in/deps/ngtcp2/lib/*.c")
+
+target("ngtcp2_crypto_ossl")
+    set_kind("static")
+    set_targetdir(get_config("builddir"))
+    set_optimize("fastest")
+    set_languages("c11")
+    add_deps("ngtcp2", "openssl")
+    add_includedirs(
+        "in/deps/ngtcp2/crypto/includes",
+        "in/deps/openssl/include",
+        {public = true}
+    )
+    add_includedirs(
+        "in/deps/ngtcp2/crypto",
+        "in/deps/ngtcp2/lib"
+    )
+    add_defines("NGTCP2_STATICLIB", {public = true})
+    add_defines("BUILDING_NGTCP2")
+    add_syslinks(
+        "ws2_32",
+        "gdi32",
+        "advapi32",
+        "crypt32",
+        "user32",
+        "bcrypt",
+        {public = true}
+    )
+    add_files(
+        "in/deps/ngtcp2/crypto/ossl/ossl.c",
+        "in/deps/ngtcp2/crypto/shared.c"
+    )
+
 target("libcurl")
     set_enabled(false)
     set_kind("static")
@@ -370,7 +419,6 @@ target("php")
     add_files("in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm")
 
 target("openssl")
-    set_enabled(false)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_toolset("as", "nasm@$(projectdir)/in/perl/c/bin/nasm.exe")

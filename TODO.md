@@ -142,6 +142,13 @@ Integrate zstd as one dependency target:
 - [x] Add one 32-source static target with direct per-source compilation and no unity.
 - [x] Build and validate architecture, `/MD`, static decoration, and the complete public header API surface.
 
+## Next Target: ngtcp2
+
+- [x] Inspect the upstream core and OpenSSL-adapter CMake/Automake manifests, C11 requirement, Windows configuration, static interface, generation, and dependency edges.
+- [x] Keep the core and OpenSSL adapter as two targets because upstream and PHP require the distinct `ngtcp2.lib` and `ngtcp2_crypto_ossl.lib` outputs.
+- [x] Add direct per-source targets for all 46 core sources and the two adapter sources without unity.
+- [ ] Build the complete core/OpenSSL closure and validate both archives, their public header API surfaces, architecture, `/MD`, and static decoration.
+
 ## Dependency Targets
 
 Every library must receive its own static target. Integrate and validate them one at a time in dependency order.
