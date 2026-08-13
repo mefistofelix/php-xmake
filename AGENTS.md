@@ -88,6 +88,7 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 | `libcurl` | Disabled | Static library | 192 sources under `in/deps/libcurl/lib` after removing `dllmain.c` | `out/libcurl.lib` | PHP curl transport library | Complete dependency build and 100-symbol static-interface validation passed with `/MD` on MSVC x64 |
 | `libsodium` | Disabled | Static library | All 141 C files under `in/deps/libsodium/src/libsodium` | `out/libsodium.lib` | Modern cryptography used by PHP sodium | Build and 756-export static-interface validation passed with `/MD` on MSVC x64 |
 | `libuv` | Disabled | Static library | 12 common and 25 Windows C sources | `out/libuv.lib` | Event loop and async I/O required by True Async | Build and complete 318-API header-surface validation passed with `/MD` on MSVC x64 |
+| `nghttp3` | Enabled | Static library | 31 direct library C sources plus `lib/sfparse/sfparse.c` | `out/nghttp3.lib` | HTTP/3 framing and QPACK required by ngtcp2/PHP | Defined with generated version header; build validation pending |
 | `minilua` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/dynasm/minilua.c` | `out/minilua.exe` | Runs DynASM for the PHP JIT IR emitter | Defined; build validation pending |
 | `gen_ir_fold_hash` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c` | `out/gen_ir_fold_hash.exe` | Generates the JIT IR fold hash header | Defined; build validation pending |
 | `php` | Disabled | Object prototype | `in/php-src/Zend/zend.c`, `in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm` | `out/` | Becomes the static PHP build after dependency, configuration, codegen, and source integration | Prototype only; real `on_prepare` codegen pending |
@@ -219,6 +220,12 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 - Define `BUILDING_NGHTTP3` privately and propagate `NGHTTP3_STATICLIB`, which suppresses DLL decoration in the public header. The library has no external link dependency.
 - The generated CMake configuration only supplies Unix feature probes and a fallback `ssize_t` typedef. The selected Windows implementation does not use `ssize_t`, and its endian conversion takes the explicit `_byteswap_*` path, so the target does not need `HAVE_CONFIG_H` or a generated `config.h`.
 - Generate `lib/includes/nghttp3/version.h` from its committed `.in` template in the target's only callback, substituting version `1.18.0` and hexadecimal version `0x011200`. No other generated input or callback is required.
+
+### nghttp3 code-generation inventory
+
+| Owner | Tool | Input | Output | Handling | Status |
+| --- | --- | --- | --- | --- | --- |
+| `nghttp3` | Xmake Lua I/O | `lib/includes/nghttp3/version.h.in` | `lib/includes/nghttp3/version.h` | Replace `@PACKAGE_VERSION@` with `1.18.0` and `@PACKAGE_VERSION_NUM@` with `0x011200` in the target's only `on_prepare` callback | Validation pending |
 
 ## PHP Code-generation Inventory
 

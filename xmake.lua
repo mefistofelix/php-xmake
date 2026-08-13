@@ -231,6 +231,26 @@ target("nghttp2")
     )
     add_files("in/deps/nghttp2/lib/*.c")
 
+target("nghttp3")
+    set_kind("static")
+    set_targetdir(get_config("builddir"))
+    set_optimize("fastest")
+    on_prepare(function ()
+        io.writefile(
+            "in/deps/nghttp3/lib/includes/nghttp3/version.h",
+            (io.readfile("in/deps/nghttp3/lib/includes/nghttp3/version.h.in")
+                :gsub("@PACKAGE_VERSION@", "1.18.0")
+                :gsub("@PACKAGE_VERSION_NUM@", "0x011200"))
+        )
+    end)
+    add_includedirs("in/deps/nghttp3/lib/includes", {public = true})
+    add_defines("NGHTTP3_STATICLIB", {public = true})
+    add_defines("BUILDING_NGHTTP3")
+    add_files(
+        "in/deps/nghttp3/lib/*.c",
+        "in/deps/nghttp3/lib/sfparse/sfparse.c"
+    )
+
 target("libcurl")
     set_enabled(false)
     set_kind("static")
