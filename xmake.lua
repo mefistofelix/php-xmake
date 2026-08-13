@@ -417,6 +417,7 @@ target("icu")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
     set_languages("cxx17")
+    set_exceptions("no-cxx")
     on_prepare(function ()
         os.vrunv("$(projectdir)/in/tools/icu/genccode.exe", {
             "-q", "-o", "--skip-dll-export", "-e", "icudt77",

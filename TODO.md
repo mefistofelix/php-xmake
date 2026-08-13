@@ -194,6 +194,8 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-13 — `.\xmake.exe -vD -j8 icu` at commit `8032603` built all 455 C++ sources and the generated data object without warnings in 32.3 seconds. The 456-member archive contains one intentional machine-neutral data object and 455 x64 objects; every compiled object requests `MSVCRT`, with zero `LIBCMT`, `/EXPORT:`, or ICU import thunks. It contains all 1,635 C/data exports from the reference `icuuc77.dll`, `icuin77.dll`, and `icudt77.dll`; the official C++ transliteration sample also linked statically and ran successfully against the archive and embedded data. The verbose command exposed Xmake's default `/EHsc`, so disable C++ exceptions with the native target setting before the final rebuild, matching ICU's no-exception library configuration.
+
 - 2026-08-13 — `.\xmake.exe -vD -j8 icu` at commit `4a17fff` stopped in the target callback before compilation: Xmake expanded `$(projectdir)` in the `os.vrunv` program path but passed placeholders in the argument table literally, so `genccode` could not open its input. Keep the executable placeholder and use direct project-relative data paths in the argument list before retrying.
 
 - 2026-08-13 — unchanged expanded ICU preparation after commit `17b02f2`: `xmake prepare` completed in 0.7 seconds with source, data archive, and minimal generator runtime already present, validating the complete ICU preparation's idempotence.
