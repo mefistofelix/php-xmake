@@ -108,7 +108,7 @@ Integrate zstd as one dependency target:
 - [x] Inspect libssh2's upstream manifest, hand-written MSVC configuration, OpenSSL backend selection, default-disabled zlib support, public API decoration, and Windows libraries.
 - [x] Add and validate one 26-source static libssh2 target using direct per-source compilation without unity.
 - [x] Inspect nghttp2 CMake/Automake/MSVC metadata and confirm that the current library manifest is exactly the 26 direct C children of `lib`.
-- [x] Add one direct per-source nghttp2 target without unity and generate its version header in the owning callback; first build and symbol validation remain.
+- [x] Add and validate one direct per-source nghttp2 target without unity, including its generated version header.
 
 ## Following Target: libcurl
 
@@ -155,6 +155,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-13 — `.\xmake.exe -vD -j8 nghttp2` plus `dll_compare/nghttp2.dll` comparison at commit `317c34f`: the generated header contains version `1.69.0`/`0x014500`; all 26 sources compiled independently with `/MD /O2`, and `out/nghttp2.lib` archived in 1.2 seconds. The archive contains all 181 reference exports, 26 x64 members, 26 `MSVCRT` and zero `LIBCMT` directives, no `/EXPORT:` directives, and no `__imp_nghttp2*` thunks.
 
 - 2026-08-13 — `.\xmake.exe -vD -j8 nghttp2` at commit `e23a5cc`: preparation stopped before compilation because the final Lua `gsub` returned both the transformed text and replacement count, so `io.writefile` received the count as its options argument. Parenthesize the chained expression to collapse it to one value before retesting.
 

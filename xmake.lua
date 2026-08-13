@@ -209,6 +209,7 @@ target("libssh2")
     )
 
 target("nghttp2")
+    set_enabled(false)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
