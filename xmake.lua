@@ -600,6 +600,7 @@ extern wchar_t *wgetcwd (wchar_t *, size_t);
         "HAVE_CONFIG_H",
         "LIBDIR=\".\"",
         "LOCALEDIR=\".\"",
+        "_GL_SMALL_WCHAR_T=1",
         "_CRT_SECURE_NO_WARNINGS",
         "_WIN32_WINNT=0x0601"
     )

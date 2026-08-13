@@ -208,6 +208,8 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-14 — expanded Gnulib build at commit `0f36ebd`: the direct-root source pattern was active and compilation reached the C32 character helpers. Their static assertion failed because the omitted generated `uchar.h` normally identifies native Windows' 16-bit `wchar_t`; supply Gnulib's `_GL_SMALL_WCHAR_T=1` platform fact privately instead of shadowing MSVC's standard header.
+
 - 2026-08-14 — `libintl` build at commit `98be709`: Xmake completed successfully in 1.8 seconds, but archive inspection found only 42 C objects because `gnulib-lib/**/*.c` matches nested directories and not the 83 direct-root Gnulib files. This is not yet a valid completed target. Add the adjacent `gnulib-lib/*.c` declaration and remove the ineffective command-line `alignof` mapping, which the upstream source intentionally replaces locally and which only added a redefinition warning.
 
 - 2026-08-14 — fifth direct `libintl` build at commit `1055bb4`: the generated Unicode and search headers worked, eliminating the tree-search implicit declarations and advancing compilation to 48%. `setlocale.c` then required `SETLOCALE_NULL_ALL_MAX`, normally exposed by Gnulib's generated locale wrapper; apply the upstream value only to that source. Map C `alignof` to MSVC's intrinsic and declare `wgetcwd` in the internal generated header to eliminate the remaining pointer-sized implicit declarations before retrying.
