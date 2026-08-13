@@ -138,7 +138,7 @@ Integrate zstd as one dependency target:
 ## Next Target: nghttp3
 
 - [x] Inspect the upstream CMake and Automake source manifests, Windows configuration, public static definition, and version-header generation.
-- [ ] Fetch the release's exact `sfparse` gitlink with hx `--recursive` and validate clean and repeated preparation.
+- [ ] Fetch the release's exact `sfparse` gitlink with hx `--recursive` and validate clean and repeated preparation. The clean fetch passed; the unchanged repeat remains.
 - [ ] Add one 32-source static target with direct per-source compilation and no unity.
 - [ ] Build and validate architecture, `/MD`, static decoration, and the complete public header API surface.
 
@@ -178,6 +178,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-13 — clean recursive `nghttp3` preparation at commit `212a0ae`: hx materialized release commit `dbfc24286138cb0b6490160e7ca87fe1ce6722a0` and its exact `sfparse` and test submodule gitlinks in one command. The source tree now contains all 31 direct library C files plus `lib/sfparse/sfparse.c`; preparation completed in 2.6 seconds and an unchanged repeat remains.
 
 - 2026-08-13 — clean recursive `nghttp3` preparation at commit `f5d4832` stopped before writing the destination: hx's recursive Git implementation interpreted tag name `v1.18.0` as `refs/heads/v1.18.0`. Pin the tag's immutable commit `dbfc24286138cb0b6490160e7ca87fe1ce6722a0` while retaining `--recursive`, then retry from absence.
 
