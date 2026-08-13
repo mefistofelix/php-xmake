@@ -963,7 +963,7 @@ target("openssl_test")
     end)
 
     add_files("in/deps/openssl/**/*.c")
-    remove_files("in/deps/openssl/crypto/ec/ecp_nistp*.c")
+    remove_files("in/deps/openssl/crypto/ec/ecp_nist*.c")
 
     add_asflags("-Ox", "-f", "win64", "-DNEAR", "-g", {force = true})
     add_files("in/deps/openssl/**/*x86_64*.asm")
