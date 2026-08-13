@@ -179,12 +179,19 @@ Integrate zstd as one dependency target:
 - [x] Inspect the upstream native build declarations for the exact source manifest, generated configuration, definitions, and dependency edges.
 - [x] Add a direct per-source static target without unity, then build and validate it.
 
-## Next Target: libxslt
+## Completed Target: libxslt
 
 - [x] Identify the SDK's exact pinned `winlibs/libxslt` 1.1.43-2 source and its GNOME 1.1.43 base.
 - [x] Replace the prebuilt package with pinned source and validate clean and repeated preparation.
 - [x] Inspect the upstream native build declarations for exact sources, configuration, static interface, and dependency edges.
-- [ ] Add a direct per-source static target without unity, then build and validate it against libxml2.
+- [x] Add a direct per-source static target without unity, then build and validate it against libxml2.
+
+## Next Target: Oniguruma
+
+- [ ] Identify the authoritative source and exact version corresponding to the current PHP SDK package.
+- [ ] Replace the prebuilt package with pinned source and validate clean and repeated preparation.
+- [ ] Inspect the upstream native build declarations for exact sources, configuration, static interface, and dependencies.
+- [ ] Add a direct per-source static target without unity, then build and validate it.
 
 ## Dependency Targets
 
@@ -222,6 +229,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-14 — `libxslt` runtime validation at commit `e445886`: a temporary non-default Xmake target compiled and linked upstream `xsltproc.c` against the combined direct archive and its static libxml2/libiconv chain. The `general/array` XSLT and `exslt/strings/tokenize.1` EXSLT cases both exited 0 without stderr and matched their committed expected outputs exactly. The executable imports only Windows, VCRuntime, and UCRT DLLs, confirming static third-party linkage with the dynamic MSVC CRT. Remove the temporary target and disable the completed dependency chain.
 
 - 2026-08-14 — initial direct `libxslt` build and archive inspection at commit `dc924a2`: Xmake generated both public configuration headers, compiled all 19 libxslt and 10 libexslt sources independently with `/MD /O2`, and created the combined archive successfully in 4.25 seconds. All 29 members are x64 and request `MSVCRT`; none requests `LIBCMT` or emits an export directive. The archive contains all 334 unique symbols from the two SDK static references plus only `_Avx2WmemEnabledWeakValue`, and `xslDebugStatus` is correctly represented as a four-byte COFF common definition. This covers all 269 SDK DLL APIs and all 268 APIs in `dll_compare`. The generated headers match the SDK files line for line, and all 574 libxml references are direct with no `__imp_xml` thunk, matching the all-static dependency goal. Runtime transformation validation remains.
 

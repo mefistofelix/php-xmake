@@ -453,7 +453,7 @@ target("icu")
     add_files("in/deps/ICU/icu4c/source/data/in/icudt77l_dat.obj", {always_added = true})
 
 target("libiconv")
-    set_enabled(true)
+    set_enabled(false)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
@@ -636,7 +636,7 @@ extern wchar_t *wgetcwd (wchar_t *, size_t);
     })
 
 target("libxml2")
-    set_enabled(true)
+    set_enabled(false)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
@@ -690,7 +690,7 @@ target("libxml2")
     )
 
 target("libxslt")
-    set_enabled(true)
+    set_enabled(false)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
@@ -741,13 +741,6 @@ target("libxslt")
         "in/deps/libxslt/libexslt/*.c",
         "in/deps/libxslt/libxslt/*.c"
     )
-
-target("libxslt_smoke")
-    set_default(false)
-    set_kind("binary")
-    set_targetdir(get_config("builddir"))
-    add_deps("libxslt")
-    add_files("in/deps/libxslt/xsltproc/xsltproc.c")
 
 
 target("php")
