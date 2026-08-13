@@ -83,6 +83,9 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 | `bzip2` | Disabled | Static library | `in/deps/bzip2/*.c` minus upstream programs/tests via `remove_files` | `out/bzip2.lib` | bzip2 compression library for the PHP bz2 extension | Exactly seven library sources in one unity translation unit; declarative selection validated with `/MD` on MSVC x64 |
 | `liblzma` | Disabled | Static library | Upstream-default library sources under `in/deps/xz/src/{common,liblzma}` | `out/liblzma.lib` | XZ/LZMA compression for PHP consumers including zip, GD, and fileinfo | One target; five-unit minimum unity partition; build and static-interface validation passed with `/MD` on MSVC x64 |
 | `openssl` | Active | Static library | Broad C selection plus pattern-selected x86-64 NASM inputs | `out/openssl.lib` | TLS and cryptography | Former `openssl_test` target promoted unchanged except for its name; prior clean build and 6,475-symbol check passed |
+| `libssh2` | Not yet defined | Static library | Official `libssh2-1.11.1` source tree | `out/libssh2.lib` | SSH transport required by libcurl/PHP | Source fetch conversion pending clean preparation validation |
+| `nghttp2` | Not yet defined | Static library | Official `v1.69.0` source tree | `out/nghttp2.lib` | HTTP/2 transport required by libcurl/PHP | Source prepared; upstream analysis and target pending |
+| `libcurl` | Not yet defined | Static library | Official `curl-8_21_0` library sources | `out/libcurl.lib` | PHP curl transport library | Waits for libssh2 and nghttp2 targets; direct per-source build required |
 | `minilua` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/dynasm/minilua.c` | `out/minilua.exe` | Runs DynASM for the PHP JIT IR emitter | Defined; build validation pending |
 | `gen_ir_fold_hash` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c` | `out/gen_ir_fold_hash.exe` | Generates the JIT IR fold hash header | Defined; build validation pending |
 | `php` | Disabled | Object prototype | `in/php-src/Zend/zend.c`, `in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm` | `out/` | Becomes the static PHP build after dependency, configuration, codegen, and source integration | Prototype only; real `on_prepare` codegen pending |
@@ -147,10 +150,22 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 - Its broad source patterns, declarative removals, callback, includes, defines, and x86-64 assembly pattern remain unchanged. It compiles sources independently and does not enable unity.
 - The prior clean `openssl_test` build produced one static archive containing all 6,475 names exported by the OpenSSL reference DLLs, with no embedded `/EXPORT:` directive. Future symbol checks use the copies under `dll_compare`.
 
+### libssh2 upstream build analysis
+
+- Replace the PHP SDK binary package with the official `libssh2/libssh2` repository pinned to `libssh2-1.11.1`, matching the package version previously selected by `prepare`.
+- Validate the source fetch from a clean absence and on a no-change repeat before declaring the target. Then inspect upstream CMake/Makefile and Windows configuration for exact sources, OpenSSL/zlib integration, generated headers, public static-link macros, and system libraries.
+
+### nghttp2 upstream build analysis
+
+- Use the already pinned official `nghttp2/nghttp2` repository at `v1.69.0`.
+- Inspect its library-only CMake/Makefile metadata and MSVC makefile before declaring the target. Generate `nghttp2ver.h` in the owning target callback and compile sources independently without unity.
+
 ### libcurl upstream build analysis
 
 - Use the official `curl/curl` GitHub repository pinned to tag `curl-8_21_0`, matching the previous PHP SDK package version 8.21.0. Fetch sources into `in/deps/libcurl` and do not retain the redundant prebuilt SDK archive when libcurl is compiled by its own Xmake target.
-- Treat upstream `CMakeLists.txt`, `lib/CMakeLists.txt`, `lib/Makefile.inc`, Windows configuration headers, and PHP's curl extension configuration as the authority for source selection, feature defines, TLS and protocol backends, system libraries, generated inputs, and public static-link macros. Complete the remaining analysis before declaring the target.
+- `lib/Makefile.inc` selects 192 C sources: every C file under `lib` except shared-library-only `dllmain.c`. The direct and recursive broad source patterns plus that one removal reproduce the upstream manifest exactly.
+- PHP's Windows curl configuration requires OpenSSL, zlib, libssh2, nghttp2, WinIDN/`normaliz`, Winsock, and Windows LDAP; Brotli and zstd are optional but available from validated targets. Complete libssh2 and nghttp2 first so the initial libcurl target is feature-complete rather than a temporary reduced build.
+- Treat upstream `CMakeLists.txt`, `lib/CMakeLists.txt`, `lib/Makefile.inc`, `lib/config-win32.h`, and PHP's `ext/curl/config.w32` as the authority for remaining defines, includes, and system libraries. Compile all sources independently without unity.
 
 ## PHP Code-generation Inventory
 

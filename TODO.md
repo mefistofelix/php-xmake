@@ -101,11 +101,19 @@ Integrate zstd as one dependency target:
 - [x] Compile OpenSSL sources independently; do not enable unity while baseline target integration is in progress.
 - [x] Retain the prior clean build and 6,475-symbol validation as the validation of the unchanged promoted target; use `dll_compare` for future reference checks.
 
-## Next Target: libcurl
+## Next Targets: libssh2 and nghttp2 prerequisites
+
+- [x] Verify the official `libssh2/libssh2` tag `libssh2-1.11.1`, matching the previously downloaded PHP SDK package version.
+- [ ] Replace the prebuilt libssh2 package with the pinned official source and validate `xmake prepare` from a clean absence and on a no-change repeat.
+- [ ] Inspect and integrate libssh2 as one static target using direct per-source compilation without unity.
+- [ ] Inspect and integrate the already prepared official nghttp2 `v1.69.0` source as one static target without unity, including its generated version header.
+
+## Following Target: libcurl
 
 - [x] Verify the official `curl/curl` tag `curl-8_21_0`, matching the previous PHP SDK dependency version.
 - [x] Replace the prebuilt SDK archive with the pinned official source and validate `xmake prepare` from a clean absence and on a no-change repeat.
-- [ ] Inspect upstream CMake/Makefile metadata and PHP's curl configuration for exact library sources, exclusions, generated inputs, public/private defines, protocols, TLS backend, compression dependencies, and Windows system libraries.
+- [x] Confirm that broad direct/recursive `lib/*.c` patterns minus `dllmain.c` reproduce all 192 sources in upstream `lib/Makefile.inc`.
+- [ ] Complete the remaining feature defines, include paths, dependency edges, and Windows system-library analysis after libssh2 and nghttp2 are available.
 - [ ] Add one static libcurl target using direct per-source Xmake compilation without unity.
 - [ ] Build and validate `/MD`, the static public interface, archive architecture, and representative curl symbols before moving to libssh2.
 
