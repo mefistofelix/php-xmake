@@ -91,6 +91,7 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 | `nghttp3` | Disabled | Static library | 31 direct library C sources plus `lib/sfparse/sfparse.c` | `out/nghttp3.lib` | HTTP/3 framing and QPACK required by ngtcp2/PHP | Build and complete 91-API header-surface validation passed with C11 and `/MD` on MSVC x64 |
 | `ngtcp2` | Disabled | Static library | All 46 direct C children of `in/deps/ngtcp2/lib` | `out/ngtcp2.lib` | QUIC transport required by PHP HTTP/3 | Build and complete 168-API header-surface validation passed with C11 and `/MD` on MSVC x64 |
 | `ngtcp2_crypto_ossl` | Disabled | Static library | `crypto/ossl/ossl.c` and `crypto/shared.c` | `out/ngtcp2_crypto_ossl.lib` | OpenSSL 3.5 QUIC glue required by PHP HTTP/3 | Build and complete 54-API header-surface validation passed with C11 and `/MD` on MSVC x64 |
+| `icu` | Enabled | Static library | All 201 common and 254 i18n C++ sources plus generated `icudt77l_dat.obj` | `out/icu.lib` | Unicode common, internationalization, and packaged data for PHP intl | Upstream analysis complete; direct per-source build pending |
 | `minilua` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/dynasm/minilua.c` | `out/minilua.exe` | Runs DynASM for the PHP JIT IR emitter | Defined; build validation pending |
 | `gen_ir_fold_hash` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c` | `out/gen_ir_fold_hash.exe` | Generates the JIT IR fold hash header | Defined; build validation pending |
 | `php` | Disabled | Object prototype | `in/php-src/Zend/zend.c`, `in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm` | `out/` | Becomes the static PHP build after dependency, configuration, codegen, and source integration | Prototype only; real `on_prepare` codegen pending |
@@ -246,9 +247,20 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 
 ### ICU upstream build analysis
 
-- Replace the PHP SDK binary package with the official `unicode-org/icu` repository pinned to tag `release-77-1`, matching the selected ICU 77.1 package version. Fetch the complete release source into `in/deps/ICU`; source/component and data-generation analysis must be completed before declaring its Xmake target.
+- Replace the PHP SDK binary package with the official `unicode-org/icu` repository pinned to tag `release-77-1`, matching the selected ICU 77.1 package version. Fetch the complete release source into `in/deps/ICU`.
 - The repository intentionally omits the packaged `icudt77l.dat`. ICU's own guidance for custom build systems recommends using the prebuilt data file rather than rebuilding all data tools, so fetch `icudt77l.dat` from the official `icu4c-77_1-data-bin-l.zip` release asset.
-- Use the release's official Win64 `genccode.exe` strictly as a build-time generator, retaining only it and its five colocated runtime DLLs under `in/tools/icu`. Invoke it from the ICU target callback with `--object --cpu-arch x64 --skip-dll-export --entrypoint icudt77` to turn the little-endian package into a 16-byte-aligned COFF object without DLL export directives. Xmake's built-in object merge rule accepts that generated `.obj` directly into the static archive.
+- Use the release's official Win64 `genccode.exe` strictly as a build-time generator, retaining it and its four required ICU runtime DLLs under `in/tools/icu`. Invoke it from the ICU target callback with object output, skipped DLL export, and entry point `icudt77` to turn the little-endian package into a 16-byte-aligned COFF object. Do not pass `--cpu-arch`: the upstream MSVC path intentionally writes a machine-neutral data-only object that `link.exe` accepts for any target architecture; that option exists for ClangCL. Xmake's built-in object merge rule accepts the generated `.obj` directly into the static archive.
+- The official `common.vcxproj` selects all 201 direct C++ children of `source/common`, and `i18n.vcxproj` selects all 254 direct C++ children of `source/i18n`. The two broad non-recursive patterns reproduce those manifests exactly and exclude tools, tests, samples, and extra libraries. Compile all 455 sources independently without unity.
+- Keep common, i18n, and packaged data in one `icu` archive because they are components of one dependency and no source needs incompatible duplicate compilation. PHP's original configure script probes three upstream filenames, but the final Xmake PHP target links target dependencies directly and does not require that component split.
+- Match the upstream Windows release configuration with C++17, `/utf-8`, `/MD`, `WIN32`, `WIN64`, `WINVER=0x0601`, `_WIN32_WINNT=0x0601`, `_CRT_SECURE_NO_DEPRECATE`, `_HAS_EXCEPTIONS=0`, `NDEBUG`, and `U_ATTRIBUTE_DEPRECATED=`. Apply `U_COMMON_IMPLEMENTATION` and `U_PLATFORM_USES_ONLY_WIN32_API=1` only to common sources and `U_I18N_IMPLEMENTATION` only to i18n sources.
+- Propagate `U_STATIC_IMPLEMENTATION`, which removes DLL import decoration from every public ICU component API for static consumers. Keep all implementation and Windows configuration definitions private. Publish the common and i18n include roots and the common library's `advapi32` system dependency.
+- Validate the combined archive against the union of `icuuc77.dll`, `icuin77.dll`, and the data entry from `icudt77.dll` under `dll_compare`; also inspect member architecture, `/MD`, import thunks, and embedded export directives.
+
+### ICU code-generation inventory
+
+| Owner | Tool | Input | Output | Handling | Status |
+| --- | --- | --- | --- | --- | --- |
+| `icu` | Official ICU 77.1 Win64 `genccode.exe` | `source/data/in/icudt77l.dat` | `source/data/in/icudt77l_dat.obj` | Generate a machine-neutral, 16-byte-aligned COFF data object with entry point `icudt77` and no DLL export directive in the target's only `on_prepare` callback; merge it directly into `icu.lib` | Build pending |
 
 ## PHP Code-generation Inventory
 

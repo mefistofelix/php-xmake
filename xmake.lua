@@ -412,6 +412,44 @@ target("libuv")
         "in/deps/libuv/src/win/*.c"
     )
 
+target("icu")
+    set_kind("static")
+    set_targetdir(get_config("builddir"))
+    set_optimize("fastest")
+    set_languages("cxx17")
+    on_prepare(function ()
+        os.vrunv("$(projectdir)/in/tools/icu/genccode.exe", {
+            "-q", "-o", "--skip-dll-export", "-e", "icudt77",
+            "-d", "$(projectdir)/in/deps/ICU/icu4c/source/data/in",
+            "$(projectdir)/in/deps/ICU/icu4c/source/data/in/icudt77l.dat"
+        })
+    end)
+    add_includedirs(
+        "in/deps/ICU/icu4c/source/common",
+        "in/deps/ICU/icu4c/source/i18n",
+        {public = true}
+    )
+    add_defines("U_STATIC_IMPLEMENTATION", {public = true})
+    add_defines(
+        "NDEBUG",
+        "U_ATTRIBUTE_DEPRECATED=",
+        "WIN32",
+        "WIN64",
+        "WINVER=0x0601",
+        "_CRT_SECURE_NO_DEPRECATE",
+        "_HAS_EXCEPTIONS=0",
+        "_WIN32_WINNT=0x0601"
+    )
+    add_cxxflags("/utf-8", {force = true})
+    add_syslinks("advapi32", {public = true})
+    add_files("in/deps/ICU/icu4c/source/common/*.cpp", {
+        defines = {"U_COMMON_IMPLEMENTATION", "U_PLATFORM_USES_ONLY_WIN32_API=1"}
+    })
+    add_files("in/deps/ICU/icu4c/source/i18n/*.cpp", {
+        defines = {"U_I18N_IMPLEMENTATION"}
+    })
+    add_files("in/deps/ICU/icu4c/source/data/in/icudt77l_dat.obj", {always_added = true})
+
 
 target("php")
     set_enabled(false)
