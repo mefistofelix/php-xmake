@@ -96,6 +96,7 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 | `libintl` | Disabled | Static library | Direct per-source C inputs under `gettext-runtime/intl` and `gettext-runtime/intl/gnulib-lib` | `out/libintl.lib` | GNU message catalogs and locale handling for PHP and dependent libraries | Deferred during the broad Gnulib configuration pass; not yet validated |
 | `libxml2` | Disabled | Static library | 43 native Windows library sources selected from `in/deps/libxml2/*.c` | `out/libxml2.lib` | XML, HTML, XPath, schema, catalog, and network parsing for PHP and dependent libraries | Build, SDK symbol surface, CRT, architecture, static linkage, and upstream parser smoke validation passed |
 | `libxslt` | Disabled | Static library | `in/deps/libxslt/libxslt/*.c`, `in/deps/libxslt/libexslt/*.c` | `out/libxslt.lib` | XSLT and EXSLT transformation support for PHP | Build, complete SDK/DLL symbol surface, CRT, architecture, static linkage, and upstream XSLT/EXSLT runtime validation passed |
+| `oniguruma` | Enabled | Static library | 50 native Windows sources selected from `in/deps/libonig/src/*.c` | `out/oniguruma.lib` | Multibyte regular expressions for PHP mbstring | Direct per-source target configured from the upstream Windows manifest; build validation pending |
 | `minilua` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/dynasm/minilua.c` | `out/minilua.exe` | Runs DynASM for the PHP JIT IR emitter | Defined; build validation pending |
 | `gen_ir_fold_hash` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c` | `out/gen_ir_fold_hash.exe` | Generates the JIT IR fold hash header | Defined; build validation pending |
 | `php` | Disabled | Object prototype | `in/php-src/Zend/zend.c`, `in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm` | `out/` | Becomes the static PHP build after dependency, configuration, codegen, and source integration | Prototype only; real `on_prepare` codegen pending |
@@ -329,7 +330,16 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 ### Oniguruma upstream build analysis
 
 - Use the official `kkos/oniguruma` GitHub repository pinned to tag `v6.9.10`, matching the PHP SDK package. The package SBOM names that tag as upstream and declares no Winlibs security backport or downstream fix, so prefer the authoritative upstream source over the packaging fork.
-- Preserve the SDK's `onig_a.lib` and `onig.dll` as build and symbol-surface references. Complete the native source/configuration analysis before adding the Xmake target.
+- Upstream `CMakeLists.txt`, `src/Makefile.windows`, and the preserved SDK `onig_a.lib` agree on 48 core and encoding C sources plus `regposix.c` and `regposerr.c`. Select those 50 inputs with one broad `src/*.c` declaration and remove `koi8.c`, the `mktable.c` generator, and the five committed `unicode_*_data.c` fragments that `unicode.c` includes directly. No generated implementation source, assembly, or external library is required.
+- Enable both `USE_POSIX_API` and `USE_BINARY_COMPATIBLE_POSIX_API`, matching the native Windows Makefile and SDK archive rather than CMake's platform-neutral defaults. Copy the committed `src/config.h.win64` to `src/config.h` in the target's only callback and define `HAVE_CONFIG_H`; the header already records the correct MSVC x64 type sizes and platform facilities, so do not run CMake, configure, NMake, MSBuild, a solution, or a project file.
+- Propagate `ONIG_STATIC`, the standard upstream static-consumer interface that makes `ONIG_EXTERN` plain `extern` in both public headers. PHP's native `/DONIG_EXTERN=extern` serves the same import-suppression purpose, so the eventual PHP target receives the cleaner upstream definition through its dependency. Keep the POSIX and configuration definitions private; `PHP_ONIG_BAD_KOI8_ENTRY=1` belongs only to PHP mbstring because the selected library intentionally exposes `KOI8-R` but not the obsolete `KOI8` entry.
+- Compile the 50 sources independently without unity and use the project-wide `/MD`. The preserved SDK archive confirms the exact member list and exposes all 211 APIs of both the SDK and `dll_compare` DLLs, but it selects `LIBCMT` and embeds `/EXPORT` directives. Treat it only as the ABI reference: the direct archive must instead select `MSVCRT`, contain no `LIBCMT`, export directive, or `__imp_onig*` thunk, and cover the same 211 APIs.
+
+### Oniguruma code-generation inventory
+
+| Owner | Tool | Input | Output | Handling | Status |
+| --- | --- | --- | --- | --- | --- |
+| `oniguruma` | Xmake file copy | `src/config.h.win64` | `src/config.h` | Copy the committed x64 MSVC configuration in the target's only `on_prepare` callback | Build validation pending |
 
 ## PHP Code-generation Inventory
 

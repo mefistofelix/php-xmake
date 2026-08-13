@@ -742,6 +742,32 @@ target("libxslt")
         "in/deps/libxslt/libxslt/*.c"
     )
 
+target("oniguruma")
+    set_enabled(true)
+    set_kind("static")
+    set_targetdir(get_config("builddir"))
+    set_optimize("fastest")
+    on_prepare(function ()
+        os.cp("in/deps/libonig/src/config.h.win64", "in/deps/libonig/src/config.h")
+    end)
+    add_includedirs("in/deps/libonig/src", {public = true})
+    add_defines("ONIG_STATIC", {public = true})
+    add_defines(
+        "HAVE_CONFIG_H",
+        "USE_BINARY_COMPATIBLE_POSIX_API",
+        "USE_POSIX_API"
+    )
+    add_files("in/deps/libonig/src/*.c")
+    remove_files(
+        "in/deps/libonig/src/koi8.c",
+        "in/deps/libonig/src/mktable.c",
+        "in/deps/libonig/src/unicode_egcb_data.c",
+        "in/deps/libonig/src/unicode_fold_data.c",
+        "in/deps/libonig/src/unicode_property_data.c",
+        "in/deps/libonig/src/unicode_property_data_posix.c",
+        "in/deps/libonig/src/unicode_wb_data.c"
+    )
+
 
 target("php")
     set_enabled(false)

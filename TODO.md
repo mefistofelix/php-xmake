@@ -190,7 +190,7 @@ Integrate zstd as one dependency target:
 
 - [x] Identify the official `kkos/oniguruma` v6.9.10 source matching the current PHP SDK package.
 - [x] Replace the prebuilt package with pinned source and validate clean and repeated preparation.
-- [ ] Inspect the upstream native build declarations for exact sources, configuration, static interface, and dependencies.
+- [x] Inspect the upstream native build declarations for exact sources, configuration, static interface, and dependencies.
 - [ ] Add a direct per-source static target without unity, then build and validate it.
 
 ## Dependency Targets
@@ -229,6 +229,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-14 — Oniguruma native-build analysis after commit `4c5c195`: upstream CMake and `src/Makefile.windows` select 48 core/encoding sources plus the two POSIX sources. The preserved SDK archive independently confirms those exact 50 x64 members, while the seven other root C files are one generator, one unselected legacy KOI8 encoding, and five committed Unicode fragments included by `unicode.c`. The Windows path copies `config.h.win64`, defines both POSIX modes, requires no external library or generated implementation source, and exposes 211 APIs in both the SDK and `dll_compare` DLLs. The SDK archive's `LIBCMT` and embedded export directives are packaging properties to correct: the direct target will use `/MD`, propagate `ONIG_STATIC`, and emit neither exports nor import thunks.
 
 - 2026-08-14 — unchanged Oniguruma preparation after commit `6e432af`: `xmake prepare` completed in 0.8 seconds with the exact official v6.9.10 source already present, validating idempotence.
 
