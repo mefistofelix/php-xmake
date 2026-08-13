@@ -182,7 +182,7 @@ Integrate zstd as one dependency target:
 ## Next Target: libxslt
 
 - [x] Identify the SDK's exact pinned `winlibs/libxslt` 1.1.43-2 source and its GNOME 1.1.43 base.
-- [ ] Replace the prebuilt package with pinned source and validate clean and repeated preparation.
+- [x] Replace the prebuilt package with pinned source and validate clean and repeated preparation.
 - [ ] Inspect the upstream native build declarations for exact sources, configuration, static interface, and dependency edges.
 - [ ] Add a direct per-source static target without unity, then build and validate it against libxml2.
 
@@ -222,6 +222,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-14 — unchanged `libxslt` preparation after commit `60bf81d`: `xmake prepare` completed in 0.8 seconds with the exact 1.1.43-2 source already present, validating idempotence.
 
 - 2026-08-14 — clean `libxslt` preparation at commit `d19b65a`: after preserving the complete SDK package under `%TEMP%`, validating `in/deps/libxslt` as the exact direct child of `in/deps`, and moving it to the Recycle Bin, `xmake prepare` recreated the source from `github://winlibs/libxslt?ref=libxslt-1.1.43-2` in 2.2 seconds. The hx provenance records that exact ref and the source declares libxslt 1.1.43 plus libexslt 0.8.24. An unchanged repeat remains.
 
