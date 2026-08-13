@@ -110,14 +110,14 @@ Integrate zstd as one dependency target:
 - [x] Inspect nghttp2 CMake/Automake/MSVC metadata and confirm that the current library manifest is exactly the 26 direct C children of `lib`.
 - [x] Add and validate one direct per-source nghttp2 target without unity, including its generated version header.
 
-## Following Target: libcurl
+## Completed Target: libcurl
 
 - [x] Verify the official `curl/curl` tag `curl-8_21_0`, matching the previous PHP SDK dependency version.
 - [x] Replace the prebuilt SDK archive with the pinned official source and validate `xmake prepare` from a clean absence and on a no-change repeat.
 - [x] Confirm that broad direct/recursive `lib/*.c` patterns minus `dllmain.c` reproduce all 192 sources in upstream `lib/Makefile.inc`.
 - [x] Complete the feature defines, include paths, dependency edges, and Windows system-library analysis; enable the complete OpenSSL/compression/SSH/HTTP2 dependency closure for the focused build test.
 - [x] Add one static libcurl target using direct per-source Xmake compilation without unity.
-- [ ] Build and validate `/MD`, the static public interface, archive architecture, and every symbol in upstream `libcurl.def` before moving to the next dependency.
+- [x] Build and validate `/MD`, the static public interface, archive architecture, and every symbol in upstream `libcurl.def` before moving to the next dependency.
 
 ## Dependency Targets
 
@@ -155,6 +155,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-13 — `.\xmake.exe -vD -j8 libcurl` plus static-archive inspection at commit `9df6001`: the enabled OpenSSL/compression/SSH/HTTP2 closure and all 192 libcurl sources built successfully in 34.7 seconds. Every libcurl object is x64 and requests `MSVCRT`, with zero `LIBCMT` or `/EXPORT:` directives. The archive contains all 100 APIs from upstream `libcurl.def`, no `__imp_curl*`, `__imp_nghttp2*`, or `__imp_libssh2*` thunks, and real references to OpenSSL, zlib, Brotli, zstd, nghttp2, and libssh2. The dependency build emitted the already documented upstream OpenSSL C4133 warning at `obj_dat.c:238`.
 
 - 2026-08-13 — `.\xmake.exe -vD -j8 nghttp2` plus `dll_compare/nghttp2.dll` comparison at commit `317c34f`: the generated header contains version `1.69.0`/`0x014500`; all 26 sources compiled independently with `/MD /O2`, and `out/nghttp2.lib` archived in 1.2 seconds. The archive contains all 181 reference exports, 26 x64 members, 26 `MSVCRT` and zero `LIBCMT` directives, no `/EXPORT:` directives, and no `__imp_nghttp2*` thunks.
 
