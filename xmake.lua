@@ -922,7 +922,7 @@ target("openssl_test")
     set_toolset("as", "nasm@$(projectdir)/in/perl/c/bin/nasm.exe")
     -- add_rules("c.unity_build")
     on_prepare(function ()
-        import("async.runjobs")
+        import("async")
         import("core.base.option")
 
         local root = path.absolute("in/deps/openssl")
@@ -936,13 +936,13 @@ target("openssl_test")
         os.vrunv(perl, {"util/mkbuildinf.pl", "cl /MD /O2", "VC-WIN64A"},
             {curdir = root, stdout = path.join(root, "crypto/buildinf.h")})
 
-        os.vrunv(perl, {"apps/progs.pl", "-C", "apps/openssl"},
+        os.vrunv(perl, {"apps/progs.pl", "-C", "apps\\openssl"},
             {curdir = root, stdout = path.join(root, "apps/progs.c")})
-        os.vrunv(perl, {"apps/progs.pl", "-H", "apps/openssl"},
+        os.vrunv(perl, {"apps/progs.pl", "-H", "apps\\openssl"},
             {curdir = root, stdout = path.join(root, "apps/progs.h")})
 
         local templates = os.files(path.join(root, "**/*.[ch].in"))
-        runjobs("openssl_test.templates", function (index)
+        async.runjobs("openssl_test.templates", function (index)
             local input = templates[index]
             local output = input:sub(1, -4)
             os.vrunv(perl,
@@ -953,7 +953,7 @@ target("openssl_test")
         end, {total = #templates, comax = jobs})
 
         local generators = os.files(path.join(root, "**/*x86_64*.pl|crypto/perlasm/**"))
-        runjobs("openssl_test.perlasm", function (index)
+        async.runjobs("openssl_test.perlasm", function (index)
             local generator = generators[index]
             local relative = path.relative(generator, root):gsub("\\", "/")
             local output = relative:gsub("/asm/", "/"):gsub("%.pl$", ".asm")

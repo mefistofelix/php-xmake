@@ -26,8 +26,8 @@ Last updated: 2026-08-13
 - [x] Run the independent `mkbuildinf.pl` invocation directly after `Configure`, before the template loop; it depends only on its arguments and optional `SOURCE_DATE_EPOCH`.
 - [x] Replace the OpenSSL template output-extension `if` with the union of the complete `**/*.c.in` and `**/*.h.in` input globs; they select the same 50 templates directly.
 - [x] Use the single `**/*.[ch].in` Xmake glob for the true single-character `c`/`h` alternative; it resolves to and regenerates the same 50 template outputs.
-- [ ] Validate the upstream application generation sequence in `openssl_test`: Configure with apps enabled, generate `apps/progs.c` with `apps/progs.pl -C apps/openssl`, then generate `apps/progs.h` with `-H`. `apps/include/apps.h` is already a committed input and needs no generator.
-- [ ] Validate `async.runjobs` for the independent OpenSSL template and perlasm generators, with concurrency limited by the build action's `-j` value.
+- [ ] Validate the upstream application generation sequence in `openssl_test`: Configure with apps enabled, generate `apps/progs.c` with `apps/progs.pl -C apps\openssl`, then generate `apps/progs.h` with `-H`. `apps/include/apps.h` is already a committed input and needs no generator.
+- [x] Validate `async.runjobs` for the independent OpenSSL template and perlasm generators, with concurrency limited by the build action's `-j` value.
 
 ## Completed Target: zlib
 
@@ -143,6 +143,7 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-13 — `.\xmake.exe -vD -j8 openssl_test` at commit `42fa1f6`: both `async.runjobs` groups completed under the requested eight-job limit, producing all 50 template outputs and all 30 perlasm outputs before compilation. Configure also enabled apps and both `progs.pl` invocations exited successfully, but the forward-slash `apps/openssl` argument did not match configdata's Windows `apps\openssl` key: `progs.h` contained no command declarations. Preserve the exact backslash argument from the upstream build log before revalidating application generation. The deliberately broad compilation subsequently exited unsuccessfully and remains outside this generator-parallelism result.
 - 2026-08-13 — `.\xmake.exe -j1 openssl_test` at commit `1d23c6f`: excluding `crypto/perlasm/**` removed the interactive stdin hang. Preparation completed and Xmake advanced to C compilation, where the deliberately broad source glob now fails normally at `apps/asn1parse.c` because `progs.h` is unavailable. The next experiment must narrow or exclude application sources; perlasm generation is no longer blocking progress.
 - 2026-08-13 — `.\xmake.exe -vD -j1 openssl_test` at commit `49ed4a4`: Xmake's `**/*.[ch].in` character-class glob selected all 50 C/header templates and regenerated all 50 outputs with zero missing. `[ch]` is the correct single-character alternative; `[c|h]` would also admit a literal `|`. The complete target retained its independent post-preparation failure.
 - 2026-08-13 — `.\xmake.exe -vD -j1 openssl_test` at commit `758bb4f`: the complete `**/*.c.in` and `**/*.h.in` glob union selected 10 C templates and 40 header templates, regenerated all 50 outputs, and left zero missing outputs. The former output-extension `if` is unnecessary; the complete target retained its separate post-preparation failure.
