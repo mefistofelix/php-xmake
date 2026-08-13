@@ -212,6 +212,14 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 - There is no library code generation or assembly. Compile every source independently without a callback or unity; validate the archive architecture, `/MD`, static decoration, and representative APIs from `uv.h` because `dll_compare` has no libuv DLL.
 - MSVC 14.50 emits C4090 at `uv-common.c:960` and `win/util.c:644`: the public `uv_cpu_info_t.model` field is intentionally `const char *`, while libuv owns and frees its allocation through `uv__free(void *)`. This is source-level upstream const qualification, not an Xmake configuration or unity issue; retain and document the warnings rather than patching the pinned source or adding a blanket suppression.
 
+### nghttp3 upstream build analysis
+
+- Use the prepared official `ngtcp2/nghttp3` repository pinned to `v1.18.0`. Its `lib/sfparse` input is a Git submodule, which GitHub source archives leave empty; fetch the exact recorded `ngtcp2/sfparse` commit `4b313cfd2e1b389ae632b36dcd50402307289af2` into that directory during `xmake prepare`.
+- Upstream `lib/CMakeLists.txt` and `lib/Makefile.am` agree on 31 direct `lib/nghttp3_*.c` sources plus `lib/sfparse/sfparse.c`. Compile those 32 inputs independently without unity.
+- Define `BUILDING_NGHTTP3` privately and propagate `NGHTTP3_STATICLIB`, which suppresses DLL decoration in the public header. The library has no external link dependency.
+- The generated CMake configuration only supplies Unix feature probes and a fallback `ssize_t` typedef. The selected Windows implementation does not use `ssize_t`, and its endian conversion takes the explicit `_byteswap_*` path, so the target does not need `HAVE_CONFIG_H` or a generated `config.h`.
+- Generate `lib/includes/nghttp3/version.h` from its committed `.in` template in the target's only callback, substituting version `1.18.0` and hexadecimal version `0x011200`. No other generated input or callback is required.
+
 ## PHP Code-generation Inventory
 
 All paths below are relative to `in/php-src` unless prefixed with `out/`. Entries marked "planned" reproduce the known PHP generation commands but are not yet wired into the `php` target's `on_prepare` callback.

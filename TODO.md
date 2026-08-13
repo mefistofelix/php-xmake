@@ -135,6 +135,13 @@ Integrate zstd as one dependency target:
 - [x] Add one direct per-source static target without unity or a callback.
 - [x] Build and validate all 37 x64 `/MD` members and every one of the 318 APIs declared by `uv.h`.
 
+## Next Target: nghttp3
+
+- [x] Inspect the upstream CMake and Automake source manifests, Windows configuration, public static definition, and version-header generation.
+- [ ] Fetch the exact `sfparse` submodule commit omitted by the GitHub source archive and validate clean and repeated preparation.
+- [ ] Add one 32-source static target with direct per-source compilation and no unity.
+- [ ] Build and validate architecture, `/MD`, static decoration, and the complete public header API surface.
+
 ## Dependency Targets
 
 Every library must receive its own static target. Integrate and validate them one at a time in dependency order.
