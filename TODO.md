@@ -188,7 +188,7 @@ Integrate zstd as one dependency target:
 
 ## Next Target: Oniguruma
 
-- [ ] Identify the authoritative source and exact version corresponding to the current PHP SDK package.
+- [x] Identify the official `kkos/oniguruma` v6.9.10 source matching the current PHP SDK package.
 - [ ] Replace the prebuilt package with pinned source and validate clean and repeated preparation.
 - [ ] Inspect the upstream native build declarations for exact sources, configuration, static interface, and dependencies.
 - [ ] Add a direct per-source static target without unity, then build and validate it.

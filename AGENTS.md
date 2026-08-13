@@ -326,6 +326,11 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 | --- | --- | --- | --- | --- | --- |
 | `libxslt` | Xmake Lua I/O | `libxslt/xsltconfig.h.in`, `libexslt/exsltconfig.h.in`, pinned SDK feature selection | `libxslt/xsltconfig.h`, `libexslt/exsltconfig.h` | Substitute version and feature placeholders in the target's only `on_prepare` callback | Build and runtime validation passed |
 
+### Oniguruma upstream build analysis
+
+- Use the official `kkos/oniguruma` GitHub repository pinned to tag `v6.9.10`, matching the PHP SDK package. The package SBOM names that tag as upstream and declares no Winlibs security backport or downstream fix, so prefer the authoritative upstream source over the packaging fork.
+- Preserve the SDK's `onig_a.lib` and `onig.dll` as build and symbol-surface references. Complete the native source/configuration analysis before adding the Xmake target.
+
 ## PHP Code-generation Inventory
 
 All paths below are relative to `in/php-src` unless prefixed with `out/`. Entries marked "planned" reproduce the known PHP generation commands but are not yet wired into the `php` target's `on_prepare` callback.
