@@ -307,6 +307,35 @@ target("libsodium")
     add_syslinks("advapi32", {public = true})
     add_files("in/deps/libsodium/src/libsodium/**/*.c")
 
+target("libuv")
+    set_kind("static")
+    set_targetdir(get_config("builddir"))
+    set_optimize("fastest")
+    add_includedirs("in/deps/libuv/include", {public = true})
+    add_includedirs("in/deps/libuv/src")
+    add_defines(
+        "WIN32_LEAN_AND_MEAN",
+        "_CRT_DECLARE_NONSTDC_NAMES=0",
+        "_WIN32_WINNT=0x0A00"
+    )
+    add_cflags("/we4013", {force = true})
+    add_syslinks(
+        "psapi",
+        "user32",
+        "advapi32",
+        "iphlpapi",
+        "userenv",
+        "ws2_32",
+        "dbghelp",
+        "ole32",
+        "shell32",
+        {public = true}
+    )
+    add_files(
+        "in/deps/libuv/src/*.c",
+        "in/deps/libuv/src/win/*.c"
+    )
+
 
 target("php")
     set_enabled(false)

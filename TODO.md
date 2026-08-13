@@ -127,6 +127,14 @@ Integrate zstd as one dependency target:
 - [x] Add one direct per-source static target without unity.
 - [x] Build and validate all 141 x64 `/MD` members, the static public interface, and the complete `dll_compare/libsodium.dll` export surface.
 
+## Next Target: libuv
+
+- [x] Confirm the prepared official `libuv/libuv` tag `v1.52.1` exceeds True Async's minimum supported version.
+- [x] Inspect upstream CMake and confirm the Windows library contains exactly 12 common plus 25 Windows C sources.
+- [x] Record the private Windows defines, public-header decoration behavior, and nine system-library edges.
+- [x] Add one direct per-source static target without unity or a callback.
+- [ ] Build and validate all 37 x64 `/MD` members, the static public interface, and representative `uv.h` APIs.
+
 ## Dependency Targets
 
 Every library must receive its own static target. Integrate and validate them one at a time in dependency order.
