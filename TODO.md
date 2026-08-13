@@ -153,6 +153,7 @@ Integrate zstd as one dependency target:
 
 - [x] Verify the official `unicode-org/icu` release tag `release-77-1`, matching the previous PHP SDK dependency version.
 - [x] Replace the prebuilt SDK package with the pinned official source and validate clean and repeated preparation.
+- [ ] Fetch the official little-endian data archive and minimal Win64 `genccode` runtime, then validate the expanded preparation from clean absence and on a repeat.
 - [ ] Inspect the upstream Windows build for exact common, i18n, data, generation, definitions, and dependency edges before declaring the target.
 - [ ] Add a direct per-source static target without unity, then build and validate it.
 

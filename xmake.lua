@@ -40,6 +40,8 @@ task("prepare")
 
         local bp = "https://downloads.php.net/~windows/php-sdk/deps/vs18/x64"
         os.run("hx github://unicode-org/icu?ref=release-77-1 in/deps/ICU")
+        os.run("hx -repath icudt77l.dat https://github.com/unicode-org/icu/releases/download/release-77-1/icu4c-77_1-data-bin-l.zip in/deps/ICU/icu4c/source/data/in")
+        os.run("hx -repath genccode.exe,icutu77.dll,icuuc77.dll,icuin77.dll,icudt77.dll https://github.com/unicode-org/icu/releases/download/release-77-1/icu4c-77_1-Win64-MSVC2022.zip in/tools/icu")
         os.run("hx %s/apache-2.4.68-vs18-x64.zip in/deps/apache",bp)
         os.run("hx %s/fbclient-4.0.7-vs18-x64.zip in/deps/fbclient",bp)
         os.run("hx %s/freetype-2.14.3-vs18-x64.zip in/deps/freetype",bp)

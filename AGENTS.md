@@ -247,6 +247,8 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 ### ICU upstream build analysis
 
 - Replace the PHP SDK binary package with the official `unicode-org/icu` repository pinned to tag `release-77-1`, matching the selected ICU 77.1 package version. Fetch the complete release source into `in/deps/ICU`; source/component and data-generation analysis must be completed before declaring its Xmake target.
+- The repository intentionally omits the packaged `icudt77l.dat`. ICU's own guidance for custom build systems recommends using the prebuilt data file rather than rebuilding all data tools, so fetch `icudt77l.dat` from the official `icu4c-77_1-data-bin-l.zip` release asset.
+- Use the release's official Win64 `genccode.exe` strictly as a build-time generator, retaining only it and its five colocated runtime DLLs under `in/tools/icu`. Invoke it from the ICU target callback with `--object --cpu-arch x64 --skip-dll-export --entrypoint icudt77` to turn the little-endian package into a 16-byte-aligned COFF object without DLL export directives. Xmake's built-in object merge rule accepts that generated `.obj` directly into the static archive.
 
 ## PHP Code-generation Inventory
 
