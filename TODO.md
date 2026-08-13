@@ -23,6 +23,7 @@ Last updated: 2026-08-13
 - [x] Use one uniform Perl include/module prefix for every OpenSSL `.in` template in `openssl_test`; all 50 C/header templates accept the superset, so template-content inspection and specialized argument construction are unnecessary.
 - [x] Use the unrestricted `**/*x86_64*.pl` generator pattern in `openssl_test` without procedural directory filtering; all matches execute, including the helper/translator scripts under `crypto/perlasm` and the uplink generator under `ms`.
 - [x] Consolidate repeated OpenSSL-root and Perl-program expressions in `openssl_test:on_prepare` into two local values; the simplified callback preserves the validated template and perlasm preparation behavior.
+- [ ] Revalidate `openssl_test` after moving the independent `mkbuildinf.pl` invocation directly after `Configure`, before the template loop.
 
 ## Completed Target: zlib
 

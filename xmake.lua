@@ -929,6 +929,9 @@ target("openssl_test")
             {"Configure", "VC-WIN64A", "no-shared", "no-module", "no-apps", "no-tests", "no-docs"},
             {curdir = root, addenvs = {PATH = path.absolute("in/perl/c/bin")}})
 
+        os.vrunv(perl, {"util/mkbuildinf.pl", "cl /MD /O2", "VC-WIN64A"},
+            {curdir = root, stdout = path.join(root, "crypto/buildinf.h")})
+
         for _, input in ipairs(os.files(path.join(root, "**/*.in"))) do
             local output = input:sub(1, -4)
             if output:match("%.[ch]$") then
@@ -939,10 +942,6 @@ target("openssl_test")
                     {curdir = root, stdout = output})
             end
         end
-
-        os.vrunv(perl,
-            {"util/mkbuildinf.pl", "cl /MD /O2", "VC-WIN64A"},
-            {curdir = root, stdout = path.join(root, "crypto/buildinf.h")})
 
         for _, generator in ipairs(os.files(path.join(root, "**/*x86_64*.pl"))) do
             local relative = path.relative(generator, root):gsub("\\", "/")
