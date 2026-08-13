@@ -93,6 +93,7 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 | `ngtcp2_crypto_ossl` | Disabled | Static library | `crypto/ossl/ossl.c` and `crypto/shared.c` | `out/ngtcp2_crypto_ossl.lib` | OpenSSL 3.5 QUIC glue required by PHP HTTP/3 | Build and complete 54-API header-surface validation passed with C11 and `/MD` on MSVC x64 |
 | `icu` | Disabled | Static library | All 201 common and 254 i18n C++ sources plus generated `icudt77l_dat.obj` | `out/icu.lib` | Unicode common, internationalization, and packaged data for PHP intl | Build, C/data symbol surface, CRT, architecture, and C++ runtime smoke validation passed |
 | `libiconv` | Disabled | Static library | `lib/iconv.c`, `libcharset/lib/localcharset.c`, and `lib/compat.c` | `out/libiconv.lib` | Character-set conversion for PHP iconv and dependent libraries | Build, complete 9-symbol surface, CRT, architecture, and upstream runtime validation passed |
+| `libintl` | Enabled | Static library | Direct per-source C inputs under `gettext-runtime/intl` and `gettext-runtime/intl/gnulib-lib` | `out/libintl.lib` | GNU message catalogs and locale handling for PHP and dependent libraries | Initial direct Xmake implementation pending |
 | `minilua` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/dynasm/minilua.c` | `out/minilua.exe` | Runs DynASM for the PHP JIT IR emitter | Defined; build validation pending |
 | `gen_ir_fold_hash` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c` | `out/gen_ir_fold_hash.exe` | Generates the JIT IR fold hash header | Defined; build validation pending |
 | `php` | Disabled | Object prototype | `in/php-src/Zend/zend.c`, `in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm` | `out/` | Becomes the static PHP build after dependency, configuration, codegen, and source integration | Prototype only; real `on_prepare` codegen pending |
@@ -283,6 +284,14 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 - GNU Gettext 1.0 is the authoritative release corresponding to the current PHP SDK `libintl-1.0` package. Fetch the official `gettext-1.0.tar.gz` release from `ftp.gnu.org` and strip its single top-level directory into `in/deps/libintl`.
 - The package SBOM identifies `winlibs/gettext` tag `libintl-1.0`, commit `cd6fcaeffc493305f9c0081310efa0e063060da6`, as its build input and GNU Savannah tag `v1.0` as upstream. A complete file-level comparison shows that the fork tag and official release tarball contain identical source trees; only the hx provenance marker differs. Use the official release rather than the packaging fork.
 - The PHP package was produced by the public `winlibs/winlib-builder` Cygwin workflow. It configured `gettext-runtime` for x64 MSVC with both static and shared libraries, `/MD /O2`, `_WIN32_WINNT=0x0601`, and then built and installed only the `intl` subdirectory. Treat the official `gettext-runtime/intl/Makefile.am`, generated configuration, and that Windows workflow as the source/build authorities for the direct Xmake conversion.
+
+### libintl upstream build analysis
+
+- `gettext-runtime/intl/Makefile.am` defines 25 core C sources. The release already contains generated `plural.c` and `plural.h`, so no Bison or other source generator is required. `intl-exports.c` is shared-library support and `os2compat.c` is OS/2-only.
+- The PHP SDK reference `libintl_a.lib` contains those 25 core objects, 78 Gnulib support objects, and one Windows resource object. Its actual static compile command uses `/MD /O2` and `_WIN32_WINNT=0x0601` without `DLL_EXPORT` or `PIC`; shared-library probe commands in the same PDB are not part of the static archive configuration.
+- The direct Xmake baseline deliberately compiles the C trees per source without unity or delegated native build tooling. Begin with broad `intl/*.c` and `intl/gnulib-lib/**/*.c` patterns as requested, then remove only sources proven to be platform-only or mutually exclusive by the compiler or final link validation.
+- Generate only `config.h`, `libgnuintl.h`, and public `libintl.h` in the target callback. They are configuration/template products, not generated implementation sources. Static headers must not add `dllimport` or `dllexport` decoration.
+- Define the upstream Windows library mode directly, use the validated `libiconv` target, and link `advapi32`, which is the only extra Windows library selected by the upstream `intl` build. Do not invoke Cygwin, `configure`, Make, NMake, MSBuild, a solution, or a project file.
 
 ## PHP Code-generation Inventory
 
