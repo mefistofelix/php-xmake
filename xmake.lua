@@ -768,6 +768,14 @@ target("oniguruma")
         "in/deps/libonig/src/unicode_wb_data.c"
     )
 
+target("oniguruma_smoke")
+    set_default(false)
+    set_kind("binary")
+    set_targetdir(get_config("builddir"))
+    add_deps("oniguruma")
+    add_cflags("/utf-8", {force = true})
+    add_files("in/deps/libonig/test/test_utf8.c")
+
 
 target("php")
     set_enabled(false)
