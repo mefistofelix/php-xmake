@@ -29,6 +29,9 @@ Last updated: 2026-08-13
 - [x] Validate the upstream application generation sequence in `openssl_test`: Configure with apps enabled, generate `apps/progs.c` with `apps/progs.pl -C apps\openssl`, then generate `apps/progs.h` with `-H`. `apps/include/apps.h` is already a committed input and needs no generator.
 - [x] Validate `async.runjobs` for the independent OpenSSL template and perlasm generators, with concurrency limited by the build action's `-j` value.
 - [x] Complete a clean parallel build of the broad `openssl_test` source-glob experiment with preparation temporarily bypassed, using declarative exclusions for disabled, platform-incompatible, test/example, and textually included implementation sources.
+- [x] Promote the compact `openssl_test` declaration to the official `openssl` target and remove the obsolete 109-group unity declaration.
+- [x] Preserve the validated compact target unchanged apart from renaming it to `openssl`; do not reanalyze it against the removed verbose implementation.
+- [x] Defer new unity-build work until all dependencies and the complete PHP target have validated baseline builds.
 
 ## Completed Target: zlib
 
@@ -94,17 +97,16 @@ Integrate zstd as one dependency target:
 - [x] Implement OpenSSL code generation with `perl Configure` and the required Perl generators only; do not invoke `nmake` from the target's `on_prepare` callback.
 - [x] Declare all selected C and generated assembly sources directly in Xmake and let Xmake perform compilation, NASM assembly, and archiving.
 - [x] Add one static OpenSSL dependency target; the configured closure contains no source compiled with incompatible duplicate settings.
-- [x] Validate that the Xmake source declaration matches the configured 1,100-C plus 39-assembly upstream closure exactly.
-- [x] Resolve only observed unity-build conflicts and retain the fewest widest groups.
-- [x] Validate the standard public OpenSSL interface and inspect the resulting archive symbol/directive surface.
-- [x] Build and record the validation result before moving to libcurl/libssh2/libsodium.
+- [x] Replace the verbose source manifest and 109 unity groups with the validated broad C-selection and declarative-removal patterns from `openssl_test`.
+- [x] Compile OpenSSL sources independently; do not enable unity while baseline target integration is in progress.
+- [x] Retain the prior clean build and 6,475-symbol validation as the validation of the unchanged promoted target; use `dll_compare` for future reference checks.
 
 ## Next Target: libcurl
 
 - [x] Verify the official `curl/curl` tag `curl-8_21_0`, matching the previous PHP SDK dependency version.
 - [x] Replace the prebuilt SDK archive with the pinned official source and validate `xmake prepare` from a clean absence and on a no-change repeat.
 - [ ] Inspect upstream CMake/Makefile metadata and PHP's curl configuration for exact library sources, exclusions, generated inputs, public/private defines, protocols, TLS backend, compression dependencies, and Windows system libraries.
-- [ ] Add one static libcurl target using direct Xmake compilation and the fewest widest unity groups justified by observed conflicts.
+- [ ] Add one static libcurl target using direct per-source Xmake compilation without unity.
 - [ ] Build and validate `/MD`, the static public interface, archive architecture, and representative curl symbols before moving to libssh2.
 
 ## Dependency Targets
@@ -118,7 +120,7 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Database/directory clients: PostgreSQL, Firebird, OpenLDAP.
 - [ ] Image/font stack: FreeType, libjpeg-turbo, libpng, libtiff, libwebp, libavif, libheif, libjxl, libultrahdr, libxpm.
 - [ ] Remaining libraries: Apache support files, GLib, Argon2, Enchant, libffi, SASL, Tidy, libzip, MPIR, Net-SNMP, WinEditLine.
-- [ ] Document exact target names, source patterns, dependencies, defines, unity groups, and validation status as each target lands.
+- [ ] Document exact target names, source patterns, dependencies, defines, and validation status as each target lands.
 
 ## PHP Code Generation
 
@@ -137,7 +139,7 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Keep PHP extensions inside the PHP target rather than creating extension targets.
 - [x] Select the upstream-compatible dynamically linked multithreaded MSVC CRT globally with `set_runtimes("MD")`.
 - [ ] Decide and configure PHP ZTS versus NTS independently of the MSVC CRT selection.
-- [ ] Add the widest safe unity-build groups and document necessary exclusions.
+- [ ] Complete a direct per-source PHP baseline build; revisit unity only after every target works.
 - [ ] Connect all dependency targets in correct link order.
 - [ ] Produce the final PHP executable/library artifacts.
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
