@@ -540,6 +540,49 @@ target("libintl")
             :gsub("@WOE32DLL@", "0")
         io.writefile("in/deps/libintl/gettext-runtime/intl/libgnuintl.h", header)
         io.writefile("in/deps/libintl/gettext-runtime/intl/libintl.h", header)
+        io.writefile(
+            "in/deps/libintl/gettext-runtime/intl/gnulib-lib/search.h",
+            [[#include "c++defs.h"
+#include "arg-nonnull.h"
+#include "warn-on-use.h"
+]] .. (io.readfile("in/deps/libintl/gettext-runtime/intl/gnulib-lib/search.in.h")
+                :gsub("@GUARD_PREFIX@", "GL")
+                :gsub("@PRAGMA_SYSTEM_HEADER@", "")
+                :gsub("@PRAGMA_COLUMNS@", "")
+                :gsub("@HAVE_SEARCH_H@", "0")
+                :gsub("@INCLUDE_NEXT@ @NEXT_SEARCH_H@", "include <search.h>")
+                :gsub("@GNULIB_TSEARCH@", "1")
+                :gsub("@HAVE_TSEARCH@", "0")
+                :gsub("@HAVE_TWALK@", "0")
+                :gsub("@HAVE_TYPE_VISIT@", "0")
+                :gsub("@[^@\r\n]+@", "0"))
+        )
+        io.writefile(
+            "in/deps/libintl/gettext-runtime/intl/gnulib-lib/unicase.h",
+            (io.readfile("in/deps/libintl/gettext-runtime/intl/gnulib-lib/unicase.in.h")
+                :gsub("@HAVE_UNISTRING_WOE32DLL_H@", "0")
+                :gsub("@[^@\r\n]+@", ""))
+        )
+        io.writefile(
+            "in/deps/libintl/gettext-runtime/intl/gnulib-lib/unictype.h",
+            (io.readfile("in/deps/libintl/gettext-runtime/intl/gnulib-lib/unictype.in.h")
+                :gsub("@HAVE_UNISTRING_WOE32DLL_H@", "0")
+                :gsub("@[^@\r\n]+@", ""))
+        )
+        io.writefile(
+            "in/deps/libintl/gettext-runtime/intl/gnulib-lib/uninorm.h",
+            (io.readfile("in/deps/libintl/gettext-runtime/intl/gnulib-lib/uninorm.in.h")
+                :gsub("@HAVE_UNISTRING_WOE32DLL_H@", "0")
+                :gsub("@[^@\r\n]+@", ""))
+        )
+        os.cp(
+            "in/deps/libintl/gettext-runtime/intl/gnulib-lib/unitypes.in.h",
+            "in/deps/libintl/gettext-runtime/intl/gnulib-lib/unitypes.h"
+        )
+        os.cp(
+            "in/deps/libintl/gettext-runtime/intl/gnulib-lib/uniwidth.in.h",
+            "in/deps/libintl/gettext-runtime/intl/gnulib-lib/uniwidth.h"
+        )
     end)
     add_deps("libiconv")
     add_includedirs("in/deps/libintl/gettext-runtime/intl", {public = true})

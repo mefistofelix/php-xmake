@@ -208,6 +208,8 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-14 — fourth direct `libintl` build at commit `d5a7f98`: relative `LOCALEDIR` and `LIBDIR` values allowed all 25 core sources to compile and advanced the broad build to 46%. The first Gnulib failure was the expected generated `unicase.h`; generate only the non-system Unicode headers plus the tree-search wrapper in the callback, leaving MSVC's CRT headers unshadowed.
+
 - 2026-08-14 — third direct `libintl` build at commit `0ac0440`: after the two platform exclusions, the core compiled through 22% and stopped only because the direct target had not supplied upstream's install-time `LOCALEDIR` macro. Define relative `LOCALEDIR` and `LIBDIR` values in Xmake; the same translation unit's implicit tree-search diagnostics identify the generated `search.h` compatibility declaration as the next likely configuration requirement.
 
 - 2026-08-14 — second direct `libintl` build at commit `c544fe4`: the corrected configuration compiled the initial core sources through 12%, then `intl-exports.c` failed because its DLL-only declaration machinery is not active for a static build. Remove that shared-library source and the independently identified OS/2-only `os2compat.c`; retain the broad root and recursive Gnulib patterns for the next pass.
