@@ -211,12 +211,19 @@ Integrate zstd as one dependency target:
 - [x] Remove LMDB and QDBM from the dependency plan; they are used only by optional DBA handlers in this build inventory.
 - [x] Do not add Berkeley DB solely for DBA either.
 
-## Next Target: PostgreSQL / libpq
+## Completed Target: PostgreSQL / libpq
 
-- [ ] Identify the authoritative source and exact version corresponding to the current PHP SDK package.
-- [ ] Replace the prebuilt package with pinned source and validate clean and repeated preparation.
-- [ ] Inspect the upstream native build declarations for exact sources, configuration, static interface, and dependencies.
-- [ ] Add a direct per-source static target without unity, then build and validate it.
+- [x] Identify the PHP SDK package as libpq 16.14 and normalize the build source to authoritative `postgres/postgres` tag `REL_16_14`; the relevant Winlibs and upstream source trees are byte-for-byte identical.
+- [x] Preserve the binary SDK package only as a validation reference, replace `in/deps/libpq` with the pinned upstream PostgreSQL source, and validate clean and repeated preparation.
+- [x] Inspect the upstream Meson/Make/MSVC declarations: 17 libpq C sources for Windows+OpenSSL, the required frontend `pgcommon`/`pgport` closure folded into the same external-dependency target, and SDK configuration with LDAP/thread-safety/OpenSSL but no GSS/NLS/zlib.
+- [x] Build the direct 54-member static target with its normal `openssl` target dependency and minimal configuration callback. `out/libpq.lib` covers all 187/187 exports from `dll_compare/libpq.dll`, all members are x64 `/MD`, and the archive contains no `LIBCMT`, `/EXPORT:` directive, or libpq import thunk.
+
+## Next Target: Firebird / fbclient
+
+- [ ] Identify the authoritative Firebird source/tag matching the current PHP SDK `fbclient` 4.0.7 package and preserve the SDK binary only as a validation reference.
+- [ ] Inspect PHP's InterBase/PDO_Firebird Windows consumers and the upstream MSVC build for the exact client source closure, generated configuration, and dependencies.
+- [ ] Replace the prebuilt package with pinned authoritative source if the client can be built directly with the existing toolchain, then validate clean and repeated preparation.
+- [ ] Add the minimal static target and validate its final archive against the reference DLL/API surface before moving on.
 
 ## Dependency Targets
 
@@ -254,6 +261,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-14 — PostgreSQL/libpq 16.14 validation: normalized the build input from the PHP SDK's Winlibs packaging source to authoritative `postgres/postgres` `REL_16_14` after confirming the relevant source trees are byte-for-byte identical. Clean and repeated preparation succeeded. The direct target built `out/libpq.lib` successfully with its normal OpenSSL target dependency; final-archive comparison covers all 187/187 exports from `dll_compare/libpq.dll` with zero missing names and 400 linker-member symbols total. Archive-level inspection reports 54 x64 members, 54 `MSVCRT` directives, zero `LIBCMT`, zero embedded `/EXPORT:` directives, and zero libpq-family import thunks.
 
 - 2026-08-14 — SQLite 3.53.2 amalgamation validation: replaced the prebuilt PHP SDK package with SQLite's official pre-generated `sqlite-amalgamation-3530200.zip`; clean preparation and an unchanged repeat both succeeded. Xmake compiled exactly one `sqlite3.c` object with `/MD /O2` and `SQLITE_ENABLE_COLUMN_METADATA`, `SQLITE_ENABLE_FTS3`, `SQLITE_ENABLE_FTS4`, and `SQLITE_ENABLE_FTS5`, then created `out/sqlite3.lib`. The x64 object requests `MSVCRT`, not `LIBCMT`, and contains no embedded export directive; the archive covers all 295/295 APIs exported by the preserved SDK DLL with zero SQLite import thunks. A temporary static consumer created and queried FTS3, FTS4, and FTS5 in-memory tables, verified all four compile options and `sqlite3_column_table_name()`, and exited 0. Its PE imports are limited to Kernel32, VCRuntime140, and UCRT API-set DLLs, confirming no SQLite or other third-party runtime DLL dependency.
 
