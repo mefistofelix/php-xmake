@@ -798,10 +798,19 @@ target("libintl")
                 :gsub("PACKAGE_VERSION_MINOR", "0")
                 :gsub("PACKAGE_VERSION_SUBMINOR", "0"))
         )
+        local sdk_include = path.join(
+            get_config("sdk"), "Windows Kits", "10", "Include", get_config("vs_sdkver")
+        )
         os.vrunv(path.join(
             get_config("sdk"), "Windows Kits", "10", "bin",
             get_config("vs_sdkver"), "x64", "rc.exe"
-        ), {"-nologo", "-Fo" .. res, resource})
+        ), {
+            "-nologo",
+            "-I" .. path.join(sdk_include, "um"),
+            "-I" .. path.join(sdk_include, "shared"),
+            "-Fo" .. res,
+            resource
+        })
         os.vrunv(path.join(
             get_config("sdk"), "VC", "Tools", "MSVC", get_config("vs_toolset"),
             "bin", "Hostx64", "x64", "cvtres.exe"
