@@ -110,6 +110,7 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 | `libsasl` | Disabled | Static library | Cyrus SASL 2.1.28 Windows core sources only | `out/libsasl.lib` | SASL client support required by OpenLDAP/PHP LDAP | Build, 72/72 SDK DLL export coverage, x64 `/MD`, static decoration, and runtime version validation passed |
 | `openldap` | Disabled | Static library | OpenLDAP 2.6.13 client `libldap` + `liblber` with embedded rxspencer 3.9.0 | `out/openldap.lib` | LDAP client library for PHP ext/ldap | Build, 695/695 SDK Windows LDAP/LBER API coverage, x64 `/MD`, static decoration, and LBER runtime validation passed |
 | `wineditline` | Disabled | Static library | `editline.c`, `fn_complete.c`, `history.c` from WinEditLine 2.208 | `out/wineditline.lib` | Windows libedit-compatible backend for PHP `ext/readline` | Build validated: 3/3 SDK members, 126/126 significant linker-member symbols, x64 `/MD`, no static CRT or export directives |
+| `libffi` | Disabled | Static library | Eight C sources plus preprocessed Win64 MASM from Winlibs libffi 3.6.0 | `out/libffi.lib` | Foreign-function call backend for optional PHP `ext/ffi` | Build validated: exact 9-member SDK layout, 52/52 `ffi*` symbols, 8 C `/MD` members + one MASM member, no static CRT/export/import decoration |
 | `minilua` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/dynasm/minilua.c` | `out/minilua.exe` | Runs DynASM for the PHP JIT IR emitter | Defined; build validation pending |
 | `gen_ir_fold_hash` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c` | `out/gen_ir_fold_hash.exe` | Generates the JIT IR fold hash header | Defined; build validation pending |
 | `php` | Disabled | Object prototype | `in/php-src/Zend/zend.c`, `in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm` | `out/` | Becomes the static PHP build after dependency, configuration, codegen, and source integration | Prototype only; real `on_prepare` codegen pending |
@@ -557,6 +558,22 @@ No generated source or configuration file is required for the selected native Wi
 | Owner | Tool | Input | Output | Handling | Status |
 | --- | --- | --- | --- | --- | --- |
 | `libpq` | Xmake Lua I/O | `src/include/pg_config.h.in`, `pg_config_ext.h.in`, `src/include/port/win32.h` | `out/libpq/include/pg_config.h`, `pg_config_ext.h`, `pg_config_os.h`, `out/libpq/port/pg_config_paths.h` | Render/copy only the verified Windows frontend configuration in the target's single `on_prepare` callback; no external generator is needed | Build validated |
+
+### libffi upstream build analysis
+
+- PHP `ext/ffi` is opt-in on Windows (`ARG_WITH('ffi', ..., 'no')`) but is a real user-facing extension when selected: it requires `ffi.h` and `libffi.lib`. Keep libffi in the dependency roadmap rather than treating it as an SDK-only package.
+- Use the PHP SDK's pinned `winlibs/libffi` ref `libffi-3.6.0`, based on upstream libffi 3.6.0. PHP's Windows configuration explicitly probes the fork's `FFI_VECTORCALL_PARTIAL` addition in `ffitarget.h`, so the Winlibs source is intentional here rather than an interchangeable packaging mirror.
+- The authoritative VS18 x64 static project contains exactly eight C objects (`closures.c`, `java_raw_api.c`, `tramp.c`, `prep_cif.c`, `raw_api.c`, `types.c`, `x86/ffi.c`, `x86/ffiw64.c`) plus one Win64 assembly object. The preserved SDK `libffi.lib` confirms the same nine-member layout.
+- `win64_intel.S` is MASM syntax with C-preprocessor includes/macros. Reproduce the upstream Visual Studio custom step only through preprocessing: obtain the configured C compiler program from Xmake's `core.tool.compiler.compargv`, run it with `/EP` and the libffi include paths, write `out/libffi/win64.asm`, then add that generated `.asm` to the target. Xmake's normal MSVC assembly rule owns MASM invocation and object generation; do not call `ml64.exe` directly or invoke MSBuild.
+- Match the static public interface by propagating only `FFI_STATIC_BUILD`, which suppresses MSVC DLL decoration in `ffi.h`. Keep `FFI_BUILDING`, `WIN32`, `_LIB`, and release configuration defines private. Use the committed fork `ffi.h`, `fficonfig.h`, and x86 `ffitarget.h`; no configure/CMake generation is required for the selected Windows source tree.
+- libffi has no external third-party dependency in this Windows x64 configuration. Use the project-wide `/MD` runtime instead of changing CRT policy to match any standalone project default.
+- Final validation passed: Xmake detected the configured `ml64.exe` automatically for the generated `.asm`; `out/libffi.lib` has the same nine implementation members as the SDK reference and all 52/52 `ffi*` linker-member names with zero differences. The eight C objects request `MSVCRT`; there are zero `LIBCMT`, `/EXPORT:`, or `__imp_ffi` entries. Raw symbol deltas outside the `ffi*` surface are only current-toolset UCRT/compiler artifacts and section names.
+
+### libffi code-generation inventory
+
+| Owner | Tool | Input | Output | Handling | Status |
+| --- | --- | --- | --- | --- | --- |
+| `libffi` | Configured MSVC C preprocessor via Xmake `core.tool.compiler` | `src/x86/win64_intel.S` plus committed libffi headers | `out/libffi/win64.asm` | Run only preprocessing with `/EP`; add the generated `.asm` to the target and let Xmake's MSVC assembly rule invoke MASM | Build and SDK surface validation passed |
 
 ### WinEditLine upstream build analysis
 

@@ -270,10 +270,17 @@ Every library must receive its own static target. Integrate and validate them on
 - [x] Data/text: ICU, libiconv, libintl, libxml2, libxslt, Oniguruma, SQLite. LMDB and QDBM skipped with `ext/dba`.
 - [x] Database/directory clients: PostgreSQL and OpenLDAP complete; Firebird intentionally skipped with `pdo_firebird`.
 - [x] Image/font stack: libpng, libjpeg, FreeType, libwebp, libtiff, libjxl, and the unified `avif` target (libavif + libheif + AOM + libyuv + dav1d) are complete. UltraHDR/libuhdr is intentionally omitted because the current PHP GD extension exposes no PHP userland binding for its bundled-libgd-only `gdUhdr*` API. The separate TurboJPEG API/library and XPM/libXpm are also intentionally omitted.
-- [ ] Remaining libraries: Apache support files, GLib, Enchant, libffi, Tidy, libzip, MPIR, Net-SNMP.
+- [ ] Remaining libraries: Apache support files, GLib, Enchant, Tidy, libzip, MPIR, Net-SNMP.
 - [x] Skip standalone libargon2: `ext/standard` enables it only through optional `password-argon2` (default `no`), while the already selected Sodium extension registers `argon2i` and `argon2id` with PHP's `password_*` API when `standard` does not. OpenSSL's optional Argon2 provider uses OpenSSL EVP_KDF directly and does not consume libargon2.
 - [ ] Document exact target names, source patterns, dependencies, defines, and validation status as each target lands.
 - [x] Keep optional image surface minimal: omit XPM/libXpm and omit the separate TurboJPEG API/library. PHP/GD uses only the traditional libjpeg API, which already contains libjpeg-turbo's SSE2/AVX2 acceleration and runtime CPU dispatch.
+
+## Completed Target: libffi
+
+- [x] Replace the SDK binary input with the pinned Winlibs libffi 3.6.0 source required for PHP's `FFI_VECTORCALL_PARTIAL` probe.
+- [x] Reproduce the VS18 x64 static manifest: eight C sources plus one preprocessed Win64 MASM source.
+- [x] Use Xmake's configured C compiler only for `/EP` preprocessing and let Xmake detect/invoke `ml64.exe` for the generated `.asm`; no manual MASM invocation or MSBuild.
+- [x] Build and validate the exact nine-member layout, 52/52 `ffi*` symbols, eight `/MD` C members, and zero static CRT/export/import decoration.
 
 ## Completed Target: WinEditLine
 

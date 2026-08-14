@@ -50,7 +50,7 @@ task("prepare")
         os.run("hx https://aomedia.googlesource.com/aom/+archive/refs/tags/v3.14.1.tar.gz in/deps/aom")
         os.run("hx https://chromium.googlesource.com/libyuv/libyuv/+archive/644251f252a84bf8ce91ff0aca86a9b16b069ab8.tar.gz in/deps/libyuv")
         os.run("hx %s/libenchant2-2.8.16-1-vs18-x64.zip in/deps/libenchant2",bp)
-        os.run("hx %s/libffi-3.6.0-vs18-x64.zip in/deps/libffi",bp)
+        os.run("hx github://winlibs/libffi?ref=libffi-3.6.0 in/deps/libffi")
         os.run("hx github://winlibs/libheif?ref=libheif-1.23.1 in/deps/libheif")
         os.run("hx https://code.videolan.org/videolan/dav1d/-/archive/1.5.3/dav1d-1.5.3.tar.gz in/deps/dav1d")
         os.run("hx -delpathseg 1 https://ftp.gnu.org/pub/gnu/gettext/gettext-1.0.tar.gz in/deps/libintl")
@@ -1359,6 +1359,24 @@ RELSEG_SIZE=131072;SIZEOF_BOOL=1;SIZEOF_LONG=4;SIZEOF_SIZE_T=8;SIZEOF_VOID_P=8;X
         "in/deps/libpq/src/port/strerror.c", "in/deps/libpq/src/port/strlcat.c", "in/deps/libpq/src/port/strlcpy.c", "in/deps/libpq/src/port/system.c",
         "in/deps/libpq/src/port/timingsafe_bcmp.c", "in/deps/libpq/src/port/win32common.c", "in/deps/libpq/src/port/win32error.c", "in/deps/libpq/src/port/win32gai_strerror.c",
         "in/deps/libpq/src/port/win32gettimeofday.c", "in/deps/libpq/src/port/win32ntdll.c", "in/deps/libpq/src/port/win32setlocale.c", "in/deps/libpq/src/port/win32stat.c")
+
+
+target("libffi")
+    set_enabled(false)
+    set_kind("static")
+    set_targetdir(get_config("builddir"))
+    set_optimize("fastest")
+    on_prepare(function (target)
+        import("core.tool.compiler")
+        os.mkdir("out/libffi")
+        local cc = compiler.compargv("in/deps/libffi/src/types.c", "out/libffi/probe.obj", {target = target})
+        io.writefile("out/libffi/win64.asm", os.iorunv(cc, {"/EP", "/DFFI_BUILDING", "/DFFI_STATIC_BUILD", "/Iin/deps/libffi", "/Iin/deps/libffi/include", "/Iin/deps/libffi/src/x86", "in/deps/libffi/src/x86/win64_intel.S"}))
+        target:add("files", "out/libffi/win64.asm")
+    end)
+    add_includedirs("in/deps/libffi/include", "in/deps/libffi/src/x86", "in/deps/libffi", {public = true})
+    add_defines("FFI_STATIC_BUILD", {public = true})
+    add_defines("FFI_BUILDING", "WIN32", "_LIB")
+    add_files("in/deps/libffi/src/closures.c", "in/deps/libffi/src/java_raw_api.c", "in/deps/libffi/src/tramp.c", "in/deps/libffi/src/prep_cif.c", "in/deps/libffi/src/raw_api.c", "in/deps/libffi/src/types.c", "in/deps/libffi/src/x86/ffi.c", "in/deps/libffi/src/x86/ffiw64.c")
 
 
 target("wineditline")
