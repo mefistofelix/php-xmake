@@ -614,6 +614,18 @@ target("libintl")
                 :gsub("@[^@\r\n]+@", "0"))
         )
         io.writefile(
+            "in/deps/libintl/gettext-runtime/intl/gnulib-lib/stdckdint.h",
+            (io.readfile("in/deps/libintl/gettext-runtime/intl/gnulib-lib/stdckdint.in.h")
+                :gsub("@GUARD_PREFIX@", "GL")
+                :gsub("@INCLUDE_NEXT@ @NEXT_STDCKDINT_H@", "include <stdckdint.h>")
+                :gsub("@PRAGMA_SYSTEM_HEADER@", "")
+                :gsub("@PRAGMA_COLUMNS@", "")
+                :gsub("@HAVE_C_STDCKDINT_H@", "0")
+                :gsub("@HAVE_WORKING_C_STDCKDINT_H@", "0")
+                :gsub("@HAVE_CXX_STDCKDINT_H@", "0")
+                :gsub("@HAVE_WORKING_CXX_STDCKDINT_H@", "0"))
+        )
+        io.writefile(
             "in/deps/libintl/gettext-runtime/intl/gnulib-lib/sched.h",
             [[#include "c++defs.h"
 #include "warn-on-use.h"
