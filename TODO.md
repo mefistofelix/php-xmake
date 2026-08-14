@@ -173,7 +173,7 @@ Integrate zstd as one dependency target:
 - [x] Replace the broad compiler-driven Gnulib experiment with the exact SDK source selection.
 - [x] Complete the native MSVC Gnulib wrapper configuration and direct per-source static build without MinGW, Cygwin, Autoconf, Make, sed, or other Unix build tools.
 - [x] Validate the 103 C archive members as x64 `/MD`, with no static CRT or embedded export directives, and cover all 79 SDK DLL exports.
-- [ ] Add and validate the SDK-matching Windows version resource member with the native Windows resource compiler.
+- [ ] Add and validate the SDK-matching Windows version resource member with native `rc.exe` + `cvtres.exe`.
 - [ ] Validate runtime catalog lookup and executable DLL dependencies.
 
 ## Completed Target: libxml2
@@ -240,6 +240,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-14 — direct `.rc` resource build at commit `07b8f22`: Xmake invoked the configured Windows SDK `rc.exe` with the corrected `PACKAGE_VERSION_STRING=\"1.0\"` argument and archived the resulting `libintl.rc.obj` successfully with the 103 C objects. Format inspection then showed that the member is still native `.res` data despite its `.obj` suffix: `dumpbin` reports the resource-file sentinel header and cannot traverse it as COFF, whereas the SDK `libintl.res.obj` is a genuine x64 COFF object with a `.rsrc` section. Keep Microsoft-only tooling but replace the direct Xmake `.rc` member with `rc.exe` followed by MSVC `cvtres.exe /machine:x64`, then archive the resulting COFF object.
 
 - 2026-08-14 — first native resource build at commit `2a60054`: Xmake discovered and invoked the configured Windows SDK `rc.exe` directly for committed `libintl.rc`, confirming that no GNU resource tool is required. The compile stopped at RC2104 because the initial Xmake file define encoded `PACKAGE_VERSION_STRING` with literal backslashes (`\\\"1.0\\\"`) instead of quote characters. Keep the native `.rc` path and change only that file-config define to the literal `PACKAGE_VERSION_STRING="1.0"` form before retrying.
 

@@ -787,6 +787,25 @@ target("libintl")
             "in/deps/libintl/gettext-runtime/intl/gnulib-lib/uniwidth.in.h",
             "in/deps/libintl/gettext-runtime/intl/gnulib-lib/uniwidth.h"
         )
+        local resource = path.join(get_config("builddir"), "libintl.rc")
+        local res = path.join(get_config("builddir"), "libintl.res")
+        local object = path.join(get_config("builddir"), "libintl.res.obj")
+        io.writefile(
+            resource,
+            (io.readfile("in/deps/libintl/gettext-runtime/intl/libintl.rc")
+                :gsub("PACKAGE_VERSION_STRING", "\"1.0\"")
+                :gsub("PACKAGE_VERSION_MAJOR", "1")
+                :gsub("PACKAGE_VERSION_MINOR", "0")
+                :gsub("PACKAGE_VERSION_SUBMINOR", "0"))
+        )
+        os.vrunv(path.join(
+            get_config("sdk"), "Windows Kits", "10", "bin",
+            get_config("vs_sdkver"), "x64", "rc.exe"
+        ), {"-nologo", "-Fo" .. res, resource})
+        os.vrunv(path.join(
+            get_config("sdk"), "VC", "Tools", "MSVC", get_config("vs_toolset"),
+            "bin", "Hostx64", "x64", "cvtres.exe"
+        ), {"/nologo", "/machine:x64", "/readonly", "/out:" .. object, res})
     end)
     add_deps("libiconv")
     add_includedirs("in/deps/libintl/gettext-runtime/intl", {public = true})
@@ -810,14 +829,7 @@ target("libintl")
         "in/deps/libintl/gettext-runtime/intl/gnulib-lib/unictype/*.c",
         "in/deps/libintl/gettext-runtime/intl/gnulib-lib/uniwidth/*.c"
     )
-    add_files("in/deps/libintl/gettext-runtime/intl/libintl.rc", {
-        defines = {
-            [[PACKAGE_VERSION_STRING="1.0"]],
-            "PACKAGE_VERSION_MAJOR=1",
-            "PACKAGE_VERSION_MINOR=0",
-            "PACKAGE_VERSION_SUBMINOR=0"
-        }
-    })
+    add_files("out/libintl.res.obj", {always_added = true})
     remove_files(
         "in/deps/libintl/gettext-runtime/intl/intl-exports.c",
         "in/deps/libintl/gettext-runtime/intl/os2compat.c",
