@@ -270,7 +270,7 @@ Every library must receive its own static target. Integrate and validate them on
 - [x] Data/text: ICU, libiconv, libintl, libxml2, libxslt, Oniguruma, SQLite. LMDB and QDBM skipped with `ext/dba`.
 - [x] Database/directory clients: PostgreSQL and OpenLDAP complete; Firebird intentionally skipped with `pdo_firebird`.
 - [x] Image/font stack: libpng, libjpeg, FreeType, libwebp, libtiff, libjxl, and the unified `avif` target (libavif + libheif + AOM + libyuv + dav1d) are complete. UltraHDR/libuhdr is intentionally omitted because the current PHP GD extension exposes no PHP userland binding for its bundled-libgd-only `gdUhdr*` API. The separate TurboJPEG API/library and XPM/libXpm are also intentionally omitted.
-- [ ] Remaining libraries: MPIR, Net-SNMP.
+- [x] Remaining-library review complete: MPIR/GMP and Net-SNMP are intentionally omitted with their opt-in `ext/gmp` and `ext/snmp` extensions; no selected component depends on them.
 - [x] Skip standalone libargon2: `ext/standard` enables it only through optional `password-argon2` (default `no`), while the already selected Sodium extension registers `argon2i` and `argon2id` with PHP's `password_*` API when `standard` does not. OpenSSL's optional Argon2 provider uses OpenSSL EVP_KDF directly and does not consume libargon2.
 - [ ] Document exact target names, source patterns, dependencies, defines, and validation status as each target lands.
 - [x] Keep optional image surface minimal: omit XPM/libXpm and omit the separate TurboJPEG API/library. PHP/GD uses only the traditional libjpeg API, which already contains libjpeg-turbo's SSE2/AVX2 acceleration and runtime CPU dispatch.

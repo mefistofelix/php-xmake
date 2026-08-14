@@ -64,8 +64,6 @@ task("prepare")
         os.run("hx github://winlibs/libxml2?ref=libxml2-2.11.9-7 in/deps/libxml2")
         os.run("hx github://winlibs/libxslt?ref=libxslt-1.1.43-2 in/deps/libxslt")
         os.run("hx github://nih-at/libzip?ref=v1.11.4 in/deps/libzip")
-        os.run("hx %s/mpir-3.0.0-2-vs18-x64.zip in/deps/mpir",bp) --xmiss
-        os.run("hx %s/net-snmp-5.9.4-vs18-x64.zip in/deps/net-snmp",bp) -- xmiss
         os.run("hx -delpathseg 1 https://www.openldap.org/software/download/OpenLDAP/openldap-release/openldap-2.6.13.tgz in/deps/openldap")
         os.run("hx github://garyhouston/rxspencer?ref=v3.9.0 in/deps/rxspencer")
         os.run("hx -delpathseg 1 https://www.sqlite.org/2026/sqlite-amalgamation-3530200.zip in/deps/sqlite3")
