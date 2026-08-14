@@ -30,7 +30,7 @@ Last updated: 2026-08-14
 - [x] Validate `async.runjobs` for the independent OpenSSL template and perlasm generators, with concurrency limited by the build action's `-j` value.
 - [x] Complete a clean parallel build of the broad `openssl_test` source-glob experiment with preparation temporarily bypassed, using declarative exclusions for disabled, platform-incompatible, test/example, and textually included implementation sources.
 - [x] Promote the compact `openssl_test` declaration to the official `openssl` target and remove the obsolete 109-group unity declaration.
-- [x] Preserve the validated compact target unchanged apart from renaming it to `openssl`; do not reanalyze it against the removed verbose implementation.
+- [x] Preserve the validated compact OpenSSL structure; later static-link closure fixes are limited to source/assembly selection and do not increase its 131-line target size.
 - [x] Defer new unity-build work until all dependencies and the complete PHP target have validated baseline builds.
 
 ## Completed Target: zlib
@@ -99,7 +99,7 @@ Integrate zstd as one dependency target:
 - [x] Add one static OpenSSL dependency target; the configured closure contains no source compiled with incompatible duplicate settings.
 - [x] Replace the verbose source manifest and 109 unity groups with the validated broad C-selection and declarative-removal patterns from `openssl_test`.
 - [x] Compile OpenSSL sources independently; do not enable unity while baseline target integration is in progress.
-- [x] Retain the prior clean build and 6,475-symbol validation as the validation of the unchanged promoted target; use `dll_compare` for future reference checks.
+- [x] Revalidate the corrected compact target against `dll_compare`: 6,475/6,475 reference names, 1,155 unique x64 members, zero `LIBCMT`, `/EXPORT:`, or real case-sensitive duplicate symbols, plus a successful OpenLDAP + Cyrus SASL + OpenSSL static runtime smoke test.
 
 ## Next Targets: libssh2 and nghttp2 prerequisites
 
@@ -229,7 +229,7 @@ Integrate zstd as one dependency target:
 - [x] Compare packaging forks with upstream: OpenLDAP implementation sources are unchanged; retain only three small MSVC portability adaptations. Cyrus SASL fork changes do not require using the fork.
 - [x] Replace prebuilt OpenLDAP/SASL packages with pinned authoritative sources plus rxspencer, and validate clean and repeated preparation.
 - [x] Build and validate `libsasl.lib`: 72/72 SDK DLL exports, 14 x64 `/MD` members, no static CRT/export directives/import thunks, and a static 2.1.28 runtime version check.
-- [x] Build and validate `openldap.lib`: 695/695 SDK Windows LDAP/LBER APIs, 92 x64 `/MD` members, no static CRT/export directives/import thunks, and a direct LBER runtime smoke test with no third-party runtime DLL.
+- [x] Build and validate `openldap.lib`: 695/695 SDK Windows LDAP/LBER APIs, 92 x64 `/MD` members, no static CRT/export directives/import thunks, a direct LBER smoke test, and a full OpenLDAP + Cyrus SASL + OpenSSL static consumer that links and exits 0 with no third-party runtime DLL.
 
 ## Completed Cleanup: libpq and libintl
 
@@ -272,6 +272,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-14 — OpenSSL/OpenLDAP/SASL static-link closure: the apparent OpenSSL duplicate-symbol set was a PowerShell case-insensitive grouping false positive; ordinal case-sensitive inspection finds zero duplicate external names. The real failure was broad-source selection diverging from OpenSSL `VC-WIN64A` `build.info`: x86 AES C fallbacks and `des/ncbc_enc.c` were compiled beside x64 assembly, non-x64 architecture C files were admitted, and required AVX/AVX512 assembly files were omitted because their filenames lack `x86_64`. Correcting only those exclusions plus the existing NASM glob keeps the OpenSSL target at 131 lines. The rebuilt archive covers 6,475/6,475 reference exports, has 1,155 unique x64 members (1,115 C `MSVCRT` + 40 NASM), zero `LIBCMT`, `/EXPORT:`, or real duplicate names. A forced OpenLDAP + Cyrus SASL + OpenSSL consumer links, runs with exit 0, and imports only Windows/VCRuntime/UCRT DLLs.
 
 - 2026-08-14 — libintl target simplification: reduced the validated target from 130 to 93 lines by unifying duplicate header-wrapper logic, compacting repeated configuration declarations, and replacing explicit equivalent exclusion sets with verified narrow wildcard patterns. All 19 generated configuration/public wrapper headers are byte-for-byte identical to the prior target. Rebuild still covers 79/79 `dll_compare/libintl.dll` exports; `out/libintl.lib` remains 104 members (103 C `/MD` plus one x64 resource), with zero `LIBCMT` or `/EXPORT:` directives. The upstream `test-api.c` catalog test rebuilt and exited 0, and its PE imports remain limited to Advapi32, Kernel32, VCRuntime, and UCRT API-set DLLs.
 

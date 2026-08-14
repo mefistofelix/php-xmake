@@ -955,12 +955,12 @@ target("openssl")
         "in/deps/openssl/**/*acvp*.c",
         "in/deps/openssl/**/*md2*.c",
         "in/deps/openssl/crypto/*cap.c",
-        "in/deps/openssl/crypto/LPdir_*.c",
-        "in/deps/openssl/crypto/ec/ecp_nistp*.c",
-        "in/deps/openssl/crypto/ec/ecp_nistz256_table.c",
+        "in/deps/openssl/crypto/LPdir_*.c", "in/deps/openssl/crypto/aes/aes_core.c", "in/deps/openssl/crypto/aes/aes_cbc.c", "in/deps/openssl/crypto/aes/aes_x86core.c",
+        "in/deps/openssl/crypto/ec/ecp_nistp*.c", "in/deps/openssl/crypto/**/*_ppc.c", "in/deps/openssl/crypto/**/*_riscv.c", "in/deps/openssl/crypto/**/*s390x*.c", "in/deps/openssl/crypto/**/*sparc*.c",
+        "in/deps/openssl/crypto/ec/ecp_nistz256_table.c", "in/deps/openssl/crypto/bn/asm/x86_64-gcc.c", "in/deps/openssl/crypto/des/ncbc_enc.c",
         "in/deps/openssl/crypto/poly1305/poly1305_*.c",
         "in/deps/openssl/crypto/rc5/*.c",
-        "in/deps/openssl/demos/**/*.c",
+        "in/deps/openssl/apps/*.c", "in/deps/openssl/apps/**/*.c", "in/deps/openssl/demos/**/*.c",
         "in/deps/openssl/doc/**/*.c",
         "in/deps/openssl/fuzz/*.c",
         "in/deps/openssl/ms/applink.c",
@@ -976,7 +976,7 @@ target("openssl")
     )
 
     add_asflags("-Ox", "-f", "win64", "-DNEAR", "-g", {force = true})
-    add_files("in/deps/openssl/**/*x86_64*.asm")
+    add_files("in/deps/openssl/**/*x86_64*.asm", "in/deps/openssl/**/*avx*.asm")
 
     add_includedirs(
         "in/deps/openssl/apps/include",
