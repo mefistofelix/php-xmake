@@ -218,12 +218,16 @@ Integrate zstd as one dependency target:
 - [x] Inspect the upstream Meson/Make/MSVC declarations: 17 libpq C sources for Windows+OpenSSL, the required frontend `pgcommon`/`pgport` closure folded into the same external-dependency target, and SDK configuration with LDAP/thread-safety/OpenSSL but no GSS/NLS/zlib.
 - [x] Build the direct 54-member static target with its normal `openssl` target dependency and minimal configuration callback. `out/libpq.lib` covers all 187/187 exports from `dll_compare/libpq.dll`, all members are x64 `/MD`, and the archive contains no `LIBCMT`, `/EXPORT:` directive, or libpq import thunk.
 
-## Next Target: Firebird / fbclient
+## Skipped Target: Firebird / fbclient
 
-- [ ] Identify the authoritative Firebird source/tag matching the current PHP SDK `fbclient` 4.0.7 package and preserve the SDK binary only as a validation reference.
-- [ ] Inspect PHP's InterBase/PDO_Firebird Windows consumers and the upstream MSVC build for the exact client source closure, generated configuration, and dependencies.
-- [ ] Replace the prebuilt package with pinned authoritative source if the client can be built directly with the existing toolchain, then validate clean and repeated preparation.
-- [ ] Add the minimal static target and validate its final archive against the reference DLL/API surface before moving on.
+- [x] `pdo_firebird` is intentionally excluded from this PHP distribution, so Firebird/fbclient is not a project dependency and its PHP SDK package is no longer downloaded by `prepare`.
+
+## Next Target: OpenLDAP
+
+- [ ] Identify the authoritative OpenLDAP source/revision matching the current PHP SDK package and preserve the SDK binaries only as validation references.
+- [ ] Inspect PHP's LDAP Windows consumer and upstream Windows/MSVC build declarations for the exact client source closure and dependencies.
+- [ ] Replace the prebuilt package with pinned authoritative source, validate clean and repeated preparation, then add the minimal static target.
+- [ ] Validate the final archive against the SDK DLL/API surface, architecture, CRT, and representative LDAP client use.
 
 ## Dependency Targets
 
@@ -233,7 +237,7 @@ Every library must receive its own static target. Integrate and validate them on
 - [x] Cryptography and transport: OpenSSL, libcurl, libssh2, libsodium.
 - [x] HTTP/async: libuv, nghttp2, nghttp3, ngtcp2.
 - [x] Data/text: ICU, libiconv, libintl, libxml2, libxslt, Oniguruma, SQLite. LMDB and QDBM skipped with `ext/dba`.
-- [ ] Database/directory clients: PostgreSQL, Firebird, OpenLDAP.
+- [ ] Database/directory clients: PostgreSQL complete; Firebird intentionally skipped with `pdo_firebird`; OpenLDAP pending.
 - [ ] Image/font stack: FreeType, libjpeg-turbo, libpng, libtiff, libwebp, libavif, libheif, libjxl, libultrahdr, libxpm.
 - [ ] Remaining libraries: Apache support files, GLib, Argon2, Enchant, libffi, SASL, Tidy, libzip, MPIR, Net-SNMP, WinEditLine.
 - [ ] Document exact target names, source patterns, dependencies, defines, and validation status as each target lands.
