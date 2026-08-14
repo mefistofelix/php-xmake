@@ -639,6 +639,24 @@ target("libintl")
             (io.readfile("in/deps/libintl/gettext-runtime/intl/gnulib-lib/alloca.in.h")
                 :gsub("@HAVE_ALLOCA_H@", "0"))
         )
+        local string_h = path.absolute(path.join(
+            get_config("sdk"), "Windows Kits", "10", "Include",
+            get_config("vs_sdkver"), "ucrt", "string.h")):gsub("\\", "/")
+        io.writefile(
+            "in/deps/libintl/gettext-runtime/intl/gnulib-lib/string.h",
+            [[#include "c++defs.h"
+#include "arg-nonnull.h"
+#include "warn-on-use.h"
+]] .. (io.readfile("in/deps/libintl/gettext-runtime/intl/gnulib-lib/string.in.h")
+                :gsub("@GUARD_PREFIX@", "GL")
+                :gsub("@INCLUDE_NEXT@", "include")
+                :gsub("@PRAGMA_SYSTEM_HEADER@", "")
+                :gsub("@PRAGMA_COLUMNS@", "")
+                :gsub("@NEXT_STRING_H@", "\"" .. string_h .. "\"")
+                :gsub("@GNULIB_STRINGEQ@", "1")
+                :gsub("@HAVE_DECL_STREQ@", "0")
+                :gsub("@[^@\r\n]+@", "0"))
+        )
         io.writefile(
             "in/deps/libintl/gettext-runtime/intl/gnulib-lib/stdckdint.h",
             (io.readfile("in/deps/libintl/gettext-runtime/intl/gnulib-lib/stdckdint.in.h")
