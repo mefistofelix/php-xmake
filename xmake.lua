@@ -810,6 +810,14 @@ target("libintl")
         "in/deps/libintl/gettext-runtime/intl/gnulib-lib/unictype/*.c",
         "in/deps/libintl/gettext-runtime/intl/gnulib-lib/uniwidth/*.c"
     )
+    add_files("in/deps/libintl/gettext-runtime/intl/libintl.rc", {
+        defines = {
+            "PACKAGE_VERSION_STRING=\\\"1.0\\\"",
+            "PACKAGE_VERSION_MAJOR=1",
+            "PACKAGE_VERSION_MINOR=0",
+            "PACKAGE_VERSION_SUBMINOR=0"
+        }
+    })
     remove_files(
         "in/deps/libintl/gettext-runtime/intl/intl-exports.c",
         "in/deps/libintl/gettext-runtime/intl/os2compat.c",

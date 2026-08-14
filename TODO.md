@@ -172,7 +172,9 @@ Integrate zstd as one dependency target:
 - [x] Recover the official PHP SDK `libintl_a.lib` reference and derive its exact 25-core + 78-Gnulib + 1-resource object manifest.
 - [x] Replace the broad compiler-driven Gnulib experiment with the exact SDK source selection.
 - [x] Complete the native MSVC Gnulib wrapper configuration and direct per-source static build without MinGW, Cygwin, Autoconf, Make, sed, or other Unix build tools.
-- [ ] Validate archive architecture, `/MD`, static decoration, SDK symbol coverage, and runtime catalog lookup.
+- [x] Validate the 103 C archive members as x64 `/MD`, with no static CRT or embedded export directives, and cover all 79 SDK DLL exports.
+- [ ] Add and validate the SDK-matching Windows version resource member with the native Windows resource compiler.
+- [ ] Validate runtime catalog lookup and executable DLL dependencies.
 
 ## Completed Target: libxml2
 
@@ -238,6 +240,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-14 — corrected `libintl` symbol validation after commit `20507ee`: the rebuilt archive covers all 79/79 names exported by the SDK DLL. All 103 C members report x64 machine type and `MSVCRT`, with zero `LIBCMT` and zero embedded `/EXPORT:` directives. The only meaningful static-reference names absent after filtering compiler/debug/resource artifacts are `_snprintf`, `_snwprintf`, `_vsnprintf`, `_vsnwprintf_l`, and `frexpl`; inspection of the SDK `vasnprintf.obj` confirms these are header/UCRT fallback functions emitted inside that object rather than libintl API. The only manifest member still absent is `libintl.res.obj`; add committed `libintl.rc` through Xmake's native Windows resource compilation with version `1.0` before runtime validation.
 
 - 2026-08-14 — replacement-surface `libintl` rebuild at commit `1346f39`: the generated UCRT-backed `float.h`, `rpl_pthread_once` selection, and hidden `_libintl_tsearch` family mappings compiled successfully with the same direct `/MD /O2` MSVC build; `out/libintl.lib` was recreated in 3.125 seconds. Re-run the SDK export/static-symbol comparison before integrating the remaining Windows resource object.
 
