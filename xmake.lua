@@ -453,20 +453,20 @@ target("icu")
     add_files("in/deps/ICU/icu4c/source/data/in/icudt77l_dat.obj", {always_added = true})
 
 target("libiconv")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
     on_prepare(function ()
         io.writefile("in/deps/libiconv/lib/config.h", [[
-#define ENABLE_EXTRA 0
-#define HAVE_LANGINFO_CODESET 0
-#define HAVE_MBRTOWC 1
-#define HAVE_MBSINIT 1
-#define HAVE_WCRTOMB 1
-#define ICONV_CONST
-#define WORDS_LITTLEENDIAN 1
-]])
+            #define ENABLE_EXTRA 0
+            #define HAVE_LANGINFO_CODESET 0
+            #define HAVE_MBRTOWC 1
+            #define HAVE_MBSINIT 1
+            #define HAVE_WCRTOMB 1
+            #define ICONV_CONST
+            #define WORDS_LITTLEENDIAN 1
+        ]])
         io.writefile(
             "in/deps/libiconv/include/iconv.h",
             (io.readfile("in/deps/libiconv/include/iconv.h.build.in")
@@ -499,7 +499,7 @@ target("libiconv")
     )
 
 target("libintl")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
@@ -528,7 +528,14 @@ target("libintl")
                 :gsub("#undef PACKAGE_NAME", "#define PACKAGE_NAME \"libintl\"")
                 :gsub("#undef PACKAGE_VERSION", "#define PACKAGE_VERSION \"1.0\"")
                 :gsub("#undef USE_WINDOWS_THREADS", "#define USE_WINDOWS_THREADS 1")
-                :gsub("#undef VERSION", "#define VERSION \"1.0\""))
+                :gsub("#undef VERSION", "#define VERSION \"1.0\"")
+            .. [[
+#if defined _WIN32 && !defined __CYGWIN__
+#include <stddef.h>
+#include <wchar.h>
+extern wchar_t *wgetcwd (wchar_t *, size_t);
+#endif
+]])
         )
         local header = io.readfile("in/deps/libintl/gettext-runtime/intl/libgnuintl.in.h")
             :gsub("@HAVE_POSIX_PRINTF@", "0")
@@ -538,14 +545,7 @@ target("libintl")
             :gsub("@HAVE_NEWLOCALE@", "0")
             :gsub("@ENHANCE_LOCALE_FUNCS@", "0")
             :gsub("@WOE32DLL@", "0")
-        io.writefile(
-            "in/deps/libintl/gettext-runtime/intl/libgnuintl.h",
-            header .. [[
-#include <stddef.h>
-#include <wchar.h>
-extern wchar_t *wgetcwd (wchar_t *, size_t);
-]]
-        )
+        io.writefile("in/deps/libintl/gettext-runtime/intl/libgnuintl.h", header)
         io.writefile("in/deps/libintl/gettext-runtime/intl/libintl.h", header)
         io.writefile(
             "in/deps/libintl/gettext-runtime/intl/gnulib-lib/search.h",
@@ -577,6 +577,46 @@ extern wchar_t *wgetcwd (wchar_t *, size_t);
                 :gsub("@INCLUDE_NEXT@ @NEXT_UNISTD_H@", "include <unistd.h>")
                 :gsub("@GNULIB_GETCWD@", "1")
                 :gsub("@REPLACE_GETCWD@", "1")
+                :gsub("@[^@\r\n]+@", "0"))
+        )
+        local locale_h = path.absolute(path.join(
+            get_config("sdk"), "Windows Kits", "10", "Include",
+            get_config("vs_sdkver"), "ucrt", "locale.h")):gsub("\\", "/")
+        io.writefile(
+            "in/deps/libintl/gettext-runtime/intl/gnulib-lib/locale.h",
+            [[#include "c++defs.h"
+#include "arg-nonnull.h"
+#include "warn-on-use.h"
+]] .. (io.readfile("in/deps/libintl/gettext-runtime/intl/gnulib-lib/locale.in.h")
+                :gsub("@GUARD_PREFIX@", "GL")
+                :gsub("@PRAGMA_SYSTEM_HEADER@", "")
+                :gsub("@PRAGMA_COLUMNS@", "")
+                :gsub("@INCLUDE_NEXT@", "include")
+                :gsub("@NEXT_LOCALE_H@", "\"" .. locale_h .. "\"")
+                :gsub("@HAVE_LOCALE_T@", "0")
+                :gsub("@HAVE_WINDOWS_LOCALE_T@", "1")
+                :gsub("@GNULIB_LOCALECONV@", "1")
+                :gsub("@GNULIB_SETLOCALE@", "0")
+                :gsub("@GNULIB_SETLOCALE_NULL@", "1")
+                :gsub("@GNULIB_NEWLOCALE@", "0")
+                :gsub("@GNULIB_DUPLOCALE@", "0")
+                :gsub("@GNULIB_FREELOCALE@", "0")
+                :gsub("@GNULIB_GETLOCALENAME_L@", "0")
+                :gsub("@GNULIB_GETLOCALENAME_L_UNSAFE@", "1")
+                :gsub("@GNULIB_LOCALENAME_UNSAFE@", "1")
+                :gsub("@HAVE_NEWLOCALE@", "0")
+                :gsub("@HAVE_DUPLOCALE@", "0")
+                :gsub("@HAVE_FREELOCALE@", "0")
+                :gsub("@HAVE_GETLOCALENAME_L@", "0")
+                :gsub("@HAVE_XLOCALE_H@", "0")
+                :gsub("@REPLACE_LOCALECONV@", "0")
+                :gsub("@REPLACE_SETLOCALE@", "0")
+                :gsub("@REPLACE_NEWLOCALE@", "0")
+                :gsub("@REPLACE_DUPLOCALE@", "0")
+                :gsub("@REPLACE_FREELOCALE@", "0")
+                :gsub("@REPLACE_GETLOCALENAME_L@", "0")
+                :gsub("@REPLACE_STRUCT_LCONV@", "0")
+                :gsub("@LOCALENAME_ENHANCE_LOCALE_FUNCS@", "0")
                 :gsub("@[^@\r\n]+@", "0"))
         )
         io.writefile(
@@ -623,13 +663,36 @@ extern wchar_t *wgetcwd (wchar_t *, size_t);
     add_files(
         "in/deps/libintl/gettext-runtime/intl/*.c",
         "in/deps/libintl/gettext-runtime/intl/gnulib-lib/*.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/**/*.c"
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/glthread/*.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/unicase/*.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/unictype/*.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/uniwidth/*.c"
     )
     remove_files(
+        "in/deps/libintl/gettext-runtime/intl/intl-exports.c",
+        "in/deps/libintl/gettext-runtime/intl/os2compat.c",
         "in/deps/libintl/gettext-runtime/intl/gnulib-lib/frexp.c",
         "in/deps/libintl/gettext-runtime/intl/gnulib-lib/frexpl.c",
-        "in/deps/libintl/gettext-runtime/intl/intl-exports.c",
-        "in/deps/libintl/gettext-runtime/intl/os2compat.c"
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/isnan.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/isnand.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/iswblank.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/iswdigit.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/iswpunct.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/iswxdigit.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/itold.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/lc-charset-dispatch.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/localeconv.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/mbtowc-lock.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/memchr.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/setlocale-lock.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/signbitd.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/signbitf.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/signbitl.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/stdio-read.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/stdio-write.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/strncpy.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/wmemcpy.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/wmemset.c"
     )
     add_files("in/deps/libintl/gettext-runtime/intl/setlocale.c", {
         defines = {"SETLOCALE_NULL_ALL_MAX=3221"}

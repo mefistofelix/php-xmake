@@ -164,13 +164,15 @@ Integrate zstd as one dependency target:
 - [x] Inspect the upstream build for exact library sources, generated configuration, Windows definitions, public static interface, and dependencies.
 - [x] Add a direct per-source static target without unity, then build and validate it.
 
-## Deferred Target: libintl
+## Current Target: libintl
 
 - [x] Identify the authoritative source and version corresponding to the current PHP SDK package.
 - [x] Replace the prebuilt package with pinned upstream source and validate clean and repeated preparation.
 - [x] Inspect the upstream Windows build for its exact source manifest, generated configuration, static interface, and libiconv dependency.
-- [ ] Add a direct per-source static target without unity, then build and validate it.
-- [ ] Resume the generated Gnulib locale-wrapper configuration after the dependency baseline is complete.
+- [x] Recover the official PHP SDK `libintl_a.lib` reference and derive its exact 25-core + 78-Gnulib + 1-resource object manifest.
+- [x] Replace the broad compiler-driven Gnulib experiment with the exact SDK source selection.
+- [ ] Complete the native MSVC `locale.h` wrapper and direct per-source static build without MinGW, Cygwin, Autoconf, Make, sed, or other Unix build tools.
+- [ ] Validate archive architecture, `/MD`, static decoration, SDK symbol coverage, and runtime catalog lookup.
 
 ## Completed Target: libxml2
 
