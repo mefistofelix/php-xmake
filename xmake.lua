@@ -1560,7 +1560,6 @@ target("openssl")
     set_toolset("as", "nasm@$(projectdir)/in/perl/c/bin/nasm.exe")
     -- add_rules("c.unity_build")
     on_prepare(function ()
-        if true then return end -- disabled to debug fast
         import("async")
         import("core.base.option")
 
