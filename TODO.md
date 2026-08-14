@@ -233,7 +233,7 @@ Integrate zstd as one dependency target:
 
 ## Current Cleanup: libpq and libintl
 
-- [ ] Reduce the 129-line `libpq` target substantially without changing its validated 187/187 reference symbol coverage.
+- [x] Reduce `libpq` from 129 to 53 lines without changing generated configuration bytes, the 54-source/archive-member closure, or validated 187/187 reference symbol coverage.
 - [ ] Reduce the 130-line `libintl` target further if possible while retaining 79/79 SDK DLL export coverage and runtime/catalog validation.
 
 ## Dependency Targets
@@ -272,6 +272,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-14 — libpq target simplification: reduced the validated PostgreSQL target from 129 to 53 lines by compacting configuration-value/path rendering and the unchanged explicit `src/common`/`src/port` closure. All four generated configuration headers are byte-for-byte identical to the previous target. Rebuild still covers 187/187 reference DLL exports with zero missing names and zero libpq import thunks; the final archive remains 54/54 x64 `MSVCRT` members with zero `LIBCMT` or `/EXPORT:` directives.
 
 - 2026-08-14 — OpenLDAP/Cyrus SASL validation: replaced the PHP SDK binary packages with authoritative OpenLDAP 2.6.13, Cyrus SASL 2.1.28, and rxspencer 3.9.0 source inputs; clean and unchanged-repeat preparation both succeeded. `out/libsasl.lib` covers all 72/72 SDK DLL exports and contains 14 x64 `/MD` members with zero `LIBCMT`, `/EXPORT:` directives, or SASL/prop import thunks; a direct static consumer verified version 2.1.28 and exited 0. `out/openldap.lib` combines the client `libldap`/`liblber` closure plus rxspencer, covers all 695/695 public LDAP/LBER APIs represented by the SDK Windows static references, and contains 92 x64 `/MD` members with zero `LIBCMT`, `/EXPORT:` directives, or LDAP/LBER/SASL-family import thunks. A direct LBER consumer encoded a DER value and exited 0 with only Windows/VCRuntime/UCRT runtime dependencies. LMDB, SQLite server backends, and SASL `sasldb` remain excluded.
 

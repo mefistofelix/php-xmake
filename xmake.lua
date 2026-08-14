@@ -887,51 +887,16 @@ target("libpq")
         for name in ([=[ENABLE_THREAD_SAFETY HAVE_ASN1_STRING_GET0_DATA HAVE_ATOMICS HAVE_BIO_METH_NEW HAVE_DECL_STRNLEN HAVE_FSEEKO HAVE_HMAC_CTX_FREE HAVE_HMAC_CTX_NEW HAVE_INET_PTON HAVE_INT_TIMEZONE HAVE_LOCALE_T HAVE_LONG_LONG_INT_64 HAVE_MBSTOWCS_L HAVE_MEMORY_H HAVE_OPENSSL_INIT_SSL HAVE_SOCKLEN_T HAVE_SPINLOCKS HAVE_SSL_CTX_SET_CERT_CB HAVE_SSL_CTX_SET_NUM_TICKETS HAVE_STDINT_H HAVE_STDLIB_H HAVE_STRING_H HAVE_STRNLEN HAVE_SYS_STAT_H HAVE_SYS_TYPES_H HAVE_UNISTD_H HAVE_WCSTOMBS_L HAVE_X509_GET_SIGNATURE_INFO HAVE_X509_GET_SIGNATURE_NID HAVE__CONFIGTHREADLOCALE HAVE__CPUID PG_USE_STDBOOL STDC_HEADERS USE_LDAP USE_OPENSSL USE_SSE42_CRC32C_WITH_RUNTIME_CHECK USE_WIN32_SEMAPHORES USE_WIN32_SHARED_MEMORY]=]):gmatch("%S+") do defs[name] = "1" end
         for name in ([=[HAVE_DECL_FDATASYNC HAVE_DECL_F_FULLFSYNC HAVE_DECL_LLVMCREATEGDBREGISTRATIONLISTENER HAVE_DECL_LLVMCREATEPERFJITEVENTLISTENER HAVE_DECL_LLVMGETHOSTCPUFEATURES HAVE_DECL_LLVMGETHOSTCPUNAME HAVE_DECL_LLVMORCGETSYMBOLADDRESSIN HAVE_DECL_MEMSET_S HAVE_DECL_POSIX_FADVISE HAVE_DECL_PREADV HAVE_DECL_PWRITEV HAVE_DECL_STRCHRNUL HAVE_DECL_STRLCAT HAVE_DECL_STRLCPY HAVE_DECL_TIMINGSAFE_BCMP]=]):gmatch("%S+") do defs[name] = "0" end
         local values = [=[
-ALIGNOF_DOUBLE=8
-ALIGNOF_INT=4
-ALIGNOF_LONG=4
-ALIGNOF_LONG_LONG_INT=8
-ALIGNOF_SHORT=2
-BLCKSZ=8192
-CONFIGURE_ARGS="--enable-thread-safety --with-ldap --without-zlib --with-ssl=openssl"
-DEF_PGPORT=5432
-DEF_PGPORT_STR="5432"
-DLSUFFIX=".dll"
-INT64_MODIFIER="ll"
-MAXIMUM_ALIGNOF=8
-MEMSET_LOOP_LIMIT=1024
-OPENSSL_API_COMPAT=0x10001000L
-PACKAGE_BUGREPORT="pgsql-bugs@lists.postgresql.org"
-PACKAGE_NAME="PostgreSQL"
-PACKAGE_STRING="PostgreSQL 16.14"
-PACKAGE_TARNAME="postgresql"
-PACKAGE_URL="https://www.postgresql.org/"
-PACKAGE_VERSION="16.14"
-PG_INT64_TYPE=long long int
-PG_KRB_SRVNAM="postgres"
-PG_MAJORVERSION="16"
-PG_MAJORVERSION_NUM=16
-PG_MINORVERSION_NUM=14
-PG_VERSION="16.14"
-PG_VERSION_NUM=160014
-PG_VERSION_STR="PostgreSQL 16.14, compiled by Visual C++, 64-bit"
-RELSEG_SIZE=131072
-SIZEOF_BOOL=1
-SIZEOF_LONG=4
-SIZEOF_SIZE_T=8
-SIZEOF_VOID_P=8
-XLOG_BLCKSZ=8192
-inline=__inline
-pg_restrict=__restrict
+ALIGNOF_DOUBLE=8;ALIGNOF_INT=4;ALIGNOF_LONG=4;ALIGNOF_LONG_LONG_INT=8;ALIGNOF_SHORT=2;BLCKSZ=8192;DEF_PGPORT=5432;DEF_PGPORT_STR="5432";DLSUFFIX=".dll"
+CONFIGURE_ARGS="--enable-thread-safety --with-ldap --without-zlib --with-ssl=openssl";INT64_MODIFIER="ll";MAXIMUM_ALIGNOF=8;MEMSET_LOOP_LIMIT=1024;OPENSSL_API_COMPAT=0x10001000L
+PACKAGE_BUGREPORT="pgsql-bugs@lists.postgresql.org";PACKAGE_NAME="PostgreSQL";PACKAGE_STRING="PostgreSQL 16.14";PACKAGE_TARNAME="postgresql";PACKAGE_URL="https://www.postgresql.org/";PACKAGE_VERSION="16.14"
+PG_INT64_TYPE=long long int;PG_KRB_SRVNAM="postgres";PG_MAJORVERSION="16";PG_MAJORVERSION_NUM=16;PG_MINORVERSION_NUM=14;PG_VERSION="16.14";PG_VERSION_NUM=160014;PG_VERSION_STR="PostgreSQL 16.14, compiled by Visual C++, 64-bit"
+RELSEG_SIZE=131072;SIZEOF_BOOL=1;SIZEOF_LONG=4;SIZEOF_SIZE_T=8;SIZEOF_VOID_P=8;XLOG_BLCKSZ=8192;inline=__inline;pg_restrict=__restrict
 ]=]
-        for line in values:gmatch("[^\r\n]+") do
-            local name, value = line:match("^([^=]+)=(.*)$")
-            if name then defs[name] = value end
-        end
+        for item in values:gmatch("[^;\r\n]+") do local name, value = item:match("^([^=]+)=(.*)$"); if name then defs[name] = value end end
 
         local function render(input, output)
-            local data = io.readfile(input)
-            data = data:gsub("#(%s*)undef%s+([%w_]+)", function (_, name)
+            local data = io.readfile(input):gsub("#(%s*)undef%s+([%w_]+)", function (_, name)
                 return defs[name] and ("#define " .. name .. " " .. defs[name]) or ("/* #undef " .. name .. " */")
             end)
             io.writefile(output, data)
@@ -939,20 +904,9 @@ pg_restrict=__restrict
         render("in/deps/libpq/src/include/pg_config.h.in", path.join(out, "include/pg_config.h"))
         render("in/deps/libpq/src/include/pg_config_ext.h.in", path.join(out, "include/pg_config_ext.h"))
         os.cp("in/deps/libpq/src/include/port/win32.h", path.join(out, "include/pg_config_os.h"))
-        io.writefile(path.join(out, "port/pg_config_paths.h"), [=[
-#define PGBINDIR "/bin"
-#define PGSHAREDIR "/share"
-#define SYSCONFDIR "/etc"
-#define INCLUDEDIR "/include"
-#define PKGINCLUDEDIR "/include"
-#define INCLUDEDIRSERVER "/include/server"
-#define LIBDIR "/lib"
-#define PKGLIBDIR "/lib"
-#define LOCALEDIR "/share/locale"
-#define DOCDIR "/doc"
-#define HTMLDIR "/doc"
-#define MANDIR "/man"
-]=])
+        local paths = "PGBINDIR=/bin PGSHAREDIR=/share SYSCONFDIR=/etc INCLUDEDIR=/include PKGINCLUDEDIR=/include INCLUDEDIRSERVER=/include/server LIBDIR=/lib PKGLIBDIR=/lib LOCALEDIR=/share/locale DOCDIR=/doc HTMLDIR=/doc MANDIR=/man"
+        paths = paths:gsub(" ?(%S+)=([^%s]+)", '#define %1 "%2"\n')
+        io.writefile(path.join(out, "port/pg_config_paths.h"), paths)
     end)
     add_includedirs("out/libpq/include", "in/deps/libpq/src/interfaces/libpq", "in/deps/libpq/src/include", {public = true})
     add_includedirs("out/libpq/port", "in/deps/libpq/src/port", "in/deps/libpq/src/include/port/win32", "in/deps/libpq/src/include/port/win32_msvc", "in/deps/openssl/include")
@@ -961,46 +915,16 @@ pg_restrict=__restrict
     add_files("in/deps/libpq/src/interfaces/libpq/*.c")
     remove_files("in/deps/libpq/src/interfaces/libpq/fe-gssapi-common.c", "in/deps/libpq/src/interfaces/libpq/fe-secure-gssapi.c")
     add_files(
-        "in/deps/libpq/src/common/base64.c",
-        "in/deps/libpq/src/common/cryptohash_openssl.c",
-        "in/deps/libpq/src/common/encnames.c",
-        "in/deps/libpq/src/common/hmac_openssl.c",
-        "in/deps/libpq/src/common/ip.c",
-        "in/deps/libpq/src/common/link-canary.c",
-        "in/deps/libpq/src/common/md5_common.c",
-        "in/deps/libpq/src/common/pg_prng.c",
-        "in/deps/libpq/src/common/saslprep.c",
-        "in/deps/libpq/src/common/scram-common.c",
-        "in/deps/libpq/src/common/string.c",
-        "in/deps/libpq/src/common/unicode_norm.c",
-        "in/deps/libpq/src/common/wchar.c"
-    )
+        "in/deps/libpq/src/common/base64.c", "in/deps/libpq/src/common/cryptohash_openssl.c", "in/deps/libpq/src/common/encnames.c", "in/deps/libpq/src/common/hmac_openssl.c",
+        "in/deps/libpq/src/common/ip.c", "in/deps/libpq/src/common/link-canary.c", "in/deps/libpq/src/common/md5_common.c", "in/deps/libpq/src/common/pg_prng.c",
+        "in/deps/libpq/src/common/saslprep.c", "in/deps/libpq/src/common/scram-common.c", "in/deps/libpq/src/common/string.c", "in/deps/libpq/src/common/unicode_norm.c", "in/deps/libpq/src/common/wchar.c")
     add_files(
-        "in/deps/libpq/src/port/chklocale.c",
-        "in/deps/libpq/src/port/dirmod.c",
-        "in/deps/libpq/src/port/explicit_bzero.c",
-        "in/deps/libpq/src/port/getpeereid.c",
-        "in/deps/libpq/src/port/inet_aton.c",
-        "in/deps/libpq/src/port/inet_net_ntop.c",
-        "in/deps/libpq/src/port/noblock.c",
-        "in/deps/libpq/src/port/open.c",
-        "in/deps/libpq/src/port/pgsleep.c",
-        "in/deps/libpq/src/port/pg_strong_random.c",
-        "in/deps/libpq/src/port/pgstrcasecmp.c",
-        "in/deps/libpq/src/port/snprintf.c",
-        "in/deps/libpq/src/port/strerror.c",
-        "in/deps/libpq/src/port/strlcat.c",
-        "in/deps/libpq/src/port/strlcpy.c",
-        "in/deps/libpq/src/port/system.c",
-        "in/deps/libpq/src/port/timingsafe_bcmp.c",
-        "in/deps/libpq/src/port/win32common.c",
-        "in/deps/libpq/src/port/win32error.c",
-        "in/deps/libpq/src/port/win32gai_strerror.c",
-        "in/deps/libpq/src/port/win32gettimeofday.c",
-        "in/deps/libpq/src/port/win32ntdll.c",
-        "in/deps/libpq/src/port/win32setlocale.c",
-        "in/deps/libpq/src/port/win32stat.c"
-    )
+        "in/deps/libpq/src/port/chklocale.c", "in/deps/libpq/src/port/dirmod.c", "in/deps/libpq/src/port/explicit_bzero.c", "in/deps/libpq/src/port/getpeereid.c",
+        "in/deps/libpq/src/port/inet_aton.c", "in/deps/libpq/src/port/inet_net_ntop.c", "in/deps/libpq/src/port/noblock.c", "in/deps/libpq/src/port/open.c",
+        "in/deps/libpq/src/port/pgsleep.c", "in/deps/libpq/src/port/pg_strong_random.c", "in/deps/libpq/src/port/pgstrcasecmp.c", "in/deps/libpq/src/port/snprintf.c",
+        "in/deps/libpq/src/port/strerror.c", "in/deps/libpq/src/port/strlcat.c", "in/deps/libpq/src/port/strlcpy.c", "in/deps/libpq/src/port/system.c",
+        "in/deps/libpq/src/port/timingsafe_bcmp.c", "in/deps/libpq/src/port/win32common.c", "in/deps/libpq/src/port/win32error.c", "in/deps/libpq/src/port/win32gai_strerror.c",
+        "in/deps/libpq/src/port/win32gettimeofday.c", "in/deps/libpq/src/port/win32ntdll.c", "in/deps/libpq/src/port/win32setlocale.c", "in/deps/libpq/src/port/win32stat.c")
 
 
 target("php")
