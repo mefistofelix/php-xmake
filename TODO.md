@@ -213,6 +213,13 @@ Integrate zstd as one dependency target:
 - [x] Build the direct 17-source static target with `/MD /O2`, SSE2 enabled, and a generated configuration header derived from upstream's prebuilt standard configuration plus the pinned zlib version number.
 - [x] Validate all 256 SDK DLL exports and all 391 `png_*` symbols from the SDK static reference, with zero `__imp_png*` thunks, 17 `MSVCRT` directives, no `LIBCMT` or `/EXPORT:` directives, and a passing upstream `pngtest` run with no third-party runtime DLL dependency.
 
+## Completed Target: libavif
+
+- [x] Replace the SDK binary input with authoritative libavif 1.4.2, AOM 3.14.1, and the exact pinned libyuv revision while preserving the SDK archive as a reference.
+- [x] Keep libavif, AOM, and libyuv in one Xmake target and one final static archive; do not create preventive AOM/libyuv subtargets.
+- [x] Generate AOM configuration/version/RTCD/no-op inputs in the target's single `on_prepare`; add generated C files dynamically only after creation, without `always_added`.
+- [x] Build and validate the exact 392/392 SDK member manifest, 213/213 `avif*` symbols, x64 architecture, `/MD`, and absence of export directives or `__imp_avif` thunks.
+
 ## Skipped Extension: DBA
 
 - [x] Exclude `ext/dba` from the PHP build. Windows upstream declares DBA itself as opt-in (`ARG_WITH("dba", ..., "no")`).
@@ -253,7 +260,7 @@ Every library must receive its own static target. Integrate and validate them on
 - [x] HTTP/async: libuv, nghttp2, nghttp3, ngtcp2.
 - [x] Data/text: ICU, libiconv, libintl, libxml2, libxslt, Oniguruma, SQLite. LMDB and QDBM skipped with `ext/dba`.
 - [x] Database/directory clients: PostgreSQL and OpenLDAP complete; Firebird intentionally skipped with `pdo_firebird`.
-- [ ] Image/font stack: libpng, libjpeg, FreeType, libwebp, and libtiff complete; libavif, libheif, libjxl, and libultrahdr remain. The separate TurboJPEG API/library and XPM/libXpm are intentionally omitted.
+- [ ] Image/font stack: libpng, libjpeg, FreeType, libwebp, libtiff, and libavif complete; libheif, libjxl, and libultrahdr remain. The separate TurboJPEG API/library and XPM/libXpm are intentionally omitted.
 - [ ] Remaining libraries: Apache support files, GLib, Argon2, Enchant, libffi, Tidy, libzip, MPIR, Net-SNMP, WinEditLine.
 - [ ] Document exact target names, source patterns, dependencies, defines, and validation status as each target lands.
 - [x] Keep optional image surface minimal: omit XPM/libXpm and omit the separate TurboJPEG API/library. PHP/GD uses only the traditional libjpeg API, which already contains libjpeg-turbo's SSE2/AVX2 acceleration and runtime CPU dispatch.

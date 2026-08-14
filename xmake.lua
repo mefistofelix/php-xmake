@@ -47,7 +47,9 @@ task("prepare")
         os.run("hx github://freetype/freetype?ref=VER-2-14-3 in/deps/freetype")
         os.run("hx %s/glib-2.88.1-1-vs18-x64.zip in/deps/glib",bp)
         os.run("hx %s/libargon2-20190702-vs18-x64.zip in/deps/libargon2",bp)
-        os.run("hx %s/libavif-1.4.2-vs18-x64.zip in/deps/libavif",bp)
+        os.run("hx github://AOMediaCodec/libavif?ref=v1.4.2 in/deps/libavif")
+        os.run("hx https://aomedia.googlesource.com/aom/+archive/refs/tags/v3.14.1.tar.gz in/deps/aom")
+        os.run("hx https://chromium.googlesource.com/libyuv/libyuv/+archive/644251f252a84bf8ce91ff0aca86a9b16b069ab8.tar.gz in/deps/libyuv")
         os.run("hx %s/libenchant2-2.8.16-1-vs18-x64.zip in/deps/libenchant2",bp)
         os.run("hx %s/libffi-3.6.0-vs18-x64.zip in/deps/libffi",bp)
         os.run("hx %s/libheif-1.23.1-vs18-x64.zip in/deps/libheif",bp)
@@ -997,6 +999,92 @@ target("libtiff")
     remove_files("in/deps/libtiff/tiff-4.7.2/libtiff/tif_unix.c")
     add_files("in/deps/libtiff/tiff-4.7.2/libtiff/tif_open.c", "in/deps/libtiff/tiff-4.7.2/libtiff/tif_win32.c", {defines = {"ALLOW_TIFF_NON_EXT_ALLOC_FUNCTIONS"}})
     add_files("in/deps/libtiff/tiff-4.7.2/libtiff/tif_win32_versioninfo.rc")
+
+
+target("libavif")
+    set_enabled(false)
+    set_kind("static")
+    set_targetdir(get_config("builddir"))
+    set_languages("c11", "cxx17")
+    set_optimize("fastest")
+    set_toolset("as", "nasm@$(projectdir)/in/perl/c/bin/nasm.exe")
+    on_prepare(function (target)
+        os.mkdir("out/libavif/config")
+        local values = {}
+        for name, value in io.readfile("in/deps/aom/cmake/aom_config_defaults.cmake"):gmatch("set_aom_[%w_]+%(%s*([%w_]+)%s+([%d]+)") do
+            values[name] = value
+        end
+        for name in ("AOM_ARCH_X86_64 HAVE_MMX HAVE_SSE HAVE_SSE2 HAVE_SSE3 HAVE_SSSE3 HAVE_SSE4_1 HAVE_SSE4_2 HAVE_AVX HAVE_AVX2 HAVE_AVX512 CONFIG_OS_SUPPORT CONFIG_PIC"):gmatch("%S+") do
+            values[name] = "1"
+        end
+        values.CONFIG_WEBM_IO = "0"
+        values.CONFIG_LIBYUV = "0"
+        local names = {}
+        for name in pairs(values) do table.insert(names, name) end
+        table.sort(names)
+        local header = {"#ifndef AOM_CONFIG_H_", "#define AOM_CONFIG_H_"}
+        local assembly = {}
+        for _, name in ipairs(names) do
+            table.insert(header, "#define " .. name .. " " .. values[name])
+            table.insert(assembly, name .. " equ " .. values[name])
+        end
+        table.insert(header, "#endif  // AOM_CONFIG_H_")
+        io.writefile("out/libavif/config/aom_config.h", table.concat(header, "\n") .. "\n")
+        io.writefile("out/libavif/config/aom_config.asm", table.concat(assembly, "\n") .. "\n")
+        io.writefile("out/libavif/config/aom_config.c", [[#include "aom/aom_codec.h"
+static const char* const cfg = "cmake ../ -G \"Visual Studio 18 2026\" -DAOM_TARGET_CPU=x86_64 -DENABLE_DOCS=0 -DENABLE_EXAMPLES=0 -DENABLE_NASM=1 -DENABLE_TESTDATA=0 -DENABLE_TESTS=0 -DENABLE_TOOLS=0 -DENABLE_SSE2=1 -DENABLE_SSE3=1 -DENABLE_SSSE3=1 -DENABLE_SSE4_1=1 -DENABLE_SSE4_2=1 -DENABLE_AVX=1 -DENABLE_AVX2=1";
+const char *aom_codec_build_config(void) { return cfg; }
+]])
+        io.writefile("out/libavif/config/aom_av1_no_op.c", "// Generated no-op source.\n")
+        io.writefile("out/libavif/config/aom_dsp_no_op.c", "// Generated no-op source.\n")
+        local perl = "$(projectdir)/in/perl/perl/bin/perl.exe"
+        os.vrunv(perl, {"in/deps/aom/cmake/version.pl", "--version_data=in/deps/aom/CHANGELOG", "--version_filename=out/libavif/config/aom_version.h"})
+        os.vrunv(perl, {"in/deps/aom/cmake/rtcd.pl", "--arch=x86_64", "--sym=aom_dsp_rtcd", "--config=out/libavif/config/aom_config.h", "in/deps/aom/aom_dsp/aom_dsp_rtcd_defs.pl"}, {stdout = "out/libavif/config/aom_dsp_rtcd.h"})
+        os.vrunv(perl, {"in/deps/aom/cmake/rtcd.pl", "--arch=x86_64", "--sym=aom_scale_rtcd", "--config=out/libavif/config/aom_config.h", "in/deps/aom/aom_scale/aom_scale_rtcd.pl"}, {stdout = "out/libavif/config/aom_scale_rtcd.h"})
+        os.vrunv(perl, {"in/deps/aom/cmake/rtcd.pl", "--arch=x86_64", "--sym=av1_rtcd", "--config=out/libavif/config/aom_config.h", "in/deps/aom/av1/common/av1_rtcd_defs.pl"}, {stdout = "out/libavif/config/av1_rtcd.h"})
+        io.writefile("out/libavif/config/aom_config.h", (io.readfile("out/libavif/config/aom_config.h"):gsub("#define CONFIG_LIBYUV 0", "#define CONFIG_LIBYUV 1")))
+        target:add("files", "out/libavif/config/aom_config.c", "out/libavif/config/aom_av1_no_op.c", "out/libavif/config/aom_dsp_no_op.c")
+    end)
+    add_includedirs("in/deps/libavif/include", {public = true})
+    add_includedirs("out/libavif", "in/deps/aom", "in/deps/libyuv/include")
+    add_defines("AVIF_CODEC_AOM=1", "AVIF_CODEC_AOM_ENCODE=1", "AVIF_CODEC_AOM_DECODE=1", "AVIF_LIBYUV_ENABLED=1", "_WIN32_WINNT=0x0601", "_CRT_SECURE_NO_WARNINGS", "_CRT_NONSTDC_NO_WARNINGS")
+    add_asflags("-fwin64", "-I$(projectdir)/in/deps/aom/", "-I$(projectdir)/out/libavif/", {force = true})
+    add_files(
+        "in/deps/libavif/src/*.c",
+        "in/deps/aom/aom/src/*.c",
+        "in/deps/aom/aom_dsp/*.c",
+        "in/deps/aom/aom_dsp/flow_estimation/*.c",
+        "in/deps/aom/aom_dsp/flow_estimation/x86/*.c",
+        "in/deps/aom/aom_dsp/x86/*.c",
+        "in/deps/aom/aom_mem/*.c",
+        "in/deps/aom/aom_scale/*.c",
+        "in/deps/aom/aom_scale/generic/*.c",
+        "in/deps/aom/aom_util/*.c",
+        "in/deps/aom/av1/*.c",
+        "in/deps/aom/av1/common/*.c",
+        "in/deps/aom/av1/common/x86/*.c",
+        "in/deps/aom/av1/decoder/*.c",
+        "in/deps/aom/av1/encoder/*.c",
+        "in/deps/aom/av1/encoder/x86/*.c",
+        "in/deps/aom/third_party/fastfeat/*.c",
+        "in/deps/aom/third_party/vector/*.c",
+        "in/deps/aom/common/args_helper.c",
+        "in/deps/libyuv/source/*.cc",
+        "in/deps/aom/aom_dsp/x86/*.asm",
+        "in/deps/aom/av1/encoder/x86/*.asm",
+        "in/deps/aom/aom_ports/float.asm"
+    )
+    remove_files(
+        "in/deps/libavif/src/codec_avm.c", "in/deps/libavif/src/codec_dav1d.c", "in/deps/libavif/src/codec_libgav1.c", "in/deps/libavif/src/codec_rav1e.c", "in/deps/libavif/src/codec_svt.c",
+        "in/deps/aom/aom_dsp/butteraugli.c", "in/deps/aom/aom_dsp/fastssim.c", "in/deps/aom/aom_dsp/psnrhvs.c", "in/deps/aom/aom_dsp/vmaf.c",
+        "in/deps/aom/aom_util/debug_util.c", "in/deps/aom/av1/common/x86/cdef_block_ssse3.c",
+        "in/deps/aom/av1/decoder/accounting.c", "in/deps/aom/av1/decoder/inspection.c",
+        "in/deps/aom/av1/encoder/av1_temporal_denoiser.c", "in/deps/aom/av1/encoder/blockiness.c", "in/deps/aom/av1/encoder/deltaq4_model.c", "in/deps/aom/av1/encoder/optical_flow.c", "in/deps/aom/av1/encoder/saliency_map.c", "in/deps/aom/av1/encoder/sparse_linear_solver.c", "in/deps/aom/av1/encoder/thirdpass.c", "in/deps/aom/av1/encoder/tune_butteraugli.c", "in/deps/aom/av1/encoder/tune_vmaf.c",
+        "in/deps/aom/av1/encoder/x86/av1_temporal_denoiser_sse2.c", "in/deps/aom/av1/encoder/x86/av1_ssim_opt_x86_64.asm",
+        "in/deps/libyuv/source/*neon*.cc", "in/deps/libyuv/source/*sme*.cc", "in/deps/libyuv/source/row_sve.cc"
+    )
+    add_files("in/deps/aom/**/*_avx.c", {cxflags = {"/arch:AVX"}})
+    add_files("in/deps/aom/**/*_avx2.c", {cxflags = {"/arch:AVX2"}})
 
 
 target("libsasl")
