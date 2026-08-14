@@ -526,15 +526,10 @@ target("libintl")
                 :gsub("#undef PACKAGE([%c])", "#define PACKAGE \"gettext\"%1")
                 :gsub("#undef PACKAGE_NAME", "#define PACKAGE_NAME \"libintl\"")
                 :gsub("#undef PACKAGE_VERSION", "#define PACKAGE_VERSION \"1.0\"")
+                :gsub("#undef rpl_mbrtowc", "#define rpl_mbrtowc _libintl_mbrtowc")
+                :gsub("#undef rpl_mbsinit", "#define rpl_mbsinit _libintl_mbsinit")
                 :gsub("#undef USE_WINDOWS_THREADS", "#define USE_WINDOWS_THREADS 1")
-                :gsub("#undef VERSION", "#define VERSION \"1.0\"")
-            .. [[
-#if defined _WIN32 && !defined __CYGWIN__
-#include <stddef.h>
-#include <wchar.h>
-extern wchar_t *wgetcwd (wchar_t *, size_t);
-#endif
-]])
+                :gsub("#undef VERSION", "#define VERSION \"1.0\""))
         )
         local header = io.readfile("in/deps/libintl/gettext-runtime/intl/libgnuintl.in.h")
             :gsub("@HAVE_POSIX_PRINTF@", "0")
@@ -618,6 +613,82 @@ extern wchar_t *wgetcwd (wchar_t *, size_t);
                 :gsub("@LOCALENAME_ENHANCE_LOCALE_FUNCS@", "0")
                 :gsub("@[^@\r\n]+@", "0"))
         )
+        local wchar_h = path.absolute(path.join(
+            get_config("sdk"), "Windows Kits", "10", "Include",
+            get_config("vs_sdkver"), "ucrt", "wchar.h")):gsub("\\", "/")
+        io.writefile(
+            "in/deps/libintl/gettext-runtime/intl/gnulib-lib/wchar.h",
+            [[#include "c++defs.h"
+#include "arg-nonnull.h"
+#include "warn-on-use.h"
+]] .. (io.readfile("in/deps/libintl/gettext-runtime/intl/gnulib-lib/wchar.in.h")
+                :gsub("@GUARD_PREFIX@", "GL")
+                :gsub("@PRAGMA_SYSTEM_HEADER@", "")
+                :gsub("@PRAGMA_COLUMNS@", "")
+                :gsub("@HAVE_FEATURES_H@", "0")
+                :gsub("@INCLUDE_NEXT@", "include")
+                :gsub("@NEXT_WCHAR_H@", "\"" .. wchar_h .. "\"")
+                :gsub("@HAVE_WCHAR_H@", "1")
+                :gsub("@HAVE_CRTDEFS_H@", "0")
+                :gsub("@GNULIBHEADERS_OVERRIDE_WINT_T@", "0")
+                :gsub("@GNULIB_MBSINIT@", "1")
+                :gsub("@GNULIB_MBSZERO@", "1")
+                :gsub("@GNULIB_MBRTOWC@", "1")
+                :gsub("@GNULIB_WCWIDTH@", "1")
+                :gsub("@GNULIB_WGETCWD@", "1")
+                :gsub("@GNULIB_FREE_POSIX@", "1")
+                :gsub("@HAVE_WINT_T@", "1")
+                :gsub("@HAVE_MBSINIT@", "1")
+                :gsub("@HAVE_MBRTOWC@", "1")
+                :gsub("@HAVE_WCRTOMB@", "1")
+                :gsub("@HAVE_DECL_WCWIDTH@", "0")
+                :gsub("@REPLACE_MBSTATE_T@", "0")
+                :gsub("@REPLACE_MBSINIT@", "1")
+                :gsub("@REPLACE_MBRTOWC@", "1")
+                :gsub("@REPLACE_WCWIDTH@", "0")
+                :gsub("@[^@\r\n]+@", "0"))
+        )
+        local uchar_h = path.absolute(path.join(
+            get_config("sdk"), "Windows Kits", "10", "Include",
+            get_config("vs_sdkver"), "ucrt", "uchar.h")):gsub("\\", "/")
+        io.writefile(
+            "in/deps/libintl/gettext-runtime/intl/gnulib-lib/uchar.h",
+            [[#include "c++defs.h"
+#include "arg-nonnull.h"
+#include "warn-on-use.h"
+]] .. (io.readfile("in/deps/libintl/gettext-runtime/intl/gnulib-lib/uchar.in.h")
+                :gsub("@GUARD_PREFIX@", "GL")
+                :gsub("@HAVE_UCHAR_H@", "1")
+                :gsub("@CXX_HAVE_UCHAR_H@", "1")
+                :gsub("@INCLUDE_NEXT@", "include")
+                :gsub("@PRAGMA_SYSTEM_HEADER@", "")
+                :gsub("@PRAGMA_COLUMNS@", "")
+                :gsub("@NEXT_UCHAR_H@", "\"" .. uchar_h .. "\"")
+                :gsub("@CXX_HAS_CHAR8_TYPE@", "0")
+                :gsub("@CXX_HAS_UCHAR_TYPES@", "1")
+                :gsub("@SMALL_WCHAR_T@", "1")
+                :gsub("@GNULIBHEADERS_OVERRIDE_CHAR8_T@", "0")
+                :gsub("@GNULIBHEADERS_OVERRIDE_CHAR16_T@", "0")
+                :gsub("@GNULIBHEADERS_OVERRIDE_CHAR32_T@", "0")
+                :gsub("@GNULIB_C32ISALNUM@", "1")
+                :gsub("@GNULIB_C32ISALPHA@", "1")
+                :gsub("@GNULIB_C32ISBLANK@", "1")
+                :gsub("@GNULIB_C32ISCNTRL@", "1")
+                :gsub("@GNULIB_C32ISDIGIT@", "1")
+                :gsub("@GNULIB_C32ISGRAPH@", "1")
+                :gsub("@GNULIB_C32ISLOWER@", "1")
+                :gsub("@GNULIB_C32ISPRINT@", "1")
+                :gsub("@GNULIB_C32ISPUNCT@", "1")
+                :gsub("@GNULIB_C32ISSPACE@", "1")
+                :gsub("@GNULIB_C32ISUPPER@", "1")
+                :gsub("@GNULIB_C32ISXDIGIT@", "1")
+                :gsub("@GNULIB_C32TOLOWER@", "1")
+                :gsub("@GNULIB_C32WIDTH@", "1")
+                :gsub("@GNULIB_MBRTOC32@", "1")
+                :gsub("@HAVE_MBRTOC32@", "1")
+                :gsub("@REPLACE_MBRTOC32@", "1")
+                :gsub("@[^@\r\n]+@", "0"))
+        )
         io.writefile(
             "in/deps/libintl/gettext-runtime/intl/gnulib-lib/unicase.h",
             (io.readfile("in/deps/libintl/gettext-runtime/intl/gnulib-lib/unicase.in.h")
@@ -693,9 +764,6 @@ extern wchar_t *wgetcwd (wchar_t *, size_t);
         "in/deps/libintl/gettext-runtime/intl/gnulib-lib/wmemcpy.c",
         "in/deps/libintl/gettext-runtime/intl/gnulib-lib/wmemset.c"
     )
-    add_files("in/deps/libintl/gettext-runtime/intl/setlocale.c", {
-        defines = {"SETLOCALE_NULL_ALL_MAX=3221"}
-    })
 
 target("libxml2")
     set_enabled(false)
