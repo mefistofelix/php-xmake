@@ -52,7 +52,7 @@ task("prepare")
         os.run("hx %s/libffi-3.6.0-vs18-x64.zip in/deps/libffi",bp)
         os.run("hx %s/libheif-1.23.1-vs18-x64.zip in/deps/libheif",bp)
         os.run("hx -delpathseg 1 https://ftp.gnu.org/pub/gnu/gettext/gettext-1.0.tar.gz in/deps/libintl")
-        os.run("hx %s/libjpeg-turbo-3.1.4.1-vs18-x64.zip in/deps/libjpeg-turbo",bp)
+        os.run("hx github://libjpeg-turbo/libjpeg-turbo?ref=3.1.4.1 in/deps/libjpeg-turbo")
         os.run("hx %s/libjxl-0.11.2-vs18-x64.zip in/deps/libjxl",bp)
         os.run("hx github://kkos/oniguruma?ref=v6.9.10 in/deps/libonig")
         os.run("hx github://pnggroup/libpng?ref=v1.6.58 in/deps/libpng")
@@ -63,7 +63,6 @@ task("prepare")
         os.run("hx %s/libultrahdr-1.4.0-1-vs18-x64.zip in/deps/libultrahdr",bp)
         os.run("hx %s/libwebp-1.6.0-vs18-x64.zip in/deps/libwebp",bp)
         os.run("hx github://winlibs/libxml2?ref=libxml2-2.11.9-7 in/deps/libxml2")
-        os.run("hx %s/libxpm-3.5.19-vs18-x64.zip in/deps/libxpm",bp)
         os.run("hx github://winlibs/libxslt?ref=libxslt-1.1.43-2 in/deps/libxslt")
         os.run("hx %s/libzip-1.11.4-vs18-x64.zip in/deps/libzip",bp)
         os.run("hx %s/mpir-3.0.0-2-vs18-x64.zip in/deps/mpir",bp) --xmiss
@@ -756,6 +755,92 @@ target("libpng")
     add_defines("PNG_INTEL_SSE_OPT=1", "_CRT_NONSTDC_NO_DEPRECATE", "_CRT_SECURE_NO_DEPRECATE")
     add_files("in/deps/libpng/png*.c", "in/deps/libpng/intel/*.c")
     remove_files("in/deps/libpng/pngtest.c")
+
+
+target("libjpeg")
+    set_kind("static")
+    set_targetdir(get_config("builddir"))
+    set_optimize("fastest")
+    set_toolset("as", "nasm@$(projectdir)/in/perl/c/bin/nasm.exe")
+    on_prepare(function ()
+        os.mkdir("out/libjpeg")
+        local config = io.readfile("in/deps/libjpeg-turbo/src/jconfig.h.in")
+            :gsub("@JPEG_LIB_VERSION@", "80")
+            :gsub("@VERSION@", "3.1.4.1")
+            :gsub("@LIBJPEG_TURBO_VERSION_NUMBER@", "3001004")
+            :gsub("#cmakedefine C_ARITH_CODING_SUPPORTED 1", "#define C_ARITH_CODING_SUPPORTED 1")
+            :gsub("#cmakedefine D_ARITH_CODING_SUPPORTED 1", "#define D_ARITH_CODING_SUPPORTED 1")
+            :gsub("#cmakedefine WITH_SIMD 1", "#define WITH_SIMD 1")
+            :gsub("#cmakedefine RIGHT_SHIFT_IS_UNSIGNED 1", "/* #undef RIGHT_SHIFT_IS_UNSIGNED */")
+        io.writefile("out/libjpeg/jconfig.h", config)
+        local configint = io.readfile("in/deps/libjpeg-turbo/src/jconfigint.h.in")
+            :gsub("@BUILD@", "20260804")
+            :gsub("@HIDDEN@", "")
+            :gsub("@INLINE@", "__forceinline")
+            :gsub("@THREAD_LOCAL@", "__declspec(thread)")
+            :gsub("@CMAKE_PROJECT_NAME@", "libjpeg-turbo")
+            :gsub("@VERSION@", "3.1.4.1")
+            :gsub("@SIZE_T@", "8")
+            :gsub("#cmakedefine HAVE_BUILTIN_CTZL", "/* #undef HAVE_BUILTIN_CTZL */")
+            :gsub("#cmakedefine HAVE_INTRIN_H", "#define HAVE_INTRIN_H 1")
+            :gsub("#cmakedefine C_ARITH_CODING_SUPPORTED 1", "#define C_ARITH_CODING_SUPPORTED 1")
+            :gsub("#cmakedefine D_ARITH_CODING_SUPPORTED 1", "#define D_ARITH_CODING_SUPPORTED 1")
+            :gsub("#cmakedefine WITH_SIMD 1", "#define WITH_SIMD 1")
+        io.writefile("out/libjpeg/jconfigint.h", configint)
+        local version = io.readfile("in/deps/libjpeg-turbo/src/jversion.h.in")
+            :gsub("@COPYRIGHT_YEAR@", "1991-2026")
+        io.writefile("out/libjpeg/jversion.h", version)
+    end)
+    add_includedirs("out/libjpeg", "in/deps/libjpeg-turbo/src", {public = true})
+    add_includedirs("in/deps/libjpeg-turbo/simd", "in/deps/libjpeg-turbo/simd/x86_64")
+    add_defines("_CRT_NONSTDC_NO_WARNINGS")
+    add_asflags(
+        "-fwin64", "-DWIN64", "-D__x86_64__",
+        "-I$(projectdir)/in/deps/libjpeg-turbo/simd/nasm/",
+        "-I$(projectdir)/in/deps/libjpeg-turbo/simd/x86_64/",
+        {force = true}
+    )
+    add_files(
+        "in/deps/libjpeg-turbo/src/jcapimin.c",
+        "in/deps/libjpeg-turbo/src/jchuff.c",
+        "in/deps/libjpeg-turbo/src/jcicc.c",
+        "in/deps/libjpeg-turbo/src/jcinit.c",
+        "in/deps/libjpeg-turbo/src/jclhuff.c",
+        "in/deps/libjpeg-turbo/src/jcmarker.c",
+        "in/deps/libjpeg-turbo/src/jcmaster.c",
+        "in/deps/libjpeg-turbo/src/jcomapi.c",
+        "in/deps/libjpeg-turbo/src/jcparam.c",
+        "in/deps/libjpeg-turbo/src/jcphuff.c",
+        "in/deps/libjpeg-turbo/src/jctrans.c",
+        "in/deps/libjpeg-turbo/src/jdapimin.c",
+        "in/deps/libjpeg-turbo/src/jdatadst.c",
+        "in/deps/libjpeg-turbo/src/jdatasrc.c",
+        "in/deps/libjpeg-turbo/src/jdhuff.c",
+        "in/deps/libjpeg-turbo/src/jdicc.c",
+        "in/deps/libjpeg-turbo/src/jdinput.c",
+        "in/deps/libjpeg-turbo/src/jdlhuff.c",
+        "in/deps/libjpeg-turbo/src/jdmarker.c",
+        "in/deps/libjpeg-turbo/src/jdmaster.c",
+        "in/deps/libjpeg-turbo/src/jdphuff.c",
+        "in/deps/libjpeg-turbo/src/jdtrans.c",
+        "in/deps/libjpeg-turbo/src/jerror.c",
+        "in/deps/libjpeg-turbo/src/jfdctflt.c",
+        "in/deps/libjpeg-turbo/src/jmemmgr.c",
+        "in/deps/libjpeg-turbo/src/jmemnobs.c",
+        "in/deps/libjpeg-turbo/src/jpeg_nbits.c",
+        "in/deps/libjpeg-turbo/src/jaricom.c",
+        "in/deps/libjpeg-turbo/src/jcarith.c",
+        "in/deps/libjpeg-turbo/src/jdarith.c",
+        "in/deps/libjpeg-turbo/src/wrapper/j*.c",
+        "in/deps/libjpeg-turbo/simd/x86_64/jsimd.c",
+        "in/deps/libjpeg-turbo/simd/x86_64/*.asm"
+    )
+    remove_files(
+        "in/deps/libjpeg-turbo/simd/x86_64/jccolext-*.asm",
+        "in/deps/libjpeg-turbo/simd/x86_64/jcgryext-*.asm",
+        "in/deps/libjpeg-turbo/simd/x86_64/jdcolext-*.asm",
+        "in/deps/libjpeg-turbo/simd/x86_64/jdmrgext-*.asm"
+    )
 
 
 target("libsasl")

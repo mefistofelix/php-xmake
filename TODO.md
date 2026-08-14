@@ -253,9 +253,10 @@ Every library must receive its own static target. Integrate and validate them on
 - [x] HTTP/async: libuv, nghttp2, nghttp3, ngtcp2.
 - [x] Data/text: ICU, libiconv, libintl, libxml2, libxslt, Oniguruma, SQLite. LMDB and QDBM skipped with `ext/dba`.
 - [x] Database/directory clients: PostgreSQL and OpenLDAP complete; Firebird intentionally skipped with `pdo_firebird`.
-- [ ] Image/font stack: libpng complete; FreeType, libjpeg-turbo, libtiff, libwebp, libavif, libheif, libjxl, libultrahdr, and libxpm remain.
+- [ ] Image/font stack: libpng and libjpeg complete; libjpeg uses libjpeg-turbo 3.1.4.1 with SSE2/AVX2 runtime dispatch, while the separate TurboJPEG API/library is intentionally omitted because PHP/GD uses only the traditional libjpeg API. FreeType, libtiff, libwebp, libavif, libheif, libjxl, and libultrahdr remain. XPM/libXpm is intentionally omitted.
 - [ ] Remaining libraries: Apache support files, GLib, Argon2, Enchant, libffi, Tidy, libzip, MPIR, Net-SNMP, WinEditLine.
 - [ ] Document exact target names, source patterns, dependencies, defines, and validation status as each target lands.
+- [x] Keep optional image surface minimal: omit XPM/libXpm and omit the separate TurboJPEG API/library. PHP/GD uses only the traditional libjpeg API, which already contains libjpeg-turbo's SSE2/AVX2 acceleration and runtime CPU dispatch.
 
 ## PHP Code Generation
 
@@ -281,6 +282,7 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-14 — libjpeg-turbo 3.1.4.1 / traditional libjpeg validation: built the PHP-facing `libjpeg` target from the authoritative source with JPEG v8 ABI, arithmetic coding, 8/12/16-bit wrappers, and x64 NASM SIMD using the existing Strawberry Perl `nasm.exe`. `out/libjpeg.lib` has exactly the same 129-member manifest as the PHP SDK `libjpeg_a.lib` and the same 371/371 relevant libjpeg/SIMD public linker-member names. The public generated `jconfig.h` and `jversion.h` match the SDK reference; C objects contain 102 `MSVCRT` directives, zero `LIBCMT`, zero `/EXPORT:` directives, and zero libjpeg import thunks. Runtime testing was intentionally skipped; TurboJPEG remains omitted because PHP/GD calls only `jpeg_*`, while the traditional library already contains SSE2/AVX2 runtime dispatch.
 - 2026-08-14 — libpng 1.6.58 validation: replaced the PHP SDK binary package with authoritative `pnggroup/libpng` `v1.6.58`; clean preparation and an unchanged repeat both succeeded. Upstream CMake selects 15 core sources plus `intel/intel_init.c` and `intel/filter_sse2_intrinsics.c` on x64. Xmake built all 17 independently with `/MD /O2` and `PNG_INTEL_SSE_OPT=1`; `out/libpng.lib` contains all 256 SDK DLL exports and exactly the same 391 `png_*` names as the SDK static reference, with no `__imp_png*`, `LIBCMT`, or `/EXPORT:` entries and 17 `MSVCRT` directives. Upstream `pngtest` read and rewrote `pngtest.png`, reported `libpng passes test`, and exited 0; the executable imports only Windows/VCRuntime/UCRT DLLs.
 
 - 2026-08-14 — OpenSSL/OpenLDAP/SASL static-link closure: the apparent OpenSSL duplicate-symbol set was a PowerShell case-insensitive grouping false positive; ordinal case-sensitive inspection finds zero duplicate external names. The real failure was broad-source selection diverging from OpenSSL `VC-WIN64A` `build.info`: x86 AES C fallbacks and `des/ncbc_enc.c` were compiled beside x64 assembly, non-x64 architecture C files were admitted, and required AVX/AVX512 assembly files were omitted because their filenames lack `x86_64`. Correcting only those exclusions plus the existing NASM glob keeps the OpenSSL target at 131 lines. The rebuilt archive covers 6,475/6,475 reference exports, has 1,155 unique x64 members (1,115 C `MSVCRT` + 40 NASM), zero `LIBCMT`, `/EXPORT:`, or real duplicate names. A forced OpenLDAP + Cyrus SASL + OpenSSL consumer links, runs with exit 0, and imports only Windows/VCRuntime/UCRT DLLs.
