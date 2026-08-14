@@ -44,7 +44,7 @@ task("prepare")
         os.run("hx -repath icudt77l.dat https://github.com/unicode-org/icu/releases/download/release-77-1/icu4c-77_1-data-bin-l.zip in/deps/ICU/icu4c/source/data/in")
         os.run("hx -repath genccode.exe,icutu77.dll,icuuc77.dll,icuin77.dll,icudt77.dll https://github.com/unicode-org/icu/releases/download/release-77-1/icu4c-77_1-Win64-MSVC2022.zip in/tools/icu")
         os.run("hx %s/apache-2.4.68-vs18-x64.zip in/deps/apache",bp)
-        os.run("hx %s/freetype-2.14.3-vs18-x64.zip in/deps/freetype",bp)
+        os.run("hx github://freetype/freetype?ref=VER-2-14-3 in/deps/freetype")
         os.run("hx %s/glib-2.88.1-1-vs18-x64.zip in/deps/glib",bp)
         os.run("hx %s/libargon2-20190702-vs18-x64.zip in/deps/libargon2",bp)
         os.run("hx %s/libavif-1.4.2-vs18-x64.zip in/deps/libavif",bp)
@@ -758,6 +758,7 @@ target("libpng")
 
 
 target("libjpeg")
+    set_enabled(false)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
@@ -840,6 +841,66 @@ target("libjpeg")
         "in/deps/libjpeg-turbo/simd/x86_64/jcgryext-*.asm",
         "in/deps/libjpeg-turbo/simd/x86_64/jdcolext-*.asm",
         "in/deps/libjpeg-turbo/simd/x86_64/jdmrgext-*.asm"
+    )
+
+
+target("freetype")
+    set_kind("static")
+    set_targetdir(get_config("builddir"))
+    set_optimize("fastest")
+    on_prepare(function ()
+        os.mkdir("out/freetype/include/freetype/config")
+        local options = io.readfile("in/deps/freetype/include/freetype/config/ftoption.h")
+            :gsub("/%* #define FT_CONFIG_OPTION_USE_HARFBUZZ %*/", "#define FT_CONFIG_OPTION_USE_HARFBUZZ")
+            :gsub("/%* #define FT_CONFIG_OPTION_USE_HARFBUZZ_DYNAMIC %*/", "#define FT_CONFIG_OPTION_USE_HARFBUZZ_DYNAMIC")
+        io.writefile("out/freetype/include/freetype/config/ftoption.h", options)
+    end)
+    add_includedirs("out/freetype/include", "in/deps/freetype/include", {public = true})
+    add_defines("FT2_BUILD_LIBRARY", "NDEBUG", "_CRT_SECURE_NO_WARNINGS", "_CRT_NONSTDC_NO_WARNINGS")
+    add_files(
+        "in/deps/freetype/src/autofit/autofit.c",
+        "in/deps/freetype/src/base/ftbase.c",
+        "in/deps/freetype/src/base/ftbbox.c",
+        "in/deps/freetype/src/base/ftbdf.c",
+        "in/deps/freetype/src/base/ftbitmap.c",
+        "in/deps/freetype/src/base/ftcid.c",
+        "in/deps/freetype/src/base/ftfstype.c",
+        "in/deps/freetype/src/base/ftgasp.c",
+        "in/deps/freetype/src/base/ftglyph.c",
+        "in/deps/freetype/src/base/ftgxval.c",
+        "in/deps/freetype/src/base/ftinit.c",
+        "in/deps/freetype/src/base/ftmm.c",
+        "in/deps/freetype/src/base/ftotval.c",
+        "in/deps/freetype/src/base/ftpatent.c",
+        "in/deps/freetype/src/base/ftpfr.c",
+        "in/deps/freetype/src/base/ftstroke.c",
+        "in/deps/freetype/src/base/ftsynth.c",
+        "in/deps/freetype/src/base/fttype1.c",
+        "in/deps/freetype/src/base/ftwinfnt.c",
+        "in/deps/freetype/src/bdf/bdf.c",
+        "in/deps/freetype/src/bzip2/ftbzip2.c",
+        "in/deps/freetype/src/cache/ftcache.c",
+        "in/deps/freetype/src/cff/cff.c",
+        "in/deps/freetype/src/cid/type1cid.c",
+        "in/deps/freetype/src/gzip/ftgzip.c",
+        "in/deps/freetype/src/lzw/ftlzw.c",
+        "in/deps/freetype/src/pcf/pcf.c",
+        "in/deps/freetype/src/pfr/pfr.c",
+        "in/deps/freetype/src/psaux/psaux.c",
+        "in/deps/freetype/src/pshinter/pshinter.c",
+        "in/deps/freetype/src/psnames/psnames.c",
+        "in/deps/freetype/src/raster/raster.c",
+        "in/deps/freetype/src/sdf/sdf.c",
+        "in/deps/freetype/src/sfnt/sfnt.c",
+        "in/deps/freetype/src/smooth/smooth.c",
+        "in/deps/freetype/src/svg/svg.c",
+        "in/deps/freetype/src/truetype/truetype.c",
+        "in/deps/freetype/src/type1/type1.c",
+        "in/deps/freetype/src/type42/type42.c",
+        "in/deps/freetype/src/winfonts/winfnt.c",
+        "in/deps/freetype/builds/windows/ftsystem.c",
+        "in/deps/freetype/builds/windows/ftdebug.c",
+        "in/deps/freetype/src/base/ftver.rc"
     )
 
 
