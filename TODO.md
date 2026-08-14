@@ -164,7 +164,7 @@ Integrate zstd as one dependency target:
 - [x] Inspect the upstream build for exact library sources, generated configuration, Windows definitions, public static interface, and dependencies.
 - [x] Add a direct per-source static target without unity, then build and validate it.
 
-## Current Target: libintl
+## Completed Target: libintl
 
 - [x] Identify the authoritative source and version corresponding to the current PHP SDK package.
 - [x] Replace the prebuilt package with pinned upstream source and validate clean and repeated preparation.
@@ -174,7 +174,7 @@ Integrate zstd as one dependency target:
 - [x] Complete the native MSVC Gnulib wrapper configuration and direct per-source static build without MinGW, Cygwin, Autoconf, Make, sed, or other Unix build tools.
 - [x] Validate the 103 C archive members as x64 `/MD`, with no static CRT or embedded export directives, and cover all 79 SDK DLL exports.
 - [x] Add and validate the SDK-matching Windows version resource member with native `rc.exe` + `cvtres.exe`.
-- [ ] Validate runtime catalog lookup and executable DLL dependencies with the upstream install test.
+- [x] Validate runtime catalog lookup and executable DLL dependencies with the upstream install test.
 
 ## Completed Target: libxml2
 
@@ -240,6 +240,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-14 — final `libintl` runtime and linkage validation after commit `86d8821`: upstream `gettext-runtime/install-tests/test-api.c` linked successfully against the direct static `libintl.lib` and `libiconv.lib`, then executed against the committed `locale/en_US/LC_MESSAGES/itest.mo` catalog with exit code 0 and no output. Because the test prints an explicit skip message when the Windows locale is unavailable, the silent success confirms that it actually loaded the catalog and verified the UTF-8 translations. `dumpbin /dependents` shows only Advapi32, Kernel32, VCRuntime140, and UCRT API-set DLLs; there is no `libintl.dll`, `libiconv.dll`, MinGW, Cygwin, or other third-party runtime dependency. Final archive reinspection still covers all 79/79 SDK DLL exports, defines no standalone `streq`, contains 103 `MSVCRT` C directives, zero `LIBCMT`, and zero embedded `/EXPORT:` directives. The temporary runtime-test target is removed and completed `libintl`/`libiconv` are disabled by default.
 
 - 2026-08-14 — upstream runtime-test link at commit `86d8821`: generating the UCRT-backed Gnulib `string.h` with inline `streq` removed the three unresolved references without changing the 103-source SDK manifest. Xmake rebuilt the complete `/MD /O2` libintl/libiconv chain and linked upstream `gettext-runtime/install-tests/test-api.c` successfully into `out/libintl_test.exe` against only `libintl.lib`, `libiconv.lib`, and `advapi32`. Execute the binary next and verify that it performs the translation rather than taking its Windows-locale skip path; then inspect PE dependencies.
 
