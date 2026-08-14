@@ -52,7 +52,8 @@ task("prepare")
         os.run("hx https://chromium.googlesource.com/libyuv/libyuv/+archive/644251f252a84bf8ce91ff0aca86a9b16b069ab8.tar.gz in/deps/libyuv")
         os.run("hx %s/libenchant2-2.8.16-1-vs18-x64.zip in/deps/libenchant2",bp)
         os.run("hx %s/libffi-3.6.0-vs18-x64.zip in/deps/libffi",bp)
-        os.run("hx %s/libheif-1.23.1-vs18-x64.zip in/deps/libheif",bp)
+        os.run("hx github://winlibs/libheif?ref=libheif-1.23.1 in/deps/libheif")
+        os.run("hx https://code.videolan.org/videolan/dav1d/-/archive/1.5.3/dav1d-1.5.3.tar.gz in/deps/dav1d")
         os.run("hx -delpathseg 1 https://ftp.gnu.org/pub/gnu/gettext/gettext-1.0.tar.gz in/deps/libintl")
         os.run("hx github://libjpeg-turbo/libjpeg-turbo?ref=3.1.4.1 in/deps/libjpeg-turbo")
         os.run("hx %s/libjxl-0.11.2-vs18-x64.zip in/deps/libjxl",bp)
@@ -1001,15 +1002,16 @@ target("libtiff")
     add_files("in/deps/libtiff/tiff-4.7.2/libtiff/tif_win32_versioninfo.rc")
 
 
-target("libavif")
+target("avif")
     set_enabled(false)
     set_kind("static")
     set_targetdir(get_config("builddir"))
-    set_languages("c11", "cxx17")
+    set_languages("c11", "cxx20")
     set_optimize("fastest")
     set_toolset("as", "nasm@$(projectdir)/in/perl/c/bin/nasm.exe")
+    add_deps("libjpeg")
     on_prepare(function (target)
-        os.mkdir("out/libavif/config")
+        os.mkdir("out/avif/config")
         local values = {}
         for name, value in io.readfile("in/deps/aom/cmake/aom_config_defaults.cmake"):gmatch("set_aom_[%w_]+%(%s*([%w_]+)%s+([%d]+)") do
             values[name] = value
@@ -1029,26 +1031,92 @@ target("libavif")
             table.insert(assembly, name .. " equ " .. values[name])
         end
         table.insert(header, "#endif  // AOM_CONFIG_H_")
-        io.writefile("out/libavif/config/aom_config.h", table.concat(header, "\n") .. "\n")
-        io.writefile("out/libavif/config/aom_config.asm", table.concat(assembly, "\n") .. "\n")
-        io.writefile("out/libavif/config/aom_config.c", [[#include "aom/aom_codec.h"
+        io.writefile("out/avif/config/aom_config.h", table.concat(header, "\n") .. "\n")
+        io.writefile("out/avif/config/aom_config.asm", table.concat(assembly, "\n") .. "\n")
+        io.writefile("out/avif/config/aom_config.c", [[#include "aom/aom_codec.h"
 static const char* const cfg = "cmake ../ -G \"Visual Studio 18 2026\" -DAOM_TARGET_CPU=x86_64 -DENABLE_DOCS=0 -DENABLE_EXAMPLES=0 -DENABLE_NASM=1 -DENABLE_TESTDATA=0 -DENABLE_TESTS=0 -DENABLE_TOOLS=0 -DENABLE_SSE2=1 -DENABLE_SSE3=1 -DENABLE_SSSE3=1 -DENABLE_SSE4_1=1 -DENABLE_SSE4_2=1 -DENABLE_AVX=1 -DENABLE_AVX2=1";
 const char *aom_codec_build_config(void) { return cfg; }
 ]])
-        io.writefile("out/libavif/config/aom_av1_no_op.c", "// Generated no-op source.\n")
-        io.writefile("out/libavif/config/aom_dsp_no_op.c", "// Generated no-op source.\n")
+        io.writefile("out/avif/config/aom_av1_no_op.c", "// Generated no-op source.\n")
+        io.writefile("out/avif/config/aom_dsp_no_op.c", "// Generated no-op source.\n")
         local perl = "$(projectdir)/in/perl/perl/bin/perl.exe"
-        os.vrunv(perl, {"in/deps/aom/cmake/version.pl", "--version_data=in/deps/aom/CHANGELOG", "--version_filename=out/libavif/config/aom_version.h"})
-        os.vrunv(perl, {"in/deps/aom/cmake/rtcd.pl", "--arch=x86_64", "--sym=aom_dsp_rtcd", "--config=out/libavif/config/aom_config.h", "in/deps/aom/aom_dsp/aom_dsp_rtcd_defs.pl"}, {stdout = "out/libavif/config/aom_dsp_rtcd.h"})
-        os.vrunv(perl, {"in/deps/aom/cmake/rtcd.pl", "--arch=x86_64", "--sym=aom_scale_rtcd", "--config=out/libavif/config/aom_config.h", "in/deps/aom/aom_scale/aom_scale_rtcd.pl"}, {stdout = "out/libavif/config/aom_scale_rtcd.h"})
-        os.vrunv(perl, {"in/deps/aom/cmake/rtcd.pl", "--arch=x86_64", "--sym=av1_rtcd", "--config=out/libavif/config/aom_config.h", "in/deps/aom/av1/common/av1_rtcd_defs.pl"}, {stdout = "out/libavif/config/av1_rtcd.h"})
-        io.writefile("out/libavif/config/aom_config.h", (io.readfile("out/libavif/config/aom_config.h"):gsub("#define CONFIG_LIBYUV 0", "#define CONFIG_LIBYUV 1")))
-        target:add("files", "out/libavif/config/aom_config.c", "out/libavif/config/aom_av1_no_op.c", "out/libavif/config/aom_dsp_no_op.c")
+        os.vrunv(perl, {"in/deps/aom/cmake/version.pl", "--version_data=in/deps/aom/CHANGELOG", "--version_filename=out/avif/config/aom_version.h"})
+        os.vrunv(perl, {"in/deps/aom/cmake/rtcd.pl", "--arch=x86_64", "--sym=aom_dsp_rtcd", "--config=out/avif/config/aom_config.h", "in/deps/aom/aom_dsp/aom_dsp_rtcd_defs.pl"}, {stdout = "out/avif/config/aom_dsp_rtcd.h"})
+        os.vrunv(perl, {"in/deps/aom/cmake/rtcd.pl", "--arch=x86_64", "--sym=aom_scale_rtcd", "--config=out/avif/config/aom_config.h", "in/deps/aom/aom_scale/aom_scale_rtcd.pl"}, {stdout = "out/avif/config/aom_scale_rtcd.h"})
+        os.vrunv(perl, {"in/deps/aom/cmake/rtcd.pl", "--arch=x86_64", "--sym=av1_rtcd", "--config=out/avif/config/aom_config.h", "in/deps/aom/av1/common/av1_rtcd_defs.pl"}, {stdout = "out/avif/config/av1_rtcd.h"})
+        io.writefile("out/avif/config/aom_config.h", (io.readfile("out/avif/config/aom_config.h"):gsub("#define CONFIG_LIBYUV 0", "#define CONFIG_LIBYUV 1")))
+        os.mkdir("out/avif/include/libheif")
+        io.writefile("out/avif/include/libheif/heif_version.h", (io.readfile("in/deps/libheif/libheif/api/libheif/heif_version.h.in")
+            :gsub("@PROJECT_VERSION_MAJOR@", "1")
+            :gsub("@PROJECT_VERSION_MINOR@", "23")
+            :gsub("@PROJECT_VERSION_PATCH@", "1")
+            :gsub("@PLUGIN_DIRECTORY@", "")))
+        os.mkdir("out/avif/dav1d")
+        io.writefile("out/avif/dav1d/config.h", [[#define ARCH_AARCH64 0
+#define ARCH_ARM 0
+#define ARCH_LOONGARCH 0
+#define ARCH_LOONGARCH32 0
+#define ARCH_LOONGARCH64 0
+#define ARCH_PPC64LE 0
+#define ARCH_RISCV 0
+#define ARCH_RV32 0
+#define ARCH_RV64 0
+#define ARCH_X86 1
+#define ARCH_X86_32 0
+#define ARCH_X86_64 1
+#define CONFIG_8BPC 1
+#define CONFIG_16BPC 1
+#define CONFIG_LOG 1
+#define CONFIG_MACOS_KPERF 0
+#define ENDIANNESS_BIG 0
+#define HAVE_ALIGNED_ALLOC 0
+#define HAVE_ASM 1
+#define HAVE_AS_ARCH_DIRECTIVE 0
+#define HAVE_AS_FUNC 0
+#define HAVE_DLSYM 0
+#define HAVE_DOTPROD 0
+#define HAVE_ELF_AUX_INFO 0
+#define HAVE_GETAUXVAL 0
+#define HAVE_I8MM 0
+#define HAVE_IO_H 1
+#define HAVE_MEMALIGN 0
+#define HAVE_POSIX_MEMALIGN 0
+#define HAVE_PTHREAD_GETAFFINITY_NP 0
+#define HAVE_PTHREAD_NP_H 0
+#define HAVE_PTHREAD_SETAFFINITY_NP 0
+#define HAVE_PTHREAD_SETNAME_NP 0
+#define HAVE_PTHREAD_SET_NAME_NP 0
+#define HAVE_SVE2 0
+#define HAVE_SYS_TYPES_H 1
+#define HAVE_UNISTD_H 0
+#define TRIM_DSP_FUNCTIONS 1
+#define _CRT_DECLARE_NONSTDC_NAMES 1
+#define _WIN32_WINNT 0x0601
+#define fseeko _fseeki64
+#define ftello _ftelli64
+]])
+        io.writefile("out/avif/dav1d/config.asm", [[%define private_prefix dav1d
+%define ARCH_X86_64 1
+%define ARCH_X86_32 0
+%define STACK_ALIGNMENT 16
+%define PIC 1
+%define FORCE_VEX_ENCODING 0
+]])
+        io.writefile("out/avif/dav1d/vcs_version.h", "#define DAV1D_VERSION \"1.5.3\"\n")
+        for file in ("cdef_apply_tmpl.c cdef_tmpl.c fg_apply_tmpl.c filmgrain_tmpl.c ipred_prepare_tmpl.c ipred_tmpl.c itx_tmpl.c lf_apply_tmpl.c loopfilter_tmpl.c looprestoration_tmpl.c lr_apply_tmpl.c mc_tmpl.c recon_tmpl.c"):gmatch("%S+") do
+            for _, depth in ipairs({8, 16}) do
+                local output = "out/avif/dav1d/dav1d_" .. depth .. "_" .. file
+                io.writefile(output, "#define BITDEPTH " .. depth .. "\n#include \"in/deps/dav1d/dav1d-1.5.3/src/" .. file .. "\"\n")
+                target:add("files", output)
+            end
+        end
+        target:add("files", "out/avif/config/aom_config.c", "out/avif/config/aom_av1_no_op.c", "out/avif/config/aom_dsp_no_op.c")
     end)
-    add_includedirs("in/deps/libavif/include", {public = true})
-    add_includedirs("out/libavif", "in/deps/aom", "in/deps/libyuv/include")
-    add_defines("AVIF_CODEC_AOM=1", "AVIF_CODEC_AOM_ENCODE=1", "AVIF_CODEC_AOM_DECODE=1", "AVIF_LIBYUV_ENABLED=1", "_WIN32_WINNT=0x0601", "_CRT_SECURE_NO_WARNINGS", "_CRT_NONSTDC_NO_WARNINGS")
-    add_asflags("-fwin64", "-I$(projectdir)/in/deps/aom/", "-I$(projectdir)/out/libavif/", {force = true})
+    add_includedirs("in/deps/libavif/include", "in/deps/libheif/libheif/api", "out/avif/include", {public = true})
+    add_includedirs("out/avif", "out/avif/dav1d", "in/deps/aom", "in/deps/libyuv/include", "in/deps/libheif/libheif", "in/deps/dav1d/dav1d-1.5.3/include", "in/deps/dav1d/dav1d-1.5.3/include/compat/msvc", "in/deps/dav1d/dav1d-1.5.3", "$(projectdir)", "out/libjpeg", "in/deps/libjpeg-turbo/src")
+    add_defines("LIBHEIF_STATIC_BUILD", "WITH_UNCOMPRESSED_CODEC=1", {public = true})
+    add_defines("AVIF_CODEC_AOM=1", "AVIF_CODEC_AOM_ENCODE=1", "AVIF_CODEC_AOM_DECODE=1", "AVIF_CODEC_DAV1D=1", "AVIF_LIBYUV_ENABLED=1", "LIBHEIF_EXPORTS", "HAVE_VISIBILITY=1", "HAVE_BIT=1", "IS_BIG_ENDIAN=0", "ENABLE_MULTITHREADING_SUPPORT=1", "ENABLE_PARALLEL_TILE_DECODING=1", "HAVE_AOM_DECODER=1", "HAVE_AOM_ENCODER=1", "HAVE_DAV1D=1", "HAVE_JPEG_DECODER=1", "HAVE_JPEG_ENCODER=1", "_WIN32_WINNT=0x0601", "_CRT_SECURE_NO_WARNINGS", "_CRT_NONSTDC_NO_WARNINGS")
+    add_asflags("-fwin64", "-I$(projectdir)/in/deps/aom/", "-I$(projectdir)/out/avif/", "-I$(projectdir)/in/deps/dav1d/dav1d-1.5.3/src/", "-I$(projectdir)/out/avif/dav1d/", {force = true})
     add_files(
         "in/deps/libavif/src/*.c",
         "in/deps/aom/aom/src/*.c",
@@ -1070,19 +1138,34 @@ const char *aom_codec_build_config(void) { return cfg; }
         "in/deps/aom/third_party/vector/*.c",
         "in/deps/aom/common/args_helper.c",
         "in/deps/libyuv/source/*.cc",
+        "in/deps/libheif/libheif/*.cc",
+        "in/deps/libheif/libheif/api/libheif/*.cc",
+        "in/deps/libheif/libheif/codecs/*.cc",
+        "in/deps/libheif/libheif/codecs/uncompressed/*.cc",
+        "in/deps/libheif/libheif/color-conversion/*.cc",
+        "in/deps/libheif/libheif/image/*.cc",
+        "in/deps/libheif/libheif/image-items/*.cc",
+        "in/deps/libheif/libheif/sequences/*.cc",
+        "in/deps/dav1d/dav1d-1.5.3/src/*.c",
+        "in/deps/dav1d/dav1d-1.5.3/src/x86/cpu.c",
+        "in/deps/dav1d/dav1d-1.5.3/src/win32/thread.c",
+        "in/deps/dav1d/dav1d-1.5.3/src/x86/*.asm",
         "in/deps/aom/aom_dsp/x86/*.asm",
         "in/deps/aom/av1/encoder/x86/*.asm",
         "in/deps/aom/aom_ports/float.asm"
     )
     remove_files(
-        "in/deps/libavif/src/codec_avm.c", "in/deps/libavif/src/codec_dav1d.c", "in/deps/libavif/src/codec_libgav1.c", "in/deps/libavif/src/codec_rav1e.c", "in/deps/libavif/src/codec_svt.c",
+        "in/deps/libavif/src/codec_avm.c", "in/deps/libavif/src/codec_libgav1.c", "in/deps/libavif/src/codec_rav1e.c", "in/deps/libavif/src/codec_svt.c",
+        "in/deps/libheif/libheif/plugins_*.cc", "in/deps/libheif/libheif/api/libheif/heif_experimental.cc",
         "in/deps/aom/aom_dsp/butteraugli.c", "in/deps/aom/aom_dsp/fastssim.c", "in/deps/aom/aom_dsp/psnrhvs.c", "in/deps/aom/aom_dsp/vmaf.c",
         "in/deps/aom/aom_util/debug_util.c", "in/deps/aom/av1/common/x86/cdef_block_ssse3.c",
         "in/deps/aom/av1/decoder/accounting.c", "in/deps/aom/av1/decoder/inspection.c",
         "in/deps/aom/av1/encoder/av1_temporal_denoiser.c", "in/deps/aom/av1/encoder/blockiness.c", "in/deps/aom/av1/encoder/deltaq4_model.c", "in/deps/aom/av1/encoder/optical_flow.c", "in/deps/aom/av1/encoder/saliency_map.c", "in/deps/aom/av1/encoder/sparse_linear_solver.c", "in/deps/aom/av1/encoder/thirdpass.c", "in/deps/aom/av1/encoder/tune_butteraugli.c", "in/deps/aom/av1/encoder/tune_vmaf.c",
         "in/deps/aom/av1/encoder/x86/av1_temporal_denoiser_sse2.c", "in/deps/aom/av1/encoder/x86/av1_ssim_opt_x86_64.asm",
-        "in/deps/libyuv/source/*neon*.cc", "in/deps/libyuv/source/*sme*.cc", "in/deps/libyuv/source/row_sve.cc"
+        "in/deps/libyuv/source/*neon*.cc", "in/deps/libyuv/source/*sme*.cc", "in/deps/libyuv/source/row_sve.cc",
+        "in/deps/dav1d/dav1d-1.5.3/src/*_tmpl.c", "in/deps/dav1d/dav1d-1.5.3/src/x86/filmgrain_common.asm"
     )
+    add_files("in/deps/libheif/libheif/plugins/decoder_aom.cc", "in/deps/libheif/libheif/plugins/encoder_aom.cc", "in/deps/libheif/libheif/plugins/decoder_dav1d.cc", "in/deps/libheif/libheif/plugins/decoder_jpeg.cc", "in/deps/libheif/libheif/plugins/encoder_jpeg.cc", "in/deps/libheif/libheif/plugins/encoder_mask.cc", "in/deps/libheif/libheif/plugins/nalu_utils.cc", "in/deps/libheif/libheif/plugins/encoder_uncompressed.cc", "in/deps/libheif/libheif/plugins/decoder_uncompressed.cc")
     add_files("in/deps/aom/**/*_avx.c", {cxflags = {"/arch:AVX"}})
     add_files("in/deps/aom/**/*_avx2.c", {cxflags = {"/arch:AVX2"}})
 
