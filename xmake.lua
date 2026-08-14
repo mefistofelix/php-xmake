@@ -61,7 +61,7 @@ task("prepare")
         os.run("hx %s/libtidy-5.8.0-vs18-x64.zip in/deps/libtidy",bp)
         os.run("hx %s/libtiff-4.7.2rc2-vs18-x64.zip in/deps/libtiff",bp)
         os.run("hx %s/libultrahdr-1.4.0-1-vs18-x64.zip in/deps/libultrahdr",bp)
-        os.run("hx %s/libwebp-1.6.0-vs18-x64.zip in/deps/libwebp",bp)
+        os.run("hx github://webmproject/libwebp?ref=v1.6.0 in/deps/libwebp")
         os.run("hx github://winlibs/libxml2?ref=libxml2-2.11.9-7 in/deps/libxml2")
         os.run("hx github://winlibs/libxslt?ref=libxslt-1.1.43-2 in/deps/libxslt")
         os.run("hx %s/libzip-1.11.4-vs18-x64.zip in/deps/libzip",bp)
@@ -845,6 +845,7 @@ target("libjpeg")
 
 
 target("freetype")
+    set_enabled(false)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
@@ -901,6 +902,25 @@ target("freetype")
         "in/deps/freetype/builds/windows/ftsystem.c",
         "in/deps/freetype/builds/windows/ftdebug.c",
         "in/deps/freetype/src/base/ftver.rc"
+    )
+
+
+target("libwebp")
+    set_enabled(false)
+    set_kind("static")
+    set_targetdir(get_config("builddir"))
+    set_optimize("fastest")
+    add_includedirs("in/deps/libwebp/src", {public = true})
+    add_includedirs("in/deps/libwebp")
+    add_defines("WIN32", "NDEBUG", "_CRT_SECURE_NO_WARNINGS", "WIN32_LEAN_AND_MEAN", "HAVE_WINCODEC_H", "WEBP_USE_THREAD")
+    add_files(
+        "in/deps/libwebp/src/dec/*.c",
+        "in/deps/libwebp/src/demux/*.c",
+        "in/deps/libwebp/src/dsp/*.c",
+        "in/deps/libwebp/src/enc/*.c",
+        "in/deps/libwebp/src/mux/*.c",
+        "in/deps/libwebp/src/utils/*.c",
+        "in/deps/libwebp/sharpyuv/*.c"
     )
 
 

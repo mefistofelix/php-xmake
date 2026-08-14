@@ -103,6 +103,7 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 | `libpng` | Disabled | Static library | 15 core C sources plus x64 `intel_init.c` and `filter_sse2_intrinsics.c` | `out/libpng.lib` | PNG codec for PHP GD and other image consumers | Build, 256/256 SDK DLL export coverage, exact 391-symbol `png_*` static surface, x64 `/MD`, SSE2, and upstream runtime validation passed |
 | `libjpeg` | Disabled | Static library | libjpeg-turbo 3.1.4.1 traditional libjpeg manifest plus x64 NASM SIMD | `out/libjpeg.lib` | JPEG codec for PHP GD; excludes the separate TurboJPEG API/library | Build and reference symbol validation passed; 129/129 archive members and 371/371 libjpeg/SIMD symbols match |
 | `freetype` | Disabled | Static library | FreeType 2.14.3 CMake manifest: 42 C objects plus Windows version resource | `out/freetype.lib` | Font rendering for PHP GD | Build validated: 43/43 members and 671/671 relevant symbols match the SDK reference; x64 `/MD`, no static CRT/export/import thunks |
+| `libwebp` | Disabled | Static library | WebP decoder/demux/encoder/mux/DSP/utils plus SharpYUV | `out/libwebp.lib` | Complete WebP symbol surface required by PHP GD in one archive | Build validated: 125/125 members and 655/655 relevant symbols match the union of the SDK core/demux/mux references; x64 `/MD`, no static CRT/export/import thunks |
 | `libpq` | Disabled | Static library | PostgreSQL 16.14 libpq plus the required frontend `src/common` and `src/port` support closure | `out/libpq.lib` | PostgreSQL client library for PHP pgsql/PDO_PGSQL | Build, 187/187 reference DLL API coverage, x64 `/MD`, and static-interface validation passed |
 | `libsasl` | Disabled | Static library | Cyrus SASL 2.1.28 Windows core sources only | `out/libsasl.lib` | SASL client support required by OpenLDAP/PHP LDAP | Build, 72/72 SDK DLL export coverage, x64 `/MD`, static decoration, and runtime version validation passed |
 | `openldap` | Disabled | Static library | OpenLDAP 2.6.13 client `libldap` + `liblber` with embedded rxspencer 3.9.0 | `out/openldap.lib` | LDAP client library for PHP ext/ldap | Build, 695/695 SDK Windows LDAP/LBER API coverage, x64 `/MD`, static decoration, and LBER runtime validation passed |
@@ -417,6 +418,21 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 | Owner | Tool | Input | Output | Handling | Status |
 | --- | --- | --- | --- | --- | --- |
 | `freetype` | Xmake Lua I/O | `include/freetype/config/ftoption.h` | `out/freetype/include/freetype/config/ftoption.h` | Copy the upstream options header and enable only the two HarfBuzz dynamic macros present in the PHP SDK reference | Build and reference symbol validation passed |
+
+### libwebp upstream build analysis
+
+- Replace the PHP SDK binary package with authoritative `webmproject/libwebp` tag `v1.6.0`, matching the SDK version. Preserve the former package under `out/libwebp-sdk-reference` for archive/header comparison.
+- Use upstream `Makefile.vc` as the primary Windows manifest because the preserved PHP SDK archive member paths (`output/release-static/x64/obj/...`) match that build. Its release-static configuration uses `/O2 /DNDEBUG`, `/MD` unless `RTLIBCFG=static`, and private `WIN32`, `_CRT_SECURE_NO_WARNINGS`, `WIN32_LEAN_AND_MEAN`, `HAVE_WINCODEC_H`, and `WEBP_USE_THREAD` definitions.
+- PHP's stock `ext/gd/config.w32` probes `libwebp`, `libwebpdemux`, and `libwebpmux` as separate filenames because that script discovers the conventional upstream/SDK package layout. This project does not run that discovery path: the Xmake PHP target links its dependency targets directly. PHP/GD only needs the resulting WebP symbols, so archive partitioning is not an ABI requirement here. Keep the whole dependency in one `libwebp` target unless a real compile/link constraint later proves otherwise.
+- The one `libwebp` target therefore contains all decoder sources under `src/dec`, both demux sources under `src/demux`, all encoder sources under `src/enc`, all four mux sources under `src/mux`, all DSP sources under `src/dsp`, all utility sources under `src/utils`, and all seven `sharpyuv/*.c` sources. This is the union of the three PHP-facing SDK archives plus SharpYUV, deliberately collapsed into one static archive.
+- `Makefile.vc` builds `libsharpyuv.lib` separately and then passes that archive as an input to `lib.exe` when producing `libwebp.lib`; the preserved PHP SDK `libwebp_a.lib` confirms that the seven SharpYUV object members are physically merged into the main archive. Reproduce that final object surface directly from sources; do not add separate SharpYUV, demux, or mux targets solely to mirror upstream packaging.
+- No WebP command-line tools, image I/O helpers, extras, animation utilities, standalone decoder archive, or resource files are needed by PHP.
+- Static consumers require no `WEBP_DLL` definition. The core public include root is `src`, which exposes `<webp/decode.h>`, `<webp/encode.h>`, `<webp/demux.h>`, and `<webp/mux.h>`. No generated configuration header is needed for the native `Makefile.vc` path.
+- Final validation uses the union of the preserved SDK `libwebp_a.lib`, `libwebpdemux_a.lib`, and `libwebpmux_a.lib` references. `out/libwebp.lib` contains exactly the same 125/125 object members and 655/655 relevant linker-member symbols after excluding compiler-generated string/constant/section names. All 125 objects request `MSVCRT`; there are zero `LIBCMT` directives, zero `/EXPORT:` directives, and zero WebP/VP8/SharpYUV import thunks. Clean authoritative-source preparation succeeded and the unchanged second `xmake prepare` also succeeded. Runtime image tests are intentionally deferred.
+
+### libwebp code-generation inventory
+
+No generated source or configuration file is required for the selected native Windows static build.
 
 ### PostgreSQL / libpq upstream build analysis
 
