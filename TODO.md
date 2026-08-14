@@ -270,10 +270,18 @@ Every library must receive its own static target. Integrate and validate them on
 - [x] Data/text: ICU, libiconv, libintl, libxml2, libxslt, Oniguruma, SQLite. LMDB and QDBM skipped with `ext/dba`.
 - [x] Database/directory clients: PostgreSQL and OpenLDAP complete; Firebird intentionally skipped with `pdo_firebird`.
 - [x] Image/font stack: libpng, libjpeg, FreeType, libwebp, libtiff, libjxl, and the unified `avif` target (libavif + libheif + AOM + libyuv + dav1d) are complete. UltraHDR/libuhdr is intentionally omitted because the current PHP GD extension exposes no PHP userland binding for its bundled-libgd-only `gdUhdr*` API. The separate TurboJPEG API/library and XPM/libXpm are also intentionally omitted.
-- [ ] Remaining libraries: libzip, MPIR, Net-SNMP.
+- [ ] Remaining libraries: MPIR, Net-SNMP.
 - [x] Skip standalone libargon2: `ext/standard` enables it only through optional `password-argon2` (default `no`), while the already selected Sodium extension registers `argon2i` and `argon2id` with PHP's `password_*` API when `standard` does not. OpenSSL's optional Argon2 provider uses OpenSSL EVP_KDF directly and does not consume libargon2.
 - [ ] Document exact target names, source patterns, dependencies, defines, and validation status as each target lands.
 - [x] Keep optional image surface minimal: omit XPM/libXpm and omit the separate TurboJPEG API/library. PHP/GD uses only the traditional libjpeg API, which already contains libjpeg-turbo's SSE2/AVX2 acceleration and runtime CPU dispatch.
+
+## Completed Target: libzip
+
+- [x] Confirm PHP Windows enables `ext/zip` by default and requires libzip for the selected ZIP API surface.
+- [x] Replace the PHP SDK binary input with authoritative `nih-at/libzip` tag `v1.11.4`, preserving the SDK package as a validation reference.
+- [x] Inspect upstream CMake metadata and the SDK static archive: 124 members, with zlib+bzip2+LZMA and Windows CNG/AES enabled and Zstd disabled.
+- [x] Add the single static target with 123 selected upstream C sources plus generated `zip_err_str.c`.
+- [x] Build and validate exact 124/124 members, 298/298 `zip*` symbols, x64 `/MD`, and zero static CRT/export/import decoration; runtime smoke testing intentionally skipped.
 
 ## Completed Target: libffi
 

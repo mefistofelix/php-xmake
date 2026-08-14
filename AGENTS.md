@@ -111,6 +111,7 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 | `openldap` | Disabled | Static library | OpenLDAP 2.6.13 client `libldap` + `liblber` with embedded rxspencer 3.9.0 | `out/openldap.lib` | LDAP client library for PHP ext/ldap | Build, 695/695 SDK Windows LDAP/LBER API coverage, x64 `/MD`, static decoration, and LBER runtime validation passed |
 | `wineditline` | Disabled | Static library | `editline.c`, `fn_complete.c`, `history.c` from WinEditLine 2.208 | `out/wineditline.lib` | Windows libedit-compatible backend for PHP `ext/readline` | Build validated: 3/3 SDK members, 126/126 significant linker-member symbols, x64 `/MD`, no static CRT or export directives |
 | `libffi` | Disabled | Static library | Eight C sources plus preprocessed Win64 MASM from Winlibs libffi 3.6.0 | `out/libffi.lib` | Foreign-function call backend for optional PHP `ext/ffi` | Build validated: exact 9-member SDK layout, 52/52 `ffi*` symbols, 8 C `/MD` members + one MASM member, no static CRT/export/import decoration |
+| `libzip` | Disabled | Static library | libzip 1.11.4 Windows static manifest: broad `lib/*.c` minus eight unused platform/codec backends plus generated `zip_err_str.c` | `out/libzip.lib` | ZIP archive backend for default-enabled PHP `ext/zip` | Build validated: exact 124/124 member manifest, 298/298 `zip*` symbols, x64 `/MD`, no static CRT/export/import decoration |
 | `minilua` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/dynasm/minilua.c` | `out/minilua.exe` | Runs DynASM for the PHP JIT IR emitter | Defined; build validation pending |
 | `gen_ir_fold_hash` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c` | `out/gen_ir_fold_hash.exe` | Generates the JIT IR fold hash header | Defined; build validation pending |
 | `php` | Disabled | Object prototype | `in/php-src/Zend/zend.c`, `in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm` | `out/` | Becomes the static PHP build after dependency, configuration, codegen, and source integration | Prototype only; real `on_prepare` codegen pending |
@@ -562,6 +563,23 @@ No generated source or configuration file is required for the selected native Wi
 | Owner | Tool | Input | Output | Handling | Status |
 | --- | --- | --- | --- | --- | --- |
 | `libpq` | Xmake Lua I/O | `src/include/pg_config.h.in`, `pg_config_ext.h.in`, `src/include/port/win32.h` | `out/libpq/include/pg_config.h`, `pg_config_ext.h`, `pg_config_os.h`, `out/libpq/port/pg_config_paths.h` | Render/copy only the verified Windows frontend configuration in the target's single `on_prepare` callback; no external generator is needed | Build validated |
+
+### libzip upstream build analysis
+
+- PHP Windows enables `ext/zip` by default (`ARG_ENABLE("zip", ..., "yes,shared")`). Its static path requires libzip plus zlib, bzip2, and liblzma and defines `ZIP_STATIC` for the consumer, so libzip is a real selected dependency rather than an optional SDK-only package.
+- Use authoritative `nih-at/libzip` tag `v1.11.4`, matching the PHP SDK package. Preserve the former SDK package only under `out/libzip-sdk-reference` for validation.
+- Upstream `lib/CMakeLists.txt` and the preserved SDK `libzip_a.lib` define an exact Windows static manifest of 124 members: 123 ordinary C sources plus generated `zip_err_str.c`. A broad `lib/*.c` declaration reproduces the implementation when removing exactly eight non-selected inputs: `zip_algorithm_zstd.c`, the four non-Windows crypto backends (`commoncrypto`, `gnutls`, `mbedtls`, `openssl`), `zip_random_unix.c`, `zip_random_uwp.c`, and Unix-only `zip_source_file_stdio_named.c`.
+- Match the SDK feature surface rather than enabling every optional codec present elsewhere in this project: zlib, bzip2, and LZMA/XZ are enabled; Zstd is disabled. Windows CNG is the selected crypto backend, so include `zip_crypto_win.c`, WinZip AES encode/decode, and the normal Win32 random/file sources. The reference archive has direct unresolved `BCrypt*` calls and no legacy CryptoAPI random calls, so propagate `bcrypt` as the Windows system link edge.
+- Generate `zipconf.h`, the Windows `config.h`, and `zip_err_str.c` in the target's single `on_prepare` callback. `zip_err_str.c` is derived from the error definitions/comments in committed `zip.h` and `zipint.h`, matching upstream `GenerateZipErrorStrings.cmake`; add it to the target with `target:add("files", ...)` only after generation. Do not invoke CMake and do not use `always_added` for the generated source.
+- Propagate only `ZIP_STATIC` to consumers so `zip.h` suppresses `dllimport`. Keep Windows feature/probe definitions, `WIN32_LEAN_AND_MEAN`, and CRT warning compatibility private. Use the project-wide `/MD` runtime.
+- Final validation passed without a runtime smoke test: `out/libzip.lib` matches the SDK reference's exact 124/124 member basename set and all 298/298 `zip*` linker-member names. All 124 objects request `MSVCRT`; none requests `LIBCMT`, emits `/EXPORT:`, or contains a `__imp_zip*` thunk.
+
+### libzip code-generation inventory
+
+| Owner | Tool | Input | Output | Handling | Status |
+| --- | --- | --- | --- | --- | --- |
+| `libzip` | Xmake Lua I/O | verified Windows/x64 configuration + `zipconf.h.in` semantics | `out/libzip/config.h`, `out/libzip/zipconf.h` | Emit the selected Windows static configuration directly in the target's only `on_prepare` callback | Build validated |
+| `libzip` | Xmake Lua I/O | `lib/zip.h`, `lib/zipint.h` error definitions | `out/libzip/zip_err_str.c` | Reproduce upstream error-string generation and add the generated source dynamically after creation | Build validated |
 
 ### libffi upstream build analysis
 

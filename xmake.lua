@@ -63,7 +63,7 @@ task("prepare")
         os.run("hx github://webmproject/libwebp?ref=v1.6.0 in/deps/libwebp")
         os.run("hx github://winlibs/libxml2?ref=libxml2-2.11.9-7 in/deps/libxml2")
         os.run("hx github://winlibs/libxslt?ref=libxslt-1.1.43-2 in/deps/libxslt")
-        os.run("hx %s/libzip-1.11.4-vs18-x64.zip in/deps/libzip",bp)
+        os.run("hx github://nih-at/libzip?ref=v1.11.4 in/deps/libzip")
         os.run("hx %s/mpir-3.0.0-2-vs18-x64.zip in/deps/mpir",bp) --xmiss
         os.run("hx %s/net-snmp-5.9.4-vs18-x64.zip in/deps/net-snmp",bp) -- xmiss
         os.run("hx -delpathseg 1 https://www.openldap.org/software/download/OpenLDAP/openldap-release/openldap-2.6.13.tgz in/deps/openldap")
@@ -1382,6 +1382,117 @@ target("wineditline")
     set_optimize("fastest")
     add_includedirs("in/deps/wineditline/src", {public = true})
     add_files("in/deps/wineditline/src/editline.c", "in/deps/wineditline/src/fn_complete.c", "in/deps/wineditline/src/history.c")
+
+
+target("libzip")
+    set_enabled(false)
+    set_kind("static")
+    set_targetdir(get_config("builddir"))
+    set_optimize("fastest")
+    add_deps("zlib", "bzip2", "liblzma")
+    on_prepare(function (target)
+        os.mkdir("out/libzip")
+        io.writefile("out/libzip/zipconf.h", [[#ifndef _HAD_ZIPCONF_H
+#define _HAD_ZIPCONF_H
+#define LIBZIP_VERSION "1.11.4"
+#define LIBZIP_VERSION_MAJOR 1
+#define LIBZIP_VERSION_MINOR 11
+#define LIBZIP_VERSION_MICRO 4
+#if !defined(__STDC_FORMAT_MACROS)
+#define __STDC_FORMAT_MACROS 1
+#endif
+#include <inttypes.h>
+typedef int8_t zip_int8_t;
+typedef uint8_t zip_uint8_t;
+typedef int16_t zip_int16_t;
+typedef uint16_t zip_uint16_t;
+typedef int32_t zip_int32_t;
+typedef uint32_t zip_uint32_t;
+typedef int64_t zip_int64_t;
+typedef uint64_t zip_uint64_t;
+#define ZIP_INT8_MIN (-ZIP_INT8_MAX-1)
+#define ZIP_INT8_MAX 0x7f
+#define ZIP_UINT8_MAX 0xff
+#define ZIP_INT16_MIN (-ZIP_INT16_MAX-1)
+#define ZIP_INT16_MAX 0x7fff
+#define ZIP_UINT16_MAX 0xffff
+#define ZIP_INT32_MIN (-ZIP_INT32_MAX-1L)
+#define ZIP_INT32_MAX 0x7fffffffL
+#define ZIP_UINT32_MAX 0xffffffffLU
+#define ZIP_INT64_MIN (-ZIP_INT64_MAX-1LL)
+#define ZIP_INT64_MAX 0x7fffffffffffffffLL
+#define ZIP_UINT64_MAX 0xffffffffffffffffULL
+#endif
+]])
+        io.writefile("out/libzip/config.h", [[#ifndef HAD_CONFIG_H
+#define HAD_CONFIG_H
+#include "zipconf.h"
+#define ENABLE_FDOPEN
+#define HAVE__CLOSE
+#define HAVE__DUP
+#define HAVE__FDOPEN
+#define HAVE__FILENO
+#define HAVE__FSEEKI64
+#define HAVE__FSTAT64
+#define HAVE__SETMODE
+#define HAVE__SNPRINTF
+#define HAVE__SNPRINTF_S
+#define HAVE__SNWPRINTF_S
+#define HAVE__STAT64
+#define HAVE__STRDUP
+#define HAVE__STRICMP
+#define HAVE__STRTOI64
+#define HAVE__STRTOUI64
+#define HAVE__UNLINK
+#define HAVE_CRYPTO
+#define HAVE_LIBBZ2
+#define HAVE_LIBLZMA
+#define HAVE_LOCALTIME_S
+#define HAVE_MEMCPY_S
+#define HAVE_SNPRINTF
+#define HAVE_SNPRINTF_S
+#define HAVE_STDBOOL_H
+#define HAVE_STRERROR_S
+#define HAVE_STRNCPY_S
+#define HAVE_STRTOLL
+#define HAVE_STRTOULL
+#define HAVE_WINDOWS_CRYPTO
+#define SIZEOF_OFF_T 4
+#define SIZEOF_SIZE_T 8
+#define PACKAGE "libzip"
+#define VERSION "1.11.4"
+#endif
+]])
+        local data = [[#include "zipint.h"
+#define L ZIP_ET_LIBZIP
+#define N ZIP_ET_NONE
+#define S ZIP_ET_SYS
+#define Z ZIP_ET_ZLIB
+#define E ZIP_DETAIL_ET_ENTRY
+#define G ZIP_DETAIL_ET_GLOBAL
+const struct _zip_err_info _zip_err_str[] = {
+]]
+        for kind, text in io.readfile("in/deps/libzip/lib/zip.h"):gmatch("#define%s+ZIP_ER_[%w_]+%s+%d+%s+/%*%s*([LNSZ])%s+(.-)%s*%*/") do
+            data = data .. ("    { %s, %q },\n"):format(kind, text)
+        end
+        data = data .. [[};
+const int _zip_err_str_count = sizeof(_zip_err_str) / sizeof(_zip_err_str[0]);
+const struct _zip_err_info _zip_err_details[] = {
+]]
+        for kind, text in io.readfile("in/deps/libzip/lib/zipint.h"):gmatch("#define%s+ZIP_ER_DETAIL_[%w_]+%s+%d+%s+/%*%s*([EG])%s+(.-)%s*%*/") do
+            data = data .. ("    { %s, %q },\n"):format(kind, text)
+        end
+        io.writefile("out/libzip/zip_err_str.c", data .. [[};
+const int _zip_err_details_count = sizeof(_zip_err_details) / sizeof(_zip_err_details[0]);
+]])
+        target:add("files", "out/libzip/zip_err_str.c")
+    end)
+    add_includedirs("out/libzip", "in/deps/libzip/lib", {public = true})
+    add_defines("ZIP_STATIC", {public = true})
+    add_defines("WIN32_LEAN_AND_MEAN", "_CRT_SECURE_NO_WARNINGS", "_CRT_NONSTDC_NO_DEPRECATE")
+    add_syslinks("bcrypt", {public = true})
+    add_files("in/deps/libzip/lib/*.c")
+    remove_files("in/deps/libzip/lib/zip_algorithm_zstd.c", "in/deps/libzip/lib/zip_crypto_commoncrypto.c", "in/deps/libzip/lib/zip_crypto_gnutls.c", "in/deps/libzip/lib/zip_crypto_mbedtls.c", "in/deps/libzip/lib/zip_crypto_openssl.c", "in/deps/libzip/lib/zip_random_unix.c", "in/deps/libzip/lib/zip_random_uwp.c", "in/deps/libzip/lib/zip_source_file_stdio_named.c")
 
 
 target("php")
