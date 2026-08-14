@@ -104,6 +104,7 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 | `libjpeg` | Disabled | Static library | libjpeg-turbo 3.1.4.1 traditional libjpeg manifest plus x64 NASM SIMD | `out/libjpeg.lib` | JPEG codec for PHP GD; excludes the separate TurboJPEG API/library | Build and reference symbol validation passed; 129/129 archive members and 371/371 libjpeg/SIMD symbols match |
 | `freetype` | Disabled | Static library | FreeType 2.14.3 CMake manifest: 42 C objects plus Windows version resource | `out/freetype.lib` | Font rendering for PHP GD | Build validated: 43/43 members and 671/671 relevant symbols match the SDK reference; x64 `/MD`, no static CRT/export/import thunks |
 | `libwebp` | Disabled | Static library | WebP decoder/demux/encoder/mux/DSP/utils plus SharpYUV | `out/libwebp.lib` | Complete WebP symbol surface required by PHP GD in one archive | Build validated: 125/125 members and 655/655 relevant symbols match the union of the SDK core/demux/mux references; x64 `/MD`, no static CRT/export/import thunks |
+| `libtiff` | Disabled | Static library | 43 C sources plus Windows version resource from libtiff 4.7.2 | `out/libtiff.lib` | TIFF codec for PHP GD with JPEG, zlib, LZMA, Zstd, and WebP support | Build validated: exact 44/44 SDK member manifest and 206/206 SDK DLL API coverage; x64 `/MD`, no static CRT/export/import thunks |
 | `libpq` | Disabled | Static library | PostgreSQL 16.14 libpq plus the required frontend `src/common` and `src/port` support closure | `out/libpq.lib` | PostgreSQL client library for PHP pgsql/PDO_PGSQL | Build, 187/187 reference DLL API coverage, x64 `/MD`, and static-interface validation passed |
 | `libsasl` | Disabled | Static library | Cyrus SASL 2.1.28 Windows core sources only | `out/libsasl.lib` | SASL client support required by OpenLDAP/PHP LDAP | Build, 72/72 SDK DLL export coverage, x64 `/MD`, static decoration, and runtime version validation passed |
 | `openldap` | Disabled | Static library | OpenLDAP 2.6.13 client `libldap` + `liblber` with embedded rxspencer 3.9.0 | `out/openldap.lib` | LDAP client library for PHP ext/ldap | Build, 695/695 SDK Windows LDAP/LBER API coverage, x64 `/MD`, static decoration, and LBER runtime validation passed |
@@ -433,6 +434,25 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 ### libwebp code-generation inventory
 
 No generated source or configuration file is required for the selected native Windows static build.
+
+### libtiff upstream build analysis
+
+- Replace the PHP SDK binary package (`libtiff-4.7.2rc2-vs18-x64.zip`) with the authoritative OSGeo libtiff 4.7.2 release archive. The installed SDK headers report version 4.7.2 but retain the rc2 release-date value `20260623`; the final upstream 4.7.2 release uses `20260627`. Treat that version-date difference as expected and prefer the final authoritative release.
+- Upstream `libtiff/CMakeLists.txt` defines the library as 42 fixed C sources plus the selected platform I/O source and a Windows version resource. On Windows, use `tif_win32.c`, not `tif_unix.c`, yielding exactly 43 C objects plus `tif_win32_versioninfo.rc`. The preserved SDK `tiff_a.lib` has exactly that 44-member manifest.
+- Compile all library sources with private `TIFF_DO_NOT_USE_NON_EXT_ALLOC_FUNCTIONS`. As upstream does, add file-specific `ALLOW_TIFF_NON_EXT_ALLOC_FUNCTIONS` only to `tif_open.c` and `tif_win32.c`. MSVC builds also use `_CRT_SECURE_NO_DEPRECATE`, `_CRT_NONSTDC_NO_DEPRECATE`, `_CRT_SECURE_NO_WARNINGS`, and `_CRT_NONSTDC_NO_WARNINGS`; the project-wide runtime remains `/MD`.
+- The SDK public `tiffconf.h` and the reference static archive show the feature surface to reproduce: internal CCITT, PackBits, LZW, ThunderScan, NeXT, LogLuv, MDI, strip chopping, SubIFD, alpha handling, and YCbCr-subsampling support; external zlib/Deflate + PixarLog, JPEG/OJPEG with libjpeg-turbo 8/12 dual mode, liblzma, Zstd, and WebP. JBIG, LERC, and libdeflate are disabled.
+- Direct undefined-symbol inspection of `tiff_a.lib` confirms references to zlib, `jpeg_*`/`jpeg12_*`, `lzma_*`, `ZSTD_*`, and `WebP*`, with no JBIG/LERC/libdeflate dependency. Therefore the single `libtiff` target depends on the already validated `zlib`, `libjpeg`, `liblzma`, `zstd`, and unified `libwebp` targets.
+- libtiff's public headers do not use a static/import decoration macro. Shared Windows exports are controlled by `libtiff.def`; do not add or propagate a DLL/static ABI define for consumers.
+- Generate `tif_config.h` and `tiffconf.h` from the upstream CMake templates in the target's single `on_prepare` callback using the verified Windows x64 configuration. Copy the release-provided `tiffvers.h` into the generated include directory so consumers see the authoritative final-release date/version. Do not invoke CMake.
+- Final validation passed against the preserved SDK reference. The archive has the exact 44/44 member manifest. Its relevant linker-member set differs only by `_TIFFSetDefaultPostDecode`, an internal rc2 helper absent from the final 4.7.2 source and not exported by the SDK DLL; all 206/206 SDK DLL exports are present in `out/libtiff.lib`. `tiffconf.h` matches the SDK configuration defines (the only textual difference is a generated comment), while `tiffvers.h` intentionally carries the authoritative final-release date `20260627` rather than rc2's `20260623`. All 43 C objects request `MSVCRT`, with zero `LIBCMT`, zero `/EXPORT:` directives, and zero TIFF import thunks. Clean preparation and the unchanged second `xmake prepare` both succeeded. Runtime TIFF tests remain intentionally deferred.
+
+### libtiff code-generation inventory
+
+| Owner | Tool | Input | Output | Handling | Status |
+| --- | --- | --- | --- | --- | --- |
+| `libtiff` | Xmake Lua I/O | `libtiff/tif_config.h.cmake.in` | `out/libtiff/tif_config.h` | Substitute verified Windows x64 feature/probe values; enable zlib/JPEG/LZMA/Zstd/WebP and disable JBIG/LERC/libdeflate | Build and SDK surface validation passed |
+| `libtiff` | Xmake Lua I/O | `libtiff/tiffconf.h.cmake.in` | `out/libtiff/tiffconf.h` | Generate public compatibility configuration matching the selected codec/features | Build and SDK surface validation passed |
+| `libtiff` | Xmake Lua I/O | release `libtiff/tiffvers.h` | `out/libtiff/tiffvers.h` | Copy authoritative 4.7.2 release version header | Build and SDK surface validation passed |
 
 ### PostgreSQL / libpq upstream build analysis
 
