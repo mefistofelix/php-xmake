@@ -171,7 +171,7 @@ Integrate zstd as one dependency target:
 - [x] Inspect the upstream Windows build for its exact source manifest, generated configuration, static interface, and libiconv dependency.
 - [x] Recover the official PHP SDK `libintl_a.lib` reference and derive its exact 25-core + 78-Gnulib + 1-resource object manifest.
 - [x] Replace the broad compiler-driven Gnulib experiment with the exact SDK source selection.
-- [ ] Complete the native MSVC `locale.h` wrapper and direct per-source static build without MinGW, Cygwin, Autoconf, Make, sed, or other Unix build tools.
+- [x] Complete the native MSVC Gnulib wrapper configuration and direct per-source static build without MinGW, Cygwin, Autoconf, Make, sed, or other Unix build tools.
 - [ ] Validate archive architecture, `/MD`, static decoration, SDK symbol coverage, and runtime catalog lookup.
 
 ## Completed Target: libxml2
@@ -238,6 +238,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-14 — complete direct `libintl` build at commit `d08a889`: Xmake compiled the exact 25 core plus 78 Gnulib C sources selected by the official PHP SDK reference using only the configured MSVC/Windows SDK toolchain with `/MD /O2`, rebuilt the direct `libiconv` dependency, and archived `out/libintl.lib` successfully in 3.515 seconds. The complete native Gnulib wrapper set now supplies MSVC's missing POSIX/C23 interfaces without MinGW, Cygwin, Autoconf, Make, sed, or other Unix build tools. Existing source-level warnings remain non-blocking under project policy; archive, symbol-surface, resource, and runtime validation remain.
 
 - 2026-08-14 — fifth exact-manifest `libintl` build at commit `4cdd370`: Gnulib's generated checked-arithmetic header compiled `stdio-consolesafe.c` and the pass advanced through `unistd.c`, `wctype-h.c`, `wcwidth.c`, `wgetcwd-lgpl.c`, and the first native Windows synchronization objects to 64%. The next fatal error was only the missing generated `alloca.h` in `vasnprintf.c`; on MSVC the committed Gnulib template maps `alloca` directly to UCRT `_alloca`, so generate that header with no external dependency.
 
