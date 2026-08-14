@@ -57,7 +57,7 @@ task("prepare")
         os.run("hx github://kkos/oniguruma?ref=v6.9.10 in/deps/libonig")
         os.run("hx %s/libpng-1.6.58-vs18-x64.zip in/deps/libpng",bp)
         os.run("hx github://postgres/postgres?ref=REL_16_14 in/deps/libpq")
-        os.run("hx %s/libsasl-2.1.28-vs18-x64.zip in/deps/libsasl",bp)
+        os.run("hx github://cyrusimap/cyrus-sasl?ref=cyrus-sasl-2.1.28 in/deps/libsasl")
         os.run("hx %s/libtidy-5.8.0-vs18-x64.zip in/deps/libtidy",bp)
         os.run("hx %s/libtiff-4.7.2rc2-vs18-x64.zip in/deps/libtiff",bp)
         os.run("hx %s/libultrahdr-1.4.0-1-vs18-x64.zip in/deps/libultrahdr",bp)
@@ -68,7 +68,8 @@ task("prepare")
         os.run("hx %s/libzip-1.11.4-vs18-x64.zip in/deps/libzip",bp)
         os.run("hx %s/mpir-3.0.0-2-vs18-x64.zip in/deps/mpir",bp) --xmiss
         os.run("hx %s/net-snmp-5.9.4-vs18-x64.zip in/deps/net-snmp",bp) -- xmiss
-        os.run("hx %s/openldap-2.6.13-2-vs18-x64.zip in/deps/openldap",bp) -- xmiss
+        os.run("hx -delpathseg 1 https://www.openldap.org/software/download/OpenLDAP/openldap-release/openldap-2.6.13.tgz in/deps/openldap")
+        os.run("hx github://garyhouston/rxspencer?ref=v3.9.0 in/deps/rxspencer")
         os.run("hx -delpathseg 1 https://www.sqlite.org/2026/sqlite-amalgamation-3530200.zip in/deps/sqlite3")
         os.run("hx %s/wineditline-2.208-vs18-x64.zip in/deps/wineditline", bp)
 
@@ -773,6 +774,102 @@ target("sqlite3")
         "SQLITE_ENABLE_FTS5"
     )
     add_files("in/deps/sqlite3/sqlite3.c")
+
+
+target("libsasl")
+    set_enabled(false)
+    set_kind("static")
+    set_targetdir(get_config("builddir"))
+    set_optimize("fastest")
+    on_prepare(function ()
+        os.mkdir("out/libsasl/include/sasl")
+        os.cp("in/deps/libsasl/include/*.h", "out/libsasl/include")
+        os.cp("in/deps/libsasl/include/*.h", "out/libsasl/include/sasl")
+        os.cp("in/deps/libsasl/win32/include/md5global.h", "out/libsasl/include")
+        os.cp("in/deps/libsasl/win32/include/md5global.h", "out/libsasl/include/sasl")
+        local prop = io.readfile("in/deps/libsasl/include/prop.h"):gsub("#ifdef WIN32\n# ifdef LIBSASL_EXPORTS", "#if defined(WIN32) && !defined(LIBSASL_STATIC)\n# ifdef LIBSASL_EXPORTS")
+        io.writefile("out/libsasl/include/prop.h", prop)
+        io.writefile("out/libsasl/include/sasl/prop.h", prop)
+        local saslutil = io.readfile("in/deps/libsasl/lib/saslutil.c"):gsub("__declspec%(dllexport%) ", "")
+        io.writefile("out/libsasl/saslutil.c", saslutil)
+    end)
+    add_includedirs("out/libsasl/include", {public = true})
+    add_includedirs("in/deps/libsasl/win32/include", "in/deps/libsasl/include", "in/deps/libsasl/lib", "in/deps/libsasl/common")
+    add_defines("LIBSASL_STATIC", {public = true})
+    add_defines("NO_STATIC_PLUGINS", "WIN32", "UNICODE", "_UNICODE", "_CRT_SECURE_NO_WARNINGS", "GCC_FALLTHROUGH=")
+    add_syslinks("ws2_32", "advapi32", {public = true})
+    add_files("in/deps/libsasl/lib/*.c", "in/deps/libsasl/common/plugin_common.c", "out/libsasl/saslutil.c", {always_added = true})
+    remove_files("in/deps/libsasl/lib/dlopen.c", "in/deps/libsasl/lib/getaddrinfo.c", "in/deps/libsasl/lib/getnameinfo.c", "in/deps/libsasl/lib/snprintf.c", "in/deps/libsasl/lib/saslutil.c")
+
+
+target("openldap")
+    set_enabled(false)
+    set_kind("static")
+    set_targetdir(get_config("builddir"))
+    set_optimize("fastest")
+    add_deps("openssl", "libsasl")
+    on_prepare(function ()
+        local out = "out/openldap/include"
+        os.mkdir(path.join(out, "ac"))
+        local defs = {}
+        for name in ([=[THREADSAFE _THREADSAFE THREAD_SAFE _THREAD_SAFE HAVE_ASSERT_H HAVE_CLOSESOCKET HAVE_CONIO_H HAVE_CYRUS_SASL HAVE_DIRECT_H HAVE_ERRNO_H HAVE_FCNTL_H HAVE_FSTAT HAVE_GETADDRINFO HAVE_GETHOSTNAME HAVE_GETOPT HAVE_GMTIME_R HAVE_INET_NTOP HAVE_INTTYPES_H HAVE_IOCTL HAVE_IO_H HAVE_LIMITS_H HAVE_LOCALE_H HAVE_LOCALTIME_R HAVE_LONG_LONG HAVE_MALLOC_H HAVE_MEMCPY HAVE_MEMMOVE HAVE_MEMORY_H HAVE_MKTEMP HAVE_MKVERSION HAVE_NT_EVENT_LOG HAVE_NT_SERVICE_MANAGER HAVE_NT_THREADS HAVE_OPENSSL HAVE_OPENSSL_BN_H HAVE_OPENSSL_CRL HAVE_OPENSSL_CRYPTO_H HAVE_OPENSSL_SSL_H HAVE_PROCESS_H HAVE_PTRDIFF_T HAVE_READ HAVE_RECV HAVE_RECVFROM HAVE_REGEX_H HAVE_SASL_SASL_H HAVE_SASL_VERSION HAVE_SIGNAL HAVE_SNPRINTF HAVE_SPAWNLP HAVE_STDDEF_H HAVE_STDINT_H HAVE_STDLIB_H HAVE_STRDUP HAVE_STRERROR HAVE_STRFTIME HAVE_STRINGS_H HAVE_STRING_H HAVE_STRPBRK HAVE_STRRCHR HAVE_STRSPN HAVE_STRSTR HAVE_STRTOL HAVE_STRTOLL HAVE_STRTOUL HAVE_STRTOULL HAVE_SYS_ERRLIST HAVE_SYS_FILE_H HAVE_SYS_STAT_H HAVE_SYS_TYPES_H HAVE_TLS HAVE_UTIME_H HAVE_VPRINTF HAVE_VSNPRINTF HAVE_WINSOCK HAVE_WINSOCK2 HAVE_WINSOCK2_H HAVE_WINSOCK_H HAVE_WRITE HAVE_YIELDING_SELECT HAVE__VSNPRINTF LDAP_API_FEATURE_X_OPENLDAP_REENTRANT LDAP_API_FEATURE_X_OPENLDAP_THREAD_SAFE LDAP_DEBUG LDAP_PF_INET6 LDAP_PROCTITLE STDC_HEADERS USE_MP_LONG_LONG]=]):gmatch("%S+") do defs[name] = "1" end
+        local values = [=[
+EXEEXT=".exe"
+LBER_INT_T=int
+LBER_LEN_T=__int64
+LBER_SOCKET_T=int
+LBER_TAG_T=__int64
+LDAP_VENDOR_VERSION=20613
+LDAP_VENDOR_VERSION_MAJOR=2
+LDAP_VENDOR_VERSION_MINOR=6
+LDAP_VENDOR_VERSION_PATCH=13
+OPENLDAP_PACKAGE="OpenLDAP"
+OPENLDAP_VERSION="2.6.13"
+PACKAGE_BUGREPORT=""
+PACKAGE_NAME=""
+PACKAGE_STRING=""
+PACKAGE_TARNAME=""
+PACKAGE_VERSION=""
+RETSIGTYPE=void
+SIZEOF_INT=4
+SIZEOF_LONG=4
+SIZEOF_LONG_LONG=8
+SIZEOF_SHORT=2
+SIZEOF_WCHAR_T=2
+ber_socklen_t=int
+caddr_t=char *
+gid_t=int
+uid_t=int
+]=]
+        for line in values:gmatch("[^\r\n]+") do local n, v = line:match("^([^=]+)=(.*)$"); if n then defs[n] = v end end
+        local function render(input, output)
+            local data = io.readfile(input):gsub("#undef%s+([%w_]+)", function (name)
+                return defs[name] and ("#define " .. name .. " " .. defs[name]) or ("/* #undef " .. name .. " */")
+            end)
+            io.writefile(output, data)
+        end
+        render("in/deps/openldap/include/portable.hin", path.join(out, "portable.h"))
+        render("in/deps/openldap/include/lber_types.hin", path.join(out, "lber_types.h"))
+        render("in/deps/openldap/include/ldap_features.hin", path.join(out, "ldap_features.h"))
+        local config = io.readfile("in/deps/openldap/include/ldap_config.hin"):gsub("%%[A-Z]+DIR%%", ".")
+        io.writefile(path.join(out, "ldap_config.h"), config)
+        local socket = io.readfile("in/deps/openldap/include/ac/socket.h"):gsub("#define EWOULDBLOCK WSAEWOULDBLOCK", "#undef EWOULDBLOCK\n#undef EINPROGRESS\n#undef ETIMEDOUT\n#undef ENOTCONN\n#define EWOULDBLOCK WSAEWOULDBLOCK")
+        io.writefile(path.join(out, "ac/socket.h"), socket)
+        local time = io.readfile("in/deps/openldap/include/ac/time.h"):gsub("#if defined%(_WIN32%) && !defined%(HAVE_CLOCK_GETTIME%)", "#if defined(_WIN32) && !defined(HAVE_CLOCK_GETTIME) && (!defined(_MSC_VER) || _MSC_VER < 1900)")
+        io.writefile(path.join(out, "ac/time.h"), time)
+        local version = io.readfile("in/deps/openldap/build/version.h") .. '\n#include "portable.h"\nconst char __Version[] = "OpenLDAP 2.6.13";\n'
+        io.writefile("out/openldap/version.c", version)
+    end)
+    add_includedirs("out/openldap/include", "in/deps/openldap/include", {public = true})
+    add_includedirs("in/deps/openldap/libraries/libldap", "in/deps/openldap/libraries/liblber", "in/deps/rxspencer", "in/deps/openssl/include")
+    add_defines("strcasecmp=_stricmp", "strncasecmp=_strnicmp")
+    add_syslinks("ws2_32", "advapi32", "crypt32", "secur32", "bcrypt", {public = true})
+    add_files("in/deps/openldap/libraries/libldap/*.c", {defines = {"LDAP_LIBRARY"}})
+    remove_files("in/deps/openldap/libraries/libldap/apitest.c", "in/deps/openldap/libraries/libldap/dntest.c", "in/deps/openldap/libraries/libldap/ftest.c", "in/deps/openldap/libraries/libldap/ltest.c", "in/deps/openldap/libraries/libldap/t61.c", "in/deps/openldap/libraries/libldap/test.c", "in/deps/openldap/libraries/libldap/testavl.c", "in/deps/openldap/libraries/libldap/testtavl.c", "in/deps/openldap/libraries/libldap/urltest.c")
+    add_files("in/deps/openldap/libraries/liblber/*.c", {defines = {"LBER_LIBRARY"}})
+    remove_files("in/deps/openldap/libraries/liblber/dtest.c", "in/deps/openldap/libraries/liblber/etest.c", "in/deps/openldap/libraries/liblber/idtest.c", "in/deps/openldap/libraries/liblber/stdio.c")
+    add_files("in/deps/rxspencer/regcomp.c", "in/deps/rxspencer/regerror.c", "in/deps/rxspencer/regexec.c", "in/deps/rxspencer/regfree.c", {defines = {"POSIX_MISTAKE", "REDEBUG"}})
+    add_files("out/openldap/version.c", {always_added = true})
 
 
 target("libpq")

@@ -222,12 +222,19 @@ Integrate zstd as one dependency target:
 
 - [x] `pdo_firebird` is intentionally excluded from this PHP distribution, so Firebird/fbclient is not a project dependency and its PHP SDK package is no longer downloaded by `prepare`.
 
-## Next Target: OpenLDAP
+## Completed Target: OpenLDAP
 
-- [ ] Identify the authoritative OpenLDAP source/revision matching the current PHP SDK package and preserve the SDK binaries only as validation references.
-- [ ] Inspect PHP's LDAP Windows consumer and upstream Windows/MSVC build declarations for the exact client source closure and dependencies.
-- [ ] Replace the prebuilt package with pinned authoritative source, validate clean and repeated preparation, then add the minimal static target.
-- [ ] Validate the final archive against the SDK DLL/API surface, architecture, CRT, and representative LDAP client use.
+- [x] Identify authoritative OpenLDAP 2.6.13, Cyrus SASL 2.1.28, and rxspencer 3.9.0 sources; preserve the PHP SDK OpenLDAP and SASL binaries only as validation references.
+- [x] Inspect PHP LDAP and upstream manifests: client-only OpenLDAP requires OpenSSL + Cyrus SASL; rxspencer is embedded support; LMDB/sasldb/server backends are outside the selected closure.
+- [x] Compare packaging forks with upstream: OpenLDAP implementation sources are unchanged; retain only three small MSVC portability adaptations. Cyrus SASL fork changes do not require using the fork.
+- [x] Replace prebuilt OpenLDAP/SASL packages with pinned authoritative sources plus rxspencer, and validate clean and repeated preparation.
+- [x] Build and validate `libsasl.lib`: 72/72 SDK DLL exports, 14 x64 `/MD` members, no static CRT/export directives/import thunks, and a static 2.1.28 runtime version check.
+- [x] Build and validate `openldap.lib`: 695/695 SDK Windows LDAP/LBER APIs, 92 x64 `/MD` members, no static CRT/export directives/import thunks, and a direct LBER runtime smoke test with no third-party runtime DLL.
+
+## Current Cleanup: libpq and libintl
+
+- [ ] Reduce the 129-line `libpq` target substantially without changing its validated 187/187 reference symbol coverage.
+- [ ] Reduce the 130-line `libintl` target further if possible while retaining 79/79 SDK DLL export coverage and runtime/catalog validation.
 
 ## Dependency Targets
 
@@ -237,9 +244,9 @@ Every library must receive its own static target. Integrate and validate them on
 - [x] Cryptography and transport: OpenSSL, libcurl, libssh2, libsodium.
 - [x] HTTP/async: libuv, nghttp2, nghttp3, ngtcp2.
 - [x] Data/text: ICU, libiconv, libintl, libxml2, libxslt, Oniguruma, SQLite. LMDB and QDBM skipped with `ext/dba`.
-- [ ] Database/directory clients: PostgreSQL complete; Firebird intentionally skipped with `pdo_firebird`; OpenLDAP pending.
+- [x] Database/directory clients: PostgreSQL and OpenLDAP complete; Firebird intentionally skipped with `pdo_firebird`.
 - [ ] Image/font stack: FreeType, libjpeg-turbo, libpng, libtiff, libwebp, libavif, libheif, libjxl, libultrahdr, libxpm.
-- [ ] Remaining libraries: Apache support files, GLib, Argon2, Enchant, libffi, SASL, Tidy, libzip, MPIR, Net-SNMP, WinEditLine.
+- [ ] Remaining libraries: Apache support files, GLib, Argon2, Enchant, libffi, Tidy, libzip, MPIR, Net-SNMP, WinEditLine.
 - [ ] Document exact target names, source patterns, dependencies, defines, and validation status as each target lands.
 
 ## PHP Code Generation
@@ -265,6 +272,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-14 — OpenLDAP/Cyrus SASL validation: replaced the PHP SDK binary packages with authoritative OpenLDAP 2.6.13, Cyrus SASL 2.1.28, and rxspencer 3.9.0 source inputs; clean and unchanged-repeat preparation both succeeded. `out/libsasl.lib` covers all 72/72 SDK DLL exports and contains 14 x64 `/MD` members with zero `LIBCMT`, `/EXPORT:` directives, or SASL/prop import thunks; a direct static consumer verified version 2.1.28 and exited 0. `out/openldap.lib` combines the client `libldap`/`liblber` closure plus rxspencer, covers all 695/695 public LDAP/LBER APIs represented by the SDK Windows static references, and contains 92 x64 `/MD` members with zero `LIBCMT`, `/EXPORT:` directives, or LDAP/LBER/SASL-family import thunks. A direct LBER consumer encoded a DER value and exited 0 with only Windows/VCRuntime/UCRT runtime dependencies. LMDB, SQLite server backends, and SASL `sasldb` remain excluded.
 
 - 2026-08-14 — PostgreSQL/libpq 16.14 validation: normalized the build input from the PHP SDK's Winlibs packaging source to authoritative `postgres/postgres` `REL_16_14` after confirming the relevant source trees are byte-for-byte identical. Clean and repeated preparation succeeded. The direct target built `out/libpq.lib` successfully with its normal OpenSSL target dependency; final-archive comparison covers all 187/187 exports from `dll_compare/libpq.dll` with zero missing names and 400 linker-member symbols total. Archive-level inspection reports 54 x64 members, 54 `MSVCRT` directives, zero `LIBCMT`, zero embedded `/EXPORT:` directives, and zero libpq-family import thunks.
 
