@@ -239,6 +239,8 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-14 — fifth exact-manifest `libintl` build at commit `4cdd370`: Gnulib's generated checked-arithmetic header compiled `stdio-consolesafe.c` and the pass advanced through `unistd.c`, `wctype-h.c`, `wcwidth.c`, `wgetcwd-lgpl.c`, and the first native Windows synchronization objects to 64%. The next fatal error was only the missing generated `alloca.h` in `vasnprintf.c`; on MSVC the committed Gnulib template maps `alloca` directly to UCRT `_alloca`, so generate that header with no external dependency.
+
 - 2026-08-14 — fourth exact-manifest `libintl` build at commit `4931805`: the generated `sched.h`/once-only `pthread.h` shim compiled reference-selected `pthread-once.c` successfully with no pthread library or non-Windows runtime. Compilation advanced to 57% and stopped in `stdio-consolesafe.c` only because MSVC lacks C23 `<stdckdint.h>`; Gnulib ships a header-only replacement based on `intprops-internal.h`, so generate that wrapper directly and continue.
 
 - 2026-08-14 — third exact-manifest `libintl` build at commit `1b90f01`: the generated `wchar.h` correctly redirected the MSVC inline `mbsinit`, so `mbsinit.c` compiled, and the generated `uchar.h` removed the prior `mbrtoc32` DLL-linkage warning. Compilation advanced to 55% and stopped only because reference-selected `pthread-once.c` includes Gnulib's generated `pthread.h`; native Windows does not need a pthread library because that wrapper defines `pthread_once_t` over `windows-once.h` under `USE_WINDOWS_THREADS`. Generate the once-only pthread shim and continue.

@@ -614,6 +614,11 @@ target("libintl")
                 :gsub("@[^@\r\n]+@", "0"))
         )
         io.writefile(
+            "in/deps/libintl/gettext-runtime/intl/gnulib-lib/alloca.h",
+            (io.readfile("in/deps/libintl/gettext-runtime/intl/gnulib-lib/alloca.in.h")
+                :gsub("@HAVE_ALLOCA_H@", "0"))
+        )
+        io.writefile(
             "in/deps/libintl/gettext-runtime/intl/gnulib-lib/stdckdint.h",
             (io.readfile("in/deps/libintl/gettext-runtime/intl/gnulib-lib/stdckdint.in.h")
                 :gsub("@GUARD_PREFIX@", "GL")
