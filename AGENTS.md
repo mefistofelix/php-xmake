@@ -455,6 +455,22 @@ No generated source or configuration file is required for the selected native Wi
 | `libtiff` | Xmake Lua I/O | `libtiff/tiffconf.h.cmake.in` | `out/libtiff/tiffconf.h` | Generate public compatibility configuration matching the selected codec/features | Build and SDK surface validation passed |
 | `libtiff` | Xmake Lua I/O | release `libtiff/tiffvers.h` | `out/libtiff/tiffvers.h` | Copy authoritative 4.7.2 release version header | Build and SDK surface validation passed |
 
+### libjxl upstream build analysis
+
+- Use authoritative `libjxl/libjxl` tag `v0.11.2`, matching the PHP SDK package. Keep its pinned Highway gitlink (`457c891775a7397bdb0376bb1031e6e027af1c48`, Highway 1.2.0) and skcms gitlink (`b2e692629c1fb19342517d7fb61f1cf83d075492`) physically under `in/deps/libjxl/third_party`; do not create a separate project-level Highway target.
+- PHP bundled GD directly uses both JXL decode and encode APIs and `JxlGetDefaultCms()`. It does not use libjxl's optional thread-runner API. Therefore the project target is one static `libjxl` archive containing the upstream `jxl`, `jxl_cms`, skcms, and Highway object closure; omit `jxl_threads`, tools, jpegli, examples, tests, and plugins. Brotli remains a normal existing external dependency.
+- The preserved PHP SDK references provide an exact target oracle: `jxl_a.lib` has 129 members, `jxl_cms_a.lib` has 3 (`jxl_cms`, `skcms`, `skcms_TransformBaseline`), and `hwy_a.lib` has 7, for 139 members total in the unified project archive. `jxl_threads_a.lib` has three separate runner objects and is intentionally omitted.
+- Xmake's `lib/jxl/**.cc` pattern includes both direct children and recursive subdirectories (verified: 190 total source files), unlike `**/*.cc`, which matches only recursive subdirectories here. Removing `**_test.cc`, `**_gbench.cc`, `**testonly.cc`, and `**test_*.cc` leaves exactly the required 129 JXL implementation sources plus `jxl_cms.cc`. Add the two baseline skcms sources and the seven normal Highway library sources. On MSVC, skcms does not compile its Clang-only HSW/SkX specializations, so define `SKCMS_DISABLE_HSW` and `SKCMS_DISABLE_SKX`.
+- Match the upstream Windows feature surface: C++17, `_CRT_SECURE_NO_WARNINGS`, boxes enabled, JPEG reconstruction/transcoding enabled, skcms enabled, AVX-512 disabled by default, and static public decoration via `JXL_STATIC_DEFINE` and `JXL_CMS_STATIC_DEFINE`. Highway is built statically with its seven normal sources, no contrib/tests/examples, and native runtime dispatch.
+- Generate only the three public build outputs needed by the source/API: `version.h`, `jxl_export.h`, and `jxl_cms_export.h` under `out/libjxl/include/jxl` in the target's single `on_prepare`; do not invoke CMake.
+
+### libjxl code-generation inventory
+
+| Owner | Tool | Input | Output | Handling | Status |
+| --- | --- | --- | --- | --- | --- |
+| `libjxl` | Xmake Lua I/O | `lib/jxl/version.h.in` | `out/libjxl/include/jxl/version.h` | Substitute version 0.11.2 in the target's only `on_prepare` callback | Build and SDK surface validation passed |
+| `libjxl` | Xmake Lua I/O | static Windows public-interface configuration | `out/libjxl/include/jxl/jxl_export.h`, `jxl_cms_export.h` | Emit static-safe export/deprecation macros equivalent to upstream GenerateExportHeader output | Build and SDK surface validation passed |
+
 ### libavif / AOM / libyuv upstream build analysis
 
 - Replace the PHP SDK `libavif-1.4.2-vs18-x64.zip` binary input with authoritative libavif `v1.4.2`, AOM `v3.14.1`, and the exact libyuv commit `644251f252a84bf8ce91ff0aca86a9b16b069ab8` pinned by libavif. Preserve the former package under `out/libavif-sdk-reference` for comparison.

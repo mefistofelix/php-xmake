@@ -56,7 +56,9 @@ task("prepare")
         os.run("hx https://code.videolan.org/videolan/dav1d/-/archive/1.5.3/dav1d-1.5.3.tar.gz in/deps/dav1d")
         os.run("hx -delpathseg 1 https://ftp.gnu.org/pub/gnu/gettext/gettext-1.0.tar.gz in/deps/libintl")
         os.run("hx github://libjpeg-turbo/libjpeg-turbo?ref=3.1.4.1 in/deps/libjpeg-turbo")
-        os.run("hx %s/libjxl-0.11.2-vs18-x64.zip in/deps/libjxl",bp)
+        os.run("hx github://libjxl/libjxl?ref=v0.11.2 in/deps/libjxl")
+        os.run("hx github://google/highway?ref=457c891775a7397bdb0376bb1031e6e027af1c48 in/deps/libjxl/third_party/highway")
+        os.run("hx https://skia.googlesource.com/skcms/+archive/b2e692629c1fb19342517d7fb61f1cf83d075492.tar.gz in/deps/libjxl/third_party/skcms")
         os.run("hx github://kkos/oniguruma?ref=v6.9.10 in/deps/libonig")
         os.run("hx github://pnggroup/libpng?ref=v1.6.58 in/deps/libpng")
         os.run("hx github://postgres/postgres?ref=REL_16_14 in/deps/libpq")
@@ -102,7 +104,7 @@ target("zlib")
     add_files("in/deps/zlib/gz*.c", "in/deps/zlib/inf*.c", "in/deps/zlib/zutil.c", {unity_ignored = true})
 
 target("brotli")
-    set_enabled(false)
+    set_default(false)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     add_includedirs("in/deps/brotli/c/include", {public = true})
@@ -1000,6 +1002,46 @@ target("libtiff")
     remove_files("in/deps/libtiff/tiff-4.7.2/libtiff/tif_unix.c")
     add_files("in/deps/libtiff/tiff-4.7.2/libtiff/tif_open.c", "in/deps/libtiff/tiff-4.7.2/libtiff/tif_win32.c", {defines = {"ALLOW_TIFF_NON_EXT_ALLOC_FUNCTIONS"}})
     add_files("in/deps/libtiff/tiff-4.7.2/libtiff/tif_win32_versioninfo.rc")
+
+
+target("libjxl")
+    set_default(false)
+    set_kind("static")
+    set_targetdir(get_config("builddir"))
+    set_languages("cxx17")
+    set_optimize("fastest")
+    add_deps("brotli")
+    on_prepare(function ()
+        os.mkdir("out/libjxl/include/jxl")
+        io.writefile("out/libjxl/include/jxl/version.h", (io.readfile("in/deps/libjxl/lib/jxl/version.h.in")
+            :gsub("@JPEGXL_MAJOR_VERSION@", "0"):gsub("@JPEGXL_MINOR_VERSION@", "11"):gsub("@JPEGXL_PATCH_VERSION@", "2")))
+        io.writefile("out/libjxl/include/jxl/jxl_export.h", [[#ifndef JXL_EXPORT_H
+#define JXL_EXPORT_H
+#define JXL_EXPORT
+#define JXL_NO_EXPORT
+#define JXL_DEPRECATED __declspec(deprecated)
+#define JXL_DEPRECATED_EXPORT JXL_EXPORT JXL_DEPRECATED
+#define JXL_DEPRECATED_NO_EXPORT JXL_NO_EXPORT JXL_DEPRECATED
+#endif
+]])
+        io.writefile("out/libjxl/include/jxl/jxl_cms_export.h", [[#ifndef JXL_CMS_EXPORT_H
+#define JXL_CMS_EXPORT_H
+#define JXL_CMS_EXPORT
+#define JXL_CMS_NO_EXPORT
+#define JXL_CMS_DEPRECATED __declspec(deprecated)
+#define JXL_CMS_DEPRECATED_EXPORT JXL_CMS_EXPORT JXL_CMS_DEPRECATED
+#define JXL_CMS_DEPRECATED_NO_EXPORT JXL_CMS_NO_EXPORT JXL_CMS_DEPRECATED
+#endif
+]])
+    end)
+    add_includedirs("out/libjxl/include", "in/deps/libjxl/lib/include", "in/deps/libjxl", "in/deps/libjxl/third_party/highway", {public = true})
+    add_includedirs("in/deps/libjxl/third_party/skcms")
+    add_defines("JXL_STATIC_DEFINE", "JXL_CMS_STATIC_DEFINE", "HWY_STATIC_DEFINE", {public = true})
+    add_defines("JXL_INTERNAL_LIBRARY_BUILD", "JPEGXL_ENABLE_SKCMS=1", "JPEGXL_ENABLE_TRANSCODE_JPEG=1", "JPEGXL_ENABLE_BOXES=1", "FJXL_ENABLE_AVX512=0", "SKCMS_DISABLE_HSW", "SKCMS_DISABLE_SKX", "TOOLCHAIN_MISS_SYS_AUXV_H", "TOOLCHAIN_MISS_ASM_HWCAP_H", "_CRT_SECURE_NO_WARNINGS")
+    add_files("in/deps/libjxl/lib/jxl/**.cc")
+    remove_files("in/deps/libjxl/lib/jxl/**_test.cc", "in/deps/libjxl/lib/jxl/**_gbench.cc", "in/deps/libjxl/lib/jxl/**testonly.cc", "in/deps/libjxl/lib/jxl/**test_*.cc")
+    add_files("in/deps/libjxl/third_party/skcms/skcms.cc", "in/deps/libjxl/third_party/skcms/src/skcms_TransformBaseline.cc")
+    add_files("in/deps/libjxl/third_party/highway/hwy/abort.cc", "in/deps/libjxl/third_party/highway/hwy/aligned_allocator.cc", "in/deps/libjxl/third_party/highway/hwy/nanobenchmark.cc", "in/deps/libjxl/third_party/highway/hwy/per_target.cc", "in/deps/libjxl/third_party/highway/hwy/print.cc", "in/deps/libjxl/third_party/highway/hwy/targets.cc", "in/deps/libjxl/third_party/highway/hwy/timer.cc")
 
 
 target("avif")
