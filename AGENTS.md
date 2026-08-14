@@ -109,6 +109,7 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 | `libpq` | Disabled | Static library | PostgreSQL 16.14 libpq plus the required frontend `src/common` and `src/port` support closure | `out/libpq.lib` | PostgreSQL client library for PHP pgsql/PDO_PGSQL | Build, 187/187 reference DLL API coverage, x64 `/MD`, and static-interface validation passed |
 | `libsasl` | Disabled | Static library | Cyrus SASL 2.1.28 Windows core sources only | `out/libsasl.lib` | SASL client support required by OpenLDAP/PHP LDAP | Build, 72/72 SDK DLL export coverage, x64 `/MD`, static decoration, and runtime version validation passed |
 | `openldap` | Disabled | Static library | OpenLDAP 2.6.13 client `libldap` + `liblber` with embedded rxspencer 3.9.0 | `out/openldap.lib` | LDAP client library for PHP ext/ldap | Build, 695/695 SDK Windows LDAP/LBER API coverage, x64 `/MD`, static decoration, and LBER runtime validation passed |
+| `wineditline` | Disabled | Static library | `editline.c`, `fn_complete.c`, `history.c` from WinEditLine 2.208 | `out/wineditline.lib` | Windows libedit-compatible backend for PHP `ext/readline` | Build validated: 3/3 SDK members, 126/126 significant linker-member symbols, x64 `/MD`, no static CRT or export directives |
 | `minilua` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/dynasm/minilua.c` | `out/minilua.exe` | Runs DynASM for the PHP JIT IR emitter | Defined; build validation pending |
 | `gen_ir_fold_hash` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c` | `out/gen_ir_fold_hash.exe` | Generates the JIT IR fold hash header | Defined; build validation pending |
 | `php` | Disabled | Object prototype | `in/php-src/Zend/zend.c`, `in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm` | `out/` | Becomes the static PHP build after dependency, configuration, codegen, and source integration | Prototype only; real `on_prepare` codegen pending |
@@ -556,6 +557,15 @@ No generated source or configuration file is required for the selected native Wi
 | Owner | Tool | Input | Output | Handling | Status |
 | --- | --- | --- | --- | --- | --- |
 | `libpq` | Xmake Lua I/O | `src/include/pg_config.h.in`, `pg_config_ext.h.in`, `src/include/port/win32.h` | `out/libpq/include/pg_config.h`, `pg_config_ext.h`, `pg_config_os.h`, `out/libpq/port/pg_config_paths.h` | Render/copy only the verified Windows frontend configuration in the target's single `on_prepare` callback; no external generator is needed | Build validated |
+
+### WinEditLine upstream build analysis
+
+- PHP Windows enables `ext/readline` by default and explicitly probes `edit_a.lib`/`edit.lib` plus `editline/readline.h`, defining the PHP-side `HAVE_LIBEDIT`, `HAVE_RL_COMPLETION_MATCHES`, and `HAVE_HISTORY_LIST` feature macros when found. WinEditLine is therefore a real dependency for the selected CLI/readline surface rather than an SDK-only package.
+- Use authoritative `ptosco/wineditline` tag `wineditline-2.208`, matching the PHP SDK package version 2.208. Preserve the old SDK package only as a validation reference.
+- Upstream `src/CMakeLists.txt` defines the static library from exactly three C sources: `editline.c`, `fn_complete.c`, and `history.c`. The preserved SDK `edit_a.lib` contains exactly those three objects. Tests, the shared-library `.def`, and DLL test programs are not library inputs.
+- The generated `config.h` contains only upstream major/minor metadata and none of the three library sources includes it, so the direct target needs no callback or generated file. The public `editline/readline.h` is committed source.
+- Upstream declares no external target link dependency. The implementation uses normal Windows console APIs and CRT facilities; no project third-party dependency or static-consumer decoration macro is required. Keep the project-wide `/MD` runtime rather than enabling upstream's optional static-runtime switch.
+- Compile the three sources independently in one `wineditline` target. Validation passed against the preserved SDK `edit_a.lib`: the three-member manifest matches, all 126 significant linker-member names match after excluding compiler-generated debug/string/timestamp artifacts, all three objects request `MSVCRT`, and there are zero `LIBCMT` or `/EXPORT:` directives. Runtime readline testing is intentionally skipped for this baseline.
 
 ## PHP Code-generation Inventory
 

@@ -270,10 +270,17 @@ Every library must receive its own static target. Integrate and validate them on
 - [x] Data/text: ICU, libiconv, libintl, libxml2, libxslt, Oniguruma, SQLite. LMDB and QDBM skipped with `ext/dba`.
 - [x] Database/directory clients: PostgreSQL and OpenLDAP complete; Firebird intentionally skipped with `pdo_firebird`.
 - [x] Image/font stack: libpng, libjpeg, FreeType, libwebp, libtiff, libjxl, and the unified `avif` target (libavif + libheif + AOM + libyuv + dav1d) are complete. UltraHDR/libuhdr is intentionally omitted because the current PHP GD extension exposes no PHP userland binding for its bundled-libgd-only `gdUhdr*` API. The separate TurboJPEG API/library and XPM/libXpm are also intentionally omitted.
-- [ ] Remaining libraries: Apache support files, GLib, Enchant, libffi, Tidy, libzip, MPIR, Net-SNMP, WinEditLine.
+- [ ] Remaining libraries: Apache support files, GLib, Enchant, libffi, Tidy, libzip, MPIR, Net-SNMP.
 - [x] Skip standalone libargon2: `ext/standard` enables it only through optional `password-argon2` (default `no`), while the already selected Sodium extension registers `argon2i` and `argon2id` with PHP's `password_*` API when `standard` does not. OpenSSL's optional Argon2 provider uses OpenSSL EVP_KDF directly and does not consume libargon2.
 - [ ] Document exact target names, source patterns, dependencies, defines, and validation status as each target lands.
 - [x] Keep optional image surface minimal: omit XPM/libXpm and omit the separate TurboJPEG API/library. PHP/GD uses only the traditional libjpeg API, which already contains libjpeg-turbo's SSE2/AVX2 acceleration and runtime CPU dispatch.
+
+## Completed Target: WinEditLine
+
+- [x] Replace the PHP SDK binary package with authoritative `ptosco/wineditline` tag `wineditline-2.208`, preserving the former package only as a validation reference.
+- [x] Confirm PHP Windows enables `ext/readline` by default and probes WinEditLine's `edit_a.lib`/`edit.lib` plus `editline/readline.h`.
+- [x] Reproduce upstream's exact three-source static manifest with no callback or external dependency.
+- [x] Build with `/MD /O2` and validate the exact three-member layout plus 126/126 significant linker-member symbols against the SDK static reference; no runtime smoke test required.
 
 ## PHP Code Generation
 

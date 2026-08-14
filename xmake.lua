@@ -73,7 +73,7 @@ task("prepare")
         os.run("hx -delpathseg 1 https://www.openldap.org/software/download/OpenLDAP/openldap-release/openldap-2.6.13.tgz in/deps/openldap")
         os.run("hx github://garyhouston/rxspencer?ref=v3.9.0 in/deps/rxspencer")
         os.run("hx -delpathseg 1 https://www.sqlite.org/2026/sqlite-amalgamation-3530200.zip in/deps/sqlite3")
-        os.run("hx %s/wineditline-2.208-vs18-x64.zip in/deps/wineditline", bp)
+        os.run("hx github://ptosco/wineditline?ref=wineditline-2.208 in/deps/wineditline")
 
         os.run([[msvcup install "msvc sdk" in/msvc]])
     end)
@@ -1359,6 +1359,15 @@ RELSEG_SIZE=131072;SIZEOF_BOOL=1;SIZEOF_LONG=4;SIZEOF_SIZE_T=8;SIZEOF_VOID_P=8;X
         "in/deps/libpq/src/port/strerror.c", "in/deps/libpq/src/port/strlcat.c", "in/deps/libpq/src/port/strlcpy.c", "in/deps/libpq/src/port/system.c",
         "in/deps/libpq/src/port/timingsafe_bcmp.c", "in/deps/libpq/src/port/win32common.c", "in/deps/libpq/src/port/win32error.c", "in/deps/libpq/src/port/win32gai_strerror.c",
         "in/deps/libpq/src/port/win32gettimeofday.c", "in/deps/libpq/src/port/win32ntdll.c", "in/deps/libpq/src/port/win32setlocale.c", "in/deps/libpq/src/port/win32stat.c")
+
+
+target("wineditline")
+    set_enabled(false)
+    set_kind("static")
+    set_targetdir(get_config("builddir"))
+    set_optimize("fastest")
+    add_includedirs("in/deps/wineditline/src", {public = true})
+    add_files("in/deps/wineditline/src/editline.c", "in/deps/wineditline/src/fn_complete.c", "in/deps/wineditline/src/history.c")
 
 
 target("php")
