@@ -125,6 +125,10 @@ The `prepare` task fetches dependencies. Each library must receive its own Xmake
 - XPM/libXpm: omit this optional GD format to avoid carrying the X11 compatibility surface for a rarely used image format.
 - DBA backends (LMDB, QDBM, Berkeley DB): omit them with `ext/dba`, which is opt-in on Windows and excluded from this distribution.
 - Firebird/fbclient: omit it with the intentionally excluded `pdo_firebird` extension.
+- Tidy/libtidy: omit it because PHP `ext/tidy` is entirely optional on Windows (`--with-tidy`, default `no`) and no selected core/SAPI/extension depends on it. This intentionally drops only the Tidy HTML cleanup/validation API surface.
+- Apache support files (`httpd`, APR, APR-util): omit them because they are consumed only by the optional Windows `apache2handler` SAPI, which defaults to disabled and additionally requires a ZTS PHP build. The selected build does not produce the Apache `mod_php` DLL, so these libraries and headers are unnecessary.
+- Enchant/libenchant2: omit it because PHP `ext/enchant` is optional (`--with-enchant`, default `no`) and provides only spell-checking APIs; no selected extension or SAPI depends on it.
+- GLib: omit it together with Enchant. In the selected PHP Windows source/configuration, the only real build-time GLib consumer is `ext/enchant`; once Enchant is excluded there is no reason to carry the GLib dependency surface.
 
 The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc32.c`, `deflate.c`, `trees.c`, and `uncompr.c`. It compiles `zutil.c`, all `gz*.c` files, and all `inf*.c` files separately. `gzguts.h`, `inflate.h`, and `inftrees.h` are internal headers without conventional guards; repeated inclusion redefines types, and `gzguts.h` also exposes `COPY` and `GZIP` macros that collide with the deflate/inflate implementation. These observed conflicts make those sources unsafe in a shared translation unit.
 
