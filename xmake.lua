@@ -866,6 +866,16 @@ target("libintl")
         "in/deps/libintl/gettext-runtime/intl/gnulib-lib/wmemset.c"
     )
 
+target("libintl_test")
+    set_enabled(true)
+    set_default(false)
+    set_kind("binary")
+    set_targetdir(get_config("builddir"))
+    add_deps("libintl")
+    add_defines([[SRCDIR="in/deps/libintl/gettext-runtime/install-tests/"]])
+    add_cflags("/utf-8", {force = true})
+    add_files("in/deps/libintl/gettext-runtime/install-tests/test-api.c")
+
 target("libxml2")
     set_enabled(false)
     set_kind("static")

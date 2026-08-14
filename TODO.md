@@ -173,8 +173,8 @@ Integrate zstd as one dependency target:
 - [x] Replace the broad compiler-driven Gnulib experiment with the exact SDK source selection.
 - [x] Complete the native MSVC Gnulib wrapper configuration and direct per-source static build without MinGW, Cygwin, Autoconf, Make, sed, or other Unix build tools.
 - [x] Validate the 103 C archive members as x64 `/MD`, with no static CRT or embedded export directives, and cover all 79 SDK DLL exports.
-- [ ] Add and validate the SDK-matching Windows version resource member with native `rc.exe` + `cvtres.exe`.
-- [ ] Validate runtime catalog lookup and executable DLL dependencies.
+- [x] Add and validate the SDK-matching Windows version resource member with native `rc.exe` + `cvtres.exe`.
+- [ ] Validate runtime catalog lookup and executable DLL dependencies with the upstream install test.
 
 ## Completed Target: libxml2
 
@@ -240,6 +240,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-14 — native COFF resource build at commit `8d8bced`: the callback compiled the substituted Gettext 1.0 `libintl.rc` with the configured Windows SDK `rc.exe`, converted it with MSVC `cvtres.exe /machine:x64 /readonly`, inserted the resulting object, and rebuilt the full archive successfully in 3.172 seconds. `dumpbin` confirms `out/libintl.res.obj` is genuine x64 COFF. Its `.rsrc$01` and `.rsrc$02` raw data total `0x5e0` bytes, exactly matching the SDK reference resource object's `0x5e0` `.rsrc` payload; the extra `.debug$S` is a Microsoft converter metadata section. Add a temporary non-default target for upstream `gettext-runtime/install-tests/test-api.c` against the committed `itest.mo` to validate catalog lookup and final runtime dependencies.
 
 - 2026-08-14 — first `rc.exe` + `cvtres.exe` resource attempt at commit `ef9fe11`: the target callback reached the configured Windows SDK `rc.exe` but stopped at `libintl.rc` including `<winver.h>` because a direct `os.vrunv` call does not inherit Xmake's resource-rule SDK include flags. The required header is under the configured SDK `um` include tree and itself uses `shared` headers; pass those two versioned SDK include directories explicitly to `rc.exe` and retry before `cvtres`.
 
