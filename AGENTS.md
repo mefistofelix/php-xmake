@@ -23,7 +23,7 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 
 - `xmake prepare` is run manually before the main build and must be idempotent. It downloads and extracts source trees, prebuilt dependencies, and required external tools.
 - Prefer the dependency's authoritative upstream source. When an official GitHub repository contains the required pinned version, prefer `hx github://owner/repository?ref=release-tag`. Do not choose an unofficial mirror, a stale GitHub repository, or a repository missing the required version merely to use GitHub; use the best official repository or release archive instead. Do not download a prebuilt PHP SDK package when the dependency is being compiled by its own Xmake target.
-- Whenever a dependency URL, ref, archive, or destination changes in `prepare`, remove the exact existing downloaded dependency directory before validation and run `xmake prepare` from a clean absence. Resolve and verify that the deletion target is the intended direct child of `in/deps` before removing it. Remove obsolete previous download directories too, then run a second no-change `xmake prepare` to validate idempotence.
+- Keep `xmake prepare` idempotent, but do not routinely delete prepared dependency trees or rerun unchanged preparation as a validation ritual. Use clean-absence or repeated `prepare` checks only when diagnosing fetch/extraction/idempotence behavior, when a source transition is ambiguous, or when there is concrete reason to suspect stale prepared state.
 
 ## Target Model
 
@@ -114,6 +114,15 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 | `php` | Disabled | Object prototype | `in/php-src/Zend/zend.c`, `in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm` | `out/` | Becomes the static PHP build after dependency, configuration, codegen, and source integration | Prototype only; real `on_prepare` codegen pending |
 
 The `prepare` task fetches dependencies. Each library must receive its own Xmake static-library target as it is integrated; downloaded or prebuilt archives are not yet build targets.
+
+### Intentional dependency omissions
+
+- `libargon2`: omit the standalone library. PHP `ext/standard` consumes it only behind optional `password-argon2`, which defaults to disabled. The selected Sodium extension already registers `argon2i`/`argon2id` with PHP's `password_*` API when `standard` has not, so user-facing Argon2 password hashing remains available. PHP's optional OpenSSL Argon2 path uses OpenSSL EVP_KDF directly and has no libargon2 dependency.
+- `libultrahdr`/`uhdr`: omit it because the current PHP tree has no PHP userland binding for bundled libgd's `gdUhdr*` API. Its static SDK archive uses only traditional `jpeg_*`, not TurboJPEG `tj*`; the omission is solely because PHP exposes no consumer.
+- TurboJPEG API/library: omit it because PHP/GD uses only `jpeglib.h` and `jpeg_*`. The traditional `libjpeg` target already contains libjpeg-turbo's SIMD acceleration and runtime CPU dispatch.
+- XPM/libXpm: omit this optional GD format to avoid carrying the X11 compatibility surface for a rarely used image format.
+- DBA backends (LMDB, QDBM, Berkeley DB): omit them with `ext/dba`, which is opt-in on Windows and excluded from this distribution.
+- Firebird/fbclient: omit it with the intentionally excluded `pdo_firebird` extension.
 
 The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc32.c`, `deflate.c`, `trees.c`, and `uncompr.c`. It compiles `zutil.c`, all `gz*.c` files, and all `inf*.c` files separately. `gzguts.h`, `inflate.h`, and `inftrees.h` are internal headers without conventional guards; repeated inclusion redefines types, and `gzguts.h` also exposes `COPY` and `GZIP` macros that collide with the deflate/inflate implementation. These observed conflicts make those sources unsafe in a shared translation unit.
 
@@ -470,6 +479,10 @@ No generated source or configuration file is required for the selected native Wi
 | --- | --- | --- | --- | --- | --- |
 | `libjxl` | Xmake Lua I/O | `lib/jxl/version.h.in` | `out/libjxl/include/jxl/version.h` | Substitute version 0.11.2 in the target's only `on_prepare` callback | Build and SDK surface validation passed |
 | `libjxl` | Xmake Lua I/O | static Windows public-interface configuration | `out/libjxl/include/jxl/jxl_export.h`, `jxl_cms_export.h` | Emit static-safe export/deprecation macros equivalent to upstream GenerateExportHeader output | Build and SDK surface validation passed |
+
+### UltraHDR omission
+
+- Do not add a `libultrahdr`/`uhdr` target. The current PHP tree can optionally compile bundled libgd's `gd_uhdr.c`, but `ext/gd/gd.stub.php` exposes no UltraHDR PHP userland API and no PHP-side source calls the `gdUhdr*` interface. The preserved SDK `uhdr_a.lib` also depends only on the traditional `jpeg_*` API, not TurboJPEG `tj*`; omission is based on lack of a PHP consumer, not on the separately omitted TurboJPEG API.
 
 ### libavif / AOM / libyuv upstream build analysis
 

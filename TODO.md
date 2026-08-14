@@ -1,6 +1,6 @@
 # Build Roadmap
 
-Last updated: 2026-08-14
+Last updated: 2026-08-15
 
 ## Current State
 
@@ -269,8 +269,9 @@ Every library must receive its own static target. Integrate and validate them on
 - [x] HTTP/async: libuv, nghttp2, nghttp3, ngtcp2.
 - [x] Data/text: ICU, libiconv, libintl, libxml2, libxslt, Oniguruma, SQLite. LMDB and QDBM skipped with `ext/dba`.
 - [x] Database/directory clients: PostgreSQL and OpenLDAP complete; Firebird intentionally skipped with `pdo_firebird`.
-- [ ] Image/font stack: libpng, libjpeg, FreeType, libwebp, libtiff, libjxl, and the unified `avif` target (libavif + libheif + AOM + libyuv + dav1d) are complete; only libultrahdr remains. The separate TurboJPEG API/library and XPM/libXpm are intentionally omitted.
-- [ ] Remaining libraries: Apache support files, GLib, Argon2, Enchant, libffi, Tidy, libzip, MPIR, Net-SNMP, WinEditLine.
+- [x] Image/font stack: libpng, libjpeg, FreeType, libwebp, libtiff, libjxl, and the unified `avif` target (libavif + libheif + AOM + libyuv + dav1d) are complete. UltraHDR/libuhdr is intentionally omitted because the current PHP GD extension exposes no PHP userland binding for its bundled-libgd-only `gdUhdr*` API. The separate TurboJPEG API/library and XPM/libXpm are also intentionally omitted.
+- [ ] Remaining libraries: Apache support files, GLib, Enchant, libffi, Tidy, libzip, MPIR, Net-SNMP, WinEditLine.
+- [x] Skip standalone libargon2: `ext/standard` enables it only through optional `password-argon2` (default `no`), while the already selected Sodium extension registers `argon2i` and `argon2id` with PHP's `password_*` API when `standard` does not. OpenSSL's optional Argon2 provider uses OpenSSL EVP_KDF directly and does not consume libargon2.
 - [ ] Document exact target names, source patterns, dependencies, defines, and validation status as each target lands.
 - [x] Keep optional image surface minimal: omit XPM/libXpm and omit the separate TurboJPEG API/library. PHP/GD uses only the traditional libjpeg API, which already contains libjpeg-turbo's SSE2/AVX2 acceleration and runtime CPU dispatch.
 
