@@ -205,7 +205,13 @@ Integrate zstd as one dependency target:
 - [x] Inspect the PHP SDK/PHP Windows expectations: one `sqlite3.obj`, `SQLITE_ENABLE_COLUMN_METADATA`, FTS3, FTS4, FTS5, no external third-party dependency, and normal Windows/thread-safe defaults.
 - [x] Add the single-source static target and validate build, 295/295 SDK symbol coverage, `/MD`/x64/static linkage, FTS3/FTS4/FTS5 runtime behavior, and column metadata.
 
-## Next Target: LMDB
+## Skipped Extension: DBA
+
+- [x] Exclude `ext/dba` from the PHP build. Windows upstream declares DBA itself as opt-in (`ARG_WITH("dba", ..., "no")`).
+- [x] Remove LMDB and QDBM from the dependency plan; they are used only by optional DBA handlers in this build inventory.
+- [x] Do not add Berkeley DB solely for DBA either.
+
+## Next Target: PostgreSQL / libpq
 
 - [ ] Identify the authoritative source and exact version corresponding to the current PHP SDK package.
 - [ ] Replace the prebuilt package with pinned source and validate clean and repeated preparation.
@@ -219,7 +225,7 @@ Every library must receive its own static target. Integrate and validate them on
 - [x] Foundation compression: zlib, Brotli, zstd, bzip2, liblzma.
 - [x] Cryptography and transport: OpenSSL, libcurl, libssh2, libsodium.
 - [x] HTTP/async: libuv, nghttp2, nghttp3, ngtcp2.
-- [ ] Data/text: ICU, libiconv, libintl, libxml2, libxslt, Oniguruma, SQLite, LMDB, QDBM.
+- [x] Data/text: ICU, libiconv, libintl, libxml2, libxslt, Oniguruma, SQLite. LMDB and QDBM skipped with `ext/dba`.
 - [ ] Database/directory clients: PostgreSQL, Firebird, OpenLDAP.
 - [ ] Image/font stack: FreeType, libjpeg-turbo, libpng, libtiff, libwebp, libavif, libheif, libjxl, libultrahdr, libxpm.
 - [ ] Remaining libraries: Apache support files, GLib, Argon2, Enchant, libffi, SASL, Tidy, libzip, MPIR, Net-SNMP, WinEditLine.
