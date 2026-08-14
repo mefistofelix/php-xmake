@@ -72,7 +72,7 @@ task("prepare")
         os.run("hx %s/mpir-3.0.0-2-vs18-x64.zip in/deps/mpir",bp) --xmiss
         os.run("hx %s/net-snmp-5.9.4-vs18-x64.zip in/deps/net-snmp",bp) -- xmiss
         os.run("hx %s/openldap-2.6.13-2-vs18-x64.zip in/deps/openldap",bp) -- xmiss
-        os.run("hx %s/sqlite3-3.53.2-vs18-x64.zip in/deps/sqlite3",bp) --xold
+        os.run("hx -delpathseg 1 https://www.sqlite.org/2026/sqlite-amalgamation-3530200.zip in/deps/sqlite3")
         os.run("hx %s/wineditline-2.208-vs18-x64.zip in/deps/wineditline", bp)
 
         os.run([[msvcup install "msvc sdk" in/msvc]])
@@ -761,6 +761,21 @@ target("oniguruma")
         "in/deps/libonig/src/unicode_property_data_posix.c",
         "in/deps/libonig/src/unicode_wb_data.c"
     )
+
+
+target("sqlite3")
+    set_enabled(false)
+    set_kind("static")
+    set_targetdir(get_config("builddir"))
+    set_optimize("fastest")
+    add_includedirs("in/deps/sqlite3", {public = true})
+    add_defines(
+        "SQLITE_ENABLE_COLUMN_METADATA",
+        "SQLITE_ENABLE_FTS3",
+        "SQLITE_ENABLE_FTS4",
+        "SQLITE_ENABLE_FTS5"
+    )
+    add_files("in/deps/sqlite3/sqlite3.c")
 
 
 target("php")

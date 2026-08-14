@@ -1,6 +1,6 @@
 # Build Roadmap
 
-Last updated: 2026-08-13
+Last updated: 2026-08-14
 
 ## Current State
 
@@ -198,7 +198,14 @@ Integrate zstd as one dependency target:
 - [x] Inspect the upstream native build declarations for exact sources, configuration, static interface, and dependencies.
 - [x] Add a direct per-source static target without unity, then build and validate it.
 
-## Next Target: SQLite
+## Completed Target: SQLite
+
+- [x] Identify SQLite 3.53.2 as the version used by the current PHP SDK package and select SQLite's official pre-generated `sqlite-amalgamation-3530200.zip` as the authoritative build input.
+- [x] Replace the prebuilt SDK package with the official amalgamation and validate clean and repeated preparation.
+- [x] Inspect the PHP SDK/PHP Windows expectations: one `sqlite3.obj`, `SQLITE_ENABLE_COLUMN_METADATA`, FTS3, FTS4, FTS5, no external third-party dependency, and normal Windows/thread-safe defaults.
+- [x] Add the single-source static target and validate build, 295/295 SDK symbol coverage, `/MD`/x64/static linkage, FTS3/FTS4/FTS5 runtime behavior, and column metadata.
+
+## Next Target: LMDB
 
 - [ ] Identify the authoritative source and exact version corresponding to the current PHP SDK package.
 - [ ] Replace the prebuilt package with pinned source and validate clean and repeated preparation.
@@ -241,6 +248,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-14 — SQLite 3.53.2 amalgamation validation: replaced the prebuilt PHP SDK package with SQLite's official pre-generated `sqlite-amalgamation-3530200.zip`; clean preparation and an unchanged repeat both succeeded. Xmake compiled exactly one `sqlite3.c` object with `/MD /O2` and `SQLITE_ENABLE_COLUMN_METADATA`, `SQLITE_ENABLE_FTS3`, `SQLITE_ENABLE_FTS4`, and `SQLITE_ENABLE_FTS5`, then created `out/sqlite3.lib`. The x64 object requests `MSVCRT`, not `LIBCMT`, and contains no embedded export directive; the archive covers all 295/295 APIs exported by the preserved SDK DLL with zero SQLite import thunks. A temporary static consumer created and queried FTS3, FTS4, and FTS5 in-memory tables, verified all four compile options and `sqlite3_column_table_name()`, and exited 0. Its PE imports are limited to Kernel32, VCRuntime140, and UCRT API-set DLLs, confirming no SQLite or other third-party runtime DLL dependency.
 
 - 2026-08-14 — libintl simplification validation: reduced the target from 385 to 131 lines by replacing repeated per-placeholder Gnulib substitutions with default-zero template rendering, shared UCRT/missing-header helpers, compact private-symbol remapping loops, and denser declarative file lists. The original expanded implementation was first reproduced byte-for-byte across all 19 generated headers, then ten genuinely unnecessary `config.h` substitutions (`HAVE_LONG_LONG_INT`, `HAVE_UNSIGNED_LONG_LONG_INT`, `HAVE_MBSTATE_T`, `HAVE_C_STATIC_ASSERT`, `HAVE_MBSINIT`, `HAVE_WCHAR_H`, `PACKAGE`, `PACKAGE_NAME`, `PACKAGE_VERSION`, `VERSION`) were removed. `HAVE_STDBOOL_H` was separately tested and proven required: without it Gnulib stops immediately with its `<stdbool.h>` configuration error. The final 131-line target rebuilds successfully, still covers 79/79 PHP SDK DLL exports, and the official `test-api.c` + committed `itest.mo` runtime test exits 0 without skipping; PE dependencies remain Windows/VCRuntime/UCRT only, with no `libintl.dll` or `libiconv.dll`.
 

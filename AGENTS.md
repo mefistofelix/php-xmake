@@ -67,8 +67,8 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 
 ## Validation and Git Workflow
 
-- Commit all intended source and documentation changes before every Xmake configure or build test.
-- After a test, record the result in `TODO.md`; commit that update before the next Xmake test.
+- During exploratory configure/build/debug cycles, do not create a commit for every individual test. Iterate freely, keep `TODO.md` synchronized with meaningful findings, and commit only when a useful partial or complete result has been reached.
+- Before moving to another dependency or materially different approach, commit the validated partial/complete result so the repository retains a stable checkpoint.
 - Use matching reference DLLs from `dll_compare` to validate static archive symbol coverage when available. Compare exported DLL names with archive-defined symbols and also inspect architecture, CRT directives, import thunks, and embedded `/EXPORT:` directives as applicable.
 - Keep generated files, downloaded sources, tool binaries, caches, and build output ignored.
 - Warnings may be recorded but do not block the current baseline target integration; do not add configuration or delay progress solely to silence them. Accidental undeclared inputs remain build issues to investigate.
@@ -97,6 +97,7 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 | `libxml2` | Disabled | Static library | 43 native Windows library sources selected from `in/deps/libxml2/*.c` | `out/libxml2.lib` | XML, HTML, XPath, schema, catalog, and network parsing for PHP and dependent libraries | Build, SDK symbol surface, CRT, architecture, static linkage, and upstream parser smoke validation passed |
 | `libxslt` | Disabled | Static library | `in/deps/libxslt/libxslt/*.c`, `in/deps/libxslt/libexslt/*.c` | `out/libxslt.lib` | XSLT and EXSLT transformation support for PHP | Build, complete SDK/DLL symbol surface, CRT, architecture, static linkage, and upstream XSLT/EXSLT runtime validation passed |
 | `oniguruma` | Disabled | Static library | 50 native Windows sources selected from `in/deps/libonig/src/*.c` | `out/oniguruma.lib` | Multibyte regular expressions for PHP mbstring | Build, complete SDK/DLL symbol surface, CRT, architecture, static linkage, and 1,529-case upstream UTF-8 validation passed |
+| `sqlite3` | Disabled | Static library | Official SQLite 3.53.2 amalgamation `in/deps/sqlite3/sqlite3.c` | `out/sqlite3.lib` | SQLite core with FTS3/FTS4/FTS5 and column metadata for PHP sqlite3/PDO SQLite | Build, 295/295 SDK DLL API coverage, x64 `/MD`, static linkage, FTS3/4/5, and column-metadata runtime validation passed |
 | `minilua` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/dynasm/minilua.c` | `out/minilua.exe` | Runs DynASM for the PHP JIT IR emitter | Defined; build validation pending |
 | `gen_ir_fold_hash` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c` | `out/gen_ir_fold_hash.exe` | Generates the JIT IR fold hash header | Defined; build validation pending |
 | `php` | Disabled | Object prototype | `in/php-src/Zend/zend.c`, `in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm` | `out/` | Becomes the static PHP build after dependency, configuration, codegen, and source integration | Prototype only; real `on_prepare` codegen pending |
@@ -351,6 +352,14 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 | Owner | Tool | Input | Output | Handling | Status |
 | --- | --- | --- | --- | --- | --- |
 | `oniguruma` | Xmake file copy | `src/config.h.win64` | `src/config.h` | Copy the committed x64 MSVC configuration in the target's only `on_prepare` callback | Build and runtime validation passed |
+
+### SQLite upstream build analysis
+
+- Use SQLite 3.53.2, matching the current PHP SDK package. The SDK SBOM identifies upstream `sqlite/sqlite` tag `version-3.53.2`; for this dependency, use SQLite's official pre-generated `sqlite-amalgamation-3530200.zip` rather than cloning the canonical source tree or generating the amalgamation locally.
+- The official amalgamation already contains the SQLite core plus optional FTS3/FTS4 and FTS5 implementation behind compile-time switches. Compile the single distribution input `sqlite3.c`; publish the adjacent `sqlite3.h` and `sqlite3ext.h`. No Tcl, Lemon, configure script, Makefile, CMake, NMake, MSBuild, or target callback is required.
+- Match the PHP SDK feature surface required by PHP: define `SQLITE_ENABLE_COLUMN_METADATA`, `SQLITE_ENABLE_FTS3`, `SQLITE_ENABLE_FTS4`, and `SQLITE_ENABLE_FTS5`. The preserved SDK executable reports all four through `PRAGMA compile_options`; FTS3 and FTS4 share implementation support, while FTS5 is separately enabled.
+- Keep SQLite's normal serialized/thread-safe Windows defaults and system allocator defaults; do not redundantly spell default compile options merely because they appear in `PRAGMA compile_options`. The project-wide `/MD` runtime overrides only the CRT linkage policy and does not change SQLite's thread-safety mode.
+- The preserved PHP SDK static reference is itself a one-member `libsqlite3_a.lib` containing only `sqlite3.obj`, confirming that the one-source amalgamation layout matches the intended Windows package shape. The direct archive covers all 295 SDK DLL APIs, its sole object is x64 and requests `MSVCRT` with no `LIBCMT`, SQLite import thunk, or embedded `/EXPORT:` directive, and a static consumer successfully creates and queries FTS3, FTS4, and FTS5 virtual tables while `sqlite3_column_table_name()` verifies column metadata. The test executable imports only Kernel32, VCRuntime, and UCRT API-set DLLs.
 
 ## PHP Code-generation Inventory
 
