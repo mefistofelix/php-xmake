@@ -613,6 +613,40 @@ target("libintl")
                 :gsub("@LOCALENAME_ENHANCE_LOCALE_FUNCS@", "0")
                 :gsub("@[^@\r\n]+@", "0"))
         )
+        io.writefile(
+            "in/deps/libintl/gettext-runtime/intl/gnulib-lib/sched.h",
+            [[#include "c++defs.h"
+#include "warn-on-use.h"
+]] .. (io.readfile("in/deps/libintl/gettext-runtime/intl/gnulib-lib/sched.in.h")
+                :gsub("@GUARD_PREFIX@", "GL")
+                :gsub("@HAVE_SCHED_H@", "0")
+                :gsub("@HAVE_SYS_CDEFS_H@", "0")
+                :gsub("@INCLUDE_NEXT@ @NEXT_SCHED_H@", "include <sched.h>")
+                :gsub("@PRAGMA_SYSTEM_HEADER@", "")
+                :gsub("@PRAGMA_COLUMNS@", "")
+                :gsub("@HAVE_STRUCT_SCHED_PARAM@", "0")
+                :gsub("@GNULIB_SCHED_YIELD@", "0")
+                :gsub("@HAVE_SCHED_YIELD@", "0")
+                :gsub("@REPLACE_SCHED_YIELD@", "0")
+                :gsub("@[^@\r\n]+@", "0"))
+        )
+        io.writefile(
+            "in/deps/libintl/gettext-runtime/intl/gnulib-lib/pthread.h",
+            [[#include "c++defs.h"
+#include "arg-nonnull.h"
+#include "warn-on-use.h"
+]] .. (io.readfile("in/deps/libintl/gettext-runtime/intl/gnulib-lib/pthread.in.h")
+                :gsub("@GUARD_PREFIX@", "GL")
+                :gsub("@HAVE_PTHREAD_H@", "0")
+                :gsub("@INCLUDE_NEXT@ @NEXT_PTHREAD_H@", "include <pthread.h>")
+                :gsub("@PRAGMA_SYSTEM_HEADER@", "")
+                :gsub("@PRAGMA_COLUMNS@", "")
+                :gsub("@GNULIB_PTHREAD_ONCE@", "1")
+                :gsub("@HAVE_PTHREAD_T@", "0")
+                :gsub("@HAVE_PTHREAD_ONCE@", "0")
+                :gsub("@REPLACE_PTHREAD_ONCE@", "0")
+                :gsub("@[^@\r\n]+@", "0"))
+        )
         local wchar_h = path.absolute(path.join(
             get_config("sdk"), "Windows Kits", "10", "Include",
             get_config("vs_sdkver"), "ucrt", "wchar.h")):gsub("\\", "/")
