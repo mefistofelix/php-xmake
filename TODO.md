@@ -239,6 +239,8 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
+- 2026-08-14 — first exact-manifest `libintl` build at commit `aec0a80`: Xmake invoked only the configured MSVC toolchain with `/MD /O2`; the generated `locale.h` successfully included the selected UCRT header and supplied the previously missing POSIX `locale_t` model. Compilation then stopped immediately because `config.h` incorrectly defined `HAVE_C_BOOL`, causing Gnulib to skip `<stdbool.h>` even though MSVC C obtains `bool` from that header. Leave `HAVE_C_BOOL` undefined and retry.
+
 - 2026-08-14 — Oniguruma runtime validation at commit `9bc8c94`: the complete upstream UTF-8 suite ran against the direct static archive and reported 1,529 successes, zero failures, zero errors, and Oniguruma 6.9.10, exiting 0 in 30 ms. The executable imports only Kernel32, VCRuntime, and UCRT libraries, confirming static Oniguruma linkage with the dynamic MSVC CRT. Remove the temporary test target and disable the completed library.
 
 - 2026-08-14 — Oniguruma upstream-test build at commit `4f94492`: the temporary non-default Xmake target compiled `test/test_utf8.c` with the upstream-required UTF-8 source mode and linked it directly against `oniguruma.lib` in 0.344 seconds. Execute the full suite and inspect its runtime dependencies before removing the temporary target.
