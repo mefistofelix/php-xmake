@@ -14,11 +14,11 @@ Last updated: 2026-08-15
 - [x] Disable non-priority targets by default so focused builds only exercise the target under integration.
 - [x] Build and archive `out/zlib.lib` successfully with MSVC x64.
 - [x] Build and archive the complete single-target `out/brotli.lib` successfully with MSVC x64.
-- [ ] Validate the current Xmake configuration and helper targets.
+- [x] Validate the `minilua` and `gen_ir_fold_hash` helper targets with MSVC x64 `/MD`, correct `IR_TARGET_X64`, fenced dependency ordering, and successful JIT header generation before PHP compilation.
 - [x] Remove empty and placeholder callbacks; only targets with real codegen/configuration work may define `on_prepare`.
 - [x] Follow upstream Windows PHP and select the dynamic multithreaded MSVC CRT globally with `set_runtimes("MD")` for loadable-extension compatibility.
 - [x] Verify a forced zstd build uses `/MD` in every MSVC compile command.
-- [ ] Replace the object-only `php` prototype and add its real `on_prepare` callback when PHP codegen is implemented.
+- [ ] Replace the object-only `php` prototype incrementally; JIT helper-driven build-phase codegen is wired, while preparation-phase PHP configuration/Bison/RE2C/resource generation remains.
 - [x] Replace the custom file-configuration `cb` adapter with native target `on_prepare` callbacks. The callback imports the dependency module in its own body and calls `os.vrunv` directly; no Xmake API is injected through callback arguments.
 - [x] Use one uniform Perl include/module prefix for every OpenSSL `.in` template in `openssl_test`; all 50 C/header templates accept the superset, so template-content inspection and specialized argument construction are unnecessary.
 - [x] Use `**/*x86_64*.pl|crypto/perlasm/**` in `openssl_test`; the declarative exclusion prevents the stdin-driven `x86_64-xlate.pl` helper from hanging an interactive build while retaining the standalone generator matches.
@@ -307,14 +307,14 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## PHP Code Generation
 
-- [ ] Make Bison and RE2C available through `xmake prepare`.
-- [ ] Generate the Zend, PHPDBG, and JSON parsers with Bison.
-- [ ] Generate all inventoried scanners with RE2C.
-- [ ] Generate Windows message resources with `mc`.
-- [ ] Build and invoke `minilua` programmatically for DynASM output.
-- [ ] Build and invoke `gen_ir_fold_hash` programmatically with redirected input/output.
+- [x] Confirm Bison 3.3.2 and RE2C 1.1.1 are already supplied by the prepared PHP SDK and satisfy this PHP tree's minimum versions.
+- [ ] Generate the Zend, PHPDBG, and JSON parsers with Bison in `php:on_prepare`.
+- [ ] Generate all inventoried scanners with RE2C in `php:on_prepare`.
+- [ ] Generate Windows message resources with the configured SDK `mc` in `php:on_prepare`.
+- [x] Build `minilua` as a fenced Xmake dependency and invoke DynASM from `php:before_build` after the executable exists.
+- [x] Build `gen_ir_fold_hash` as a fenced Xmake dependency with `IR_TARGET_X64` and invoke it from `php:before_build` with redirected input/output.
 - [ ] Generate PHP Windows configuration headers/defines using Xmake detection APIs.
-- [ ] Consolidate all PHP generation into the single `php` target `on_prepare` callback.
+- [ ] Keep preparation-only generation in one compact `php:on_prepare` hook and helper-dependent JIT generation in the single fenced build-phase hook.
 
 ## PHP Target and Final Link
 
@@ -627,4 +627,5 @@ Every library must receive its own static target. Integrate and validate them on
 - 2026-08-12 — `xmake` at commit `af8b0a4`: correctly selected only `zlib`, then failed in `unity_3.c`. `gzwrite.c` brings in a `COPY` macro that collides with the `inflate.h` enum; the three inflate implementation sources were excluded from unity batches for the next test.
 - 2026-08-12 — `xmake prepare` at commit `0d2bf4c`: completed successfully after correcting the `ngtcp2` and `nghttp3` release refs. A repeat run is still required to prove idempotence.
 - 2026-08-12 — `xmake prepare` at commit `fec296f`: stopped after the initial dependency downloads because the configured `ngtcp2` ref `v1.69.0` does not exist. Official release tags are `ngtcp2` `v1.25.0` and `nghttp3` `v1.18.0`; the pins were corrected for the next test.
-- 2026-08-12 — `xmake` at commit `bc16350`: MSVC x64 detection succeeded and the `php` callback ran. The build stopped while compiling `Zend/zend.c` because `Zend/zend_config.h` has not been generated yet. The helper targets remain unvalidated by an isolated target build.
+- 2026-08-15 — PHP JIT helper checkpoint: `minilua` and `gen_ir_fold_hash` both rebuild successfully as MSVC x64 `/MD` binaries; FoldHash now uses PHP's real `IR_TARGET_X64` define rather than the nonexistent `IR_TARGET_X86_64`. Both helper targets use `build.fence=true` and are normal dependencies of `php`; JIT generation runs in `php:before_build`, because Xmake target preparation precedes dependency builds globally. A forced PHP build demonstrated the required order: both helper executables were linked first, then `ir_emit_x86.h` and `ir_fold_hash.h` were generated, then PHP compilation began. The next blocker is the still-minimal PHP compile configuration: without the upstream Windows defines/include setup it currently takes the non-Windows `zend_config.h` path; Windows configuration/header generation follows immediately after that setup.
+- 2026-08-12 — `xmake` at commit `bc16350`: MSVC x64 detection succeeded and the early PHP prototype reached compilation, then stopped because Windows/PHP configuration headers had not yet been generated.

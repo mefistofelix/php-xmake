@@ -29,9 +29,9 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 
 - Before converting a dependency, inspect its original non-Xmake build system (`CMakeLists.txt`, configure scripts, Makefiles, Visual Studio projects, or equivalent). Treat it as the primary source for the exact source list and exclusions, generated files, platform defines, include paths, output names, runtime flags, optional assembly, and dependency edges. Record the relevant findings in this file before the first build attempt so Xmake conversion is guided by upstream intent instead of trial and error.
 - Before accepting verbose declarations, custom Lua, or a workaround, investigate whether Xmake already provides a cleaner declarative API, built-in rule, policy, placeholder, or file-level setting. Prefer the simplest Xmake-native form and document non-obvious semantics that affect future targets.
-- Keep `xmake.lua` primarily declarative: it should consist of Xmake configuration, target declarations, and only the target-specific native `on_prepare` callbacks that perform real configuration generation or code generation.
-- Do not add arbitrary Lua helper functions, tables, aliases, or variables. Introduce Lua state only when an Xmake API requires it and no direct declarative expression is practical; keep such state local to the owning task or target's `on_prepare` callback.
-- A target that needs imperative configuration or code generation must use one target-specific native `on_prepare` callback as its single imperative entry point. Do not store callbacks in custom file configuration, inject Xmake APIs such as `os.vrunv` or imported modules through callback arguments, or split target preparation across extra Lua functions. Use build APIs directly in the native callback and import a module there only when required. A target with no such work must not define an empty callback.
+- Keep `xmake.lua` primarily declarative: it should consist of Xmake configuration, target declarations, and only the smallest target-native hooks required for real configuration or code generation. Keep the long-lived `php` target especially compact; prefer broad declarative source/dependency declarations over accumulating helper Lua.
+- Do not add arbitrary Lua helper functions, tables, aliases, or variables. Introduce Lua state only when an Xmake API requires it and no direct declarative expression is practical; keep such state local to the owning target hook.
+- A target that needs imperative configuration or code generation should normally use one target-specific native `on_prepare` callback. A second build-phase hook is allowed only when generation depends on an executable built by another project target and therefore cannot run during global preparation. Do not store callbacks in custom file configuration, inject Xmake APIs such as `os.vrunv` or imported modules through callback arguments, or split one phase across extra Lua functions. A target with no such work must not define an empty callback.
 - Xmake directory imports are eager: importing a namespace loads every Lua file beneath it recursively. A small namespace such as `async` is acceptable when its qualified API improves clarity, but do not import the entire `core` namespace for one facility; import the exact module such as `core.base.option`.
 - Give every library dependency its own static-library target.
 - Treat preprocessor definitions as part of the dependency's ABI and symbol-surface configuration. Before adding them, inspect the upstream public-header import/export macros and static target. Enable only the standard upstream public interface required by PHP; do not expose shared-library export modes, alternate namespaces, experimental/deprecated APIs, or private interfaces accidentally.
@@ -50,15 +50,14 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 
 ## Code Generation
 
-- Run every required code-generation step from the owning target's native `on_prepare` callback.
-- For each target that actually needs configuration generation or code generation, use exactly one target-specific `on_prepare` callback. It owns all generated sources, headers, and configuration files for the target.
-- Declare `on_prepare` before the target's source entries so the generation phase is evident before ordinary and generated inputs are declared.
-- Do not create a separate callback for each generated file.
-- If a callback needs an external executable such as Perl, Bison, RE2C, or the Windows message compiler, make that executable available during `xmake prepare`.
-- If a callback needs an executable built by this project, such as `minilua` or `gen_ir_fold_hash`, build/invoke its Xmake target programmatically from the callback using Xmake built-ins.
+- Run configuration and code generation that depends only on already-prepared external tools from the owning target's native `on_prepare` callback. This includes Perl, Bison, RE2C, Windows SDK tools, file rendering, and similar inputs made available by `xmake prepare`.
+- Keep one `on_prepare` callback per owning target for that preparation-phase work; do not create a callback per generated file.
+- Xmake completes target preparation before normal target builds. Therefore an `on_prepare` callback must not depend on an executable produced by another Xmake target in the same build.
+- When generation needs a project-built executable such as `minilua` or `gen_ir_fold_hash`, keep the generator as a normal binary dependency, set `build.fence=true` on the generator target, and invoke it from the consumer's build phase (`before_build` or an equivalent rule). The fence guarantees the dependency target is fully built before the dependent target proceeds.
+- Declare preparation/build hooks before the target's source entries so generation ordering remains obvious. Do not create separate callbacks for individual generated files.
 - Generate C configuration headers and their defines/parameters in the owning target's `on_prepare` callback. Use Xmake detection APIs for platform properties instead of hard-coding them.
 - Keep source and generated paths relative. Use Xmake placeholders for platform-dependent path segments where possible.
-- Document every code-generation action in the inventory in this file, including owner target, input, output, tool, arguments, assembly use, and intertwined dependencies.
+- Document every code-generation action in the inventory in this file, including owner target, phase, input, output, tool, arguments, assembly use, and intertwined dependencies.
 
 ## Documentation and Progress
 
@@ -69,7 +68,8 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 
 ## Validation and Git Workflow
 
-- During exploratory configure/build/debug cycles, do not create a commit for every individual test. Iterate freely, keep `TODO.md` synchronized with meaningful findings, and commit only when a useful partial or complete result has been reached.
+- During exploratory configure/build/debug cycles, do not create a commit for every individual test. Iterate freely, keep `TODO.md` synchronized with meaningful findings, and commit when a useful partial or complete result has been reached.
+- During the long PHP integration, make checkpoint commits at sensible validated boundaries such as helper/codegen ordering, configuration generation, a coherent source group, dependency closure, or final linking. Do not wait for the entire PHP target to finish before retaining stable progress.
 - Before moving to another dependency or materially different approach, commit the validated partial/complete result so the repository retains a stable checkpoint.
 - Use matching reference DLLs from `dll_compare` to validate static archive symbol coverage when available. Compare exported DLL names with archive-defined symbols and also inspect architecture, CRT directives, import thunks, and embedded `/EXPORT:` directives as applicable.
 - Keep generated files, downloaded sources, tool binaries, caches, and build output ignored.
@@ -113,9 +113,9 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 | `libffi` | Disabled | Static library | Eight C sources plus preprocessed Win64 MASM from Winlibs libffi 3.6.0 | `out/libffi.lib` | Foreign-function call backend for optional PHP `ext/ffi` | Build validated: exact 9-member SDK layout, 52/52 `ffi*` symbols, 8 C `/MD` members + one MASM member, no static CRT/export/import decoration |
 | `libzip` | Disabled | Static library | libzip 1.11.4 Windows static manifest: broad `lib/*.c` minus eight unused platform/codec backends plus generated `zip_err_str.c` | `out/libzip.lib` | ZIP archive backend for default-enabled PHP `ext/zip` | Build validated: exact 124/124 member manifest, 298/298 `zip*` symbols, x64 `/MD`, no static CRT/export/import decoration |
 | `mpir` | Disabled | Static library | MPIR 3.0.0-2 `lib_mpir_gc` generic-C manifest: root + fft/mpf/mpq/mpz/printf/scanf/mpn/generic | `out/mpir.lib` | GMP-compatible arbitrary-precision backend for PHP `ext/gmp` | Build validated: exact 516/516 member multiset, 606/606 GMP/MPIR symbols, x64 `/MD`, no static CRT/export/import decoration |
-| `minilua` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/dynasm/minilua.c` | `out/minilua.exe` | Runs DynASM for the PHP JIT IR emitter | Defined; build validation pending |
-| `gen_ir_fold_hash` | Disabled | Binary | `in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c` | `out/gen_ir_fold_hash.exe` | Generates the JIT IR fold hash header | Defined; build validation pending |
-| `php` | Disabled | Object prototype | `in/php-src/Zend/zend.c`, `in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm` | `out/` | Becomes the static PHP build after dependency, configuration, codegen, and source integration | Prototype only; real `on_prepare` codegen pending |
+| `minilua` | Dependency-only | Binary | `in/php-src/ext/opcache/jit/ir/dynasm/minilua.c` | `out/minilua.exe` | Runs DynASM for the PHP JIT IR emitter | Build validated with `/MD` on MSVC x64; fenced before PHP build-phase codegen |
+| `gen_ir_fold_hash` | Dependency-only | Binary | `in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c` | `out/gen_ir_fold_hash.exe` | Generates the JIT IR fold hash header | Build validated with `/MD` and `IR_TARGET_X64`; fenced before PHP build-phase codegen |
+| `php` | Non-default | Object prototype | `in/php-src/Zend/zend.c`, `in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm` | `out/` | Becomes the static PHP build after dependency, configuration, codegen, and source integration | JIT helper dependency/codegen ordering validated; Windows configuration and full source integration pending |
 
 The `prepare` task fetches dependencies. Each library must receive its own Xmake static-library target as it is integrated; downloaded or prebuilt archives are not yet build targets.
 
@@ -629,7 +629,7 @@ No generated source or configuration file is required for the selected native Wi
 
 ## PHP Code-generation Inventory
 
-All paths below are relative to `in/php-src` unless prefixed with `out/`. Entries marked "planned" reproduce the known PHP generation commands but are not yet wired into the `php` target's `on_prepare` callback.
+All paths below are relative to `in/php-src` unless prefixed with `out/`. Preparation-phase generators belong in `php:on_prepare`; generators built as Xmake targets belong in the fenced build phase before PHP compilation.
 
 | Owner | Tool | Input | Primary output | Full command / special handling | Status |
 | --- | --- | --- | --- | --- | --- |
@@ -645,7 +645,7 @@ All paths below are relative to `in/php-src` unless prefixed with `out/`. Entrie
 | `php` | RE2C | `ext/standard/url_scanner_ex.re` | `ext/standard/url_scanner_ex.c` | `re2c --no-generation-date -b -o ext/standard/url_scanner_ex.c ext/standard/url_scanner_ex.re` | Planned |
 | `php` | RE2C | `ext/phar/phar_path_check.re` | `ext/phar/phar_path_check.c` | `re2c --no-generation-date -b -o ext/phar/phar_path_check.c ext/phar/phar_path_check.re` | Planned |
 | `php` | Windows `mc` | `win32/build/wsyslog.mc` | Headers under `win32/`; resources and binary message data under `out/` | `mc -h win32 -r out -x out win32/build/wsyslog.mc` | Planned |
-| `php` | `minilua` target and DynASM | `ext/opcache/jit/ir/ir_x86.dasc` | `ext/opcache/jit/ir/ir_emit_x86.h` | `out/minilua.exe ext/opcache/jit/ir/dynasm/dynasm.lua -L -D WIN=1 -o ext/opcache/jit/ir/ir_emit_x86.h ext/opcache/jit/ir/ir_x86.dasc`; requires a programmatic build of `minilua` | Planned |
-| `php` | `gen_ir_fold_hash` target | `ext/opcache/jit/ir/ir_fold.h` | `ext/opcache/jit/ir/ir_fold_hash.h` | `out/gen_ir_fold_hash.exe < ext/opcache/jit/ir/ir_fold.h > ext/opcache/jit/ir/ir_fold_hash.h`; use Xmake process redirection after a programmatic helper build | Planned |
+| `php` build phase | `minilua` target and DynASM | `ext/opcache/jit/ir/ir_x86.dasc` | `ext/opcache/jit/ir/ir_emit_x86.h` | `out/minilua.exe ext/opcache/jit/ir/dynasm/dynasm.lua -D X64=1 -D X64WIN=1 -D WIN=1 -o ext/opcache/jit/ir/ir_emit_x86.h ext/opcache/jit/ir/ir_x86.dasc`; `minilua` is a fenced dependency | Wired and ordering validated |
+| `php` build phase | `gen_ir_fold_hash` target | `ext/opcache/jit/ir/ir_fold.h` | `ext/opcache/jit/ir/ir_fold_hash.h` | `out/gen_ir_fold_hash.exe < ext/opcache/jit/ir/ir_fold.h > ext/opcache/jit/ir/ir_fold_hash.h`; generator is compiled with `IR_TARGET_X64` and is a fenced dependency | Wired and ordering validated |
 
 The PHP target also assembles `Zend/asm/*_xmm_x86_64_ms_masm.asm` with MSVC-compatible assembly flags. Broader PHP and extension source inclusion, static linking, and the direct per-source baseline build remain to be implemented.

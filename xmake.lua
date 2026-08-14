@@ -74,17 +74,19 @@ task("prepare")
     end)
 
 target("minilua")
-    set_enabled(false)
+    set_default(false)
     set_kind("binary")
     set_targetdir(get_config("builddir"))
+    set_policy("build.fence", true)
     add_files("in/php-src/ext/opcache/jit/ir/dynasm/minilua.c")
 
 target("gen_ir_fold_hash")
-    set_enabled(false)
+    set_default(false)
     set_kind("binary")
     set_targetdir(get_config("builddir"))
+    set_policy("build.fence", true)
     add_files("in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c")
-    add_defines("IR_TARGET_X86_64")
+    add_defines("IR_TARGET_X64")
 
 target("zlib")
     set_enabled(false)
@@ -1535,9 +1537,17 @@ target("mpir")
 
 
 target("php")
-    set_enabled(false)
+    set_default(false)
     set_kind("object")
     set_targetdir(get_config("builddir"))
+    add_deps("minilua", "gen_ir_fold_hash")
+    before_build(function (target)
+        local ir = "in/php-src/ext/opcache/jit/ir"
+        os.vrunv(target:dep("minilua"):targetfile(),
+            {path.join(ir, "dynasm/dynasm.lua"), "-D", "X64=1", "-D", "X64WIN=1", "-D", "WIN=1", "-o", path.join(ir, "ir_emit_x86.h"), path.join(ir, "ir_x86.dasc")})
+        os.vrunv(target:dep("gen_ir_fold_hash"):targetfile(), {},
+            {stdin = path.join(ir, "ir_fold.h"), stdout = path.join(ir, "ir_fold_hash.h")})
+    end)
     add_files("in/php-src/Zend/zend.c")
 
     add_asflags("/DBOOST_CONTEXT_EXPORT=EXPORT", {force = true})
