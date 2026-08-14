@@ -812,7 +812,7 @@ target("libintl")
     )
     add_files("in/deps/libintl/gettext-runtime/intl/libintl.rc", {
         defines = {
-            "PACKAGE_VERSION_STRING=\\\"1.0\\\"",
+            [[PACKAGE_VERSION_STRING="1.0"]],
             "PACKAGE_VERSION_MAJOR=1",
             "PACKAGE_VERSION_MINOR=0",
             "PACKAGE_VERSION_SUBMINOR=0"
