@@ -270,7 +270,7 @@ Every library must receive its own static target. Integrate and validate them on
 - [x] Data/text: ICU, libiconv, libintl, libxml2, libxslt, Oniguruma, SQLite. LMDB and QDBM skipped with `ext/dba`.
 - [x] Database/directory clients: PostgreSQL and OpenLDAP complete; Firebird intentionally skipped with `pdo_firebird`.
 - [x] Image/font stack: libpng, libjpeg, FreeType, libwebp, libtiff, libjxl, and the unified `avif` target (libavif + libheif + AOM + libyuv + dav1d) are complete. UltraHDR/libuhdr is intentionally omitted because the current PHP GD extension exposes no PHP userland binding for its bundled-libgd-only `gdUhdr*` API. The separate TurboJPEG API/library and XPM/libXpm are also intentionally omitted.
-- [x] Remaining-library review complete: MPIR/GMP and Net-SNMP are intentionally omitted with their opt-in `ext/gmp` and `ext/snmp` extensions; no selected component depends on them.
+- [x] Remaining-library review complete: MPIR/GMP is included for `ext/gmp`; Net-SNMP remains intentionally omitted with opt-in `ext/snmp`.
 - [x] Skip standalone libargon2: `ext/standard` enables it only through optional `password-argon2` (default `no`), while the already selected Sodium extension registers `argon2i` and `argon2id` with PHP's `password_*` API when `standard` does not. OpenSSL's optional Argon2 provider uses OpenSSL EVP_KDF directly and does not consume libargon2.
 - [ ] Document exact target names, source patterns, dependencies, defines, and validation status as each target lands.
 - [x] Keep optional image surface minimal: omit XPM/libXpm and omit the separate TurboJPEG API/library. PHP/GD uses only the traditional libjpeg API, which already contains libjpeg-turbo's SSE2/AVX2 acceleration and runtime CPU dispatch.
@@ -282,6 +282,14 @@ Every library must receive its own static target. Integrate and validate them on
 - [x] Inspect upstream CMake metadata and the SDK static archive: 124 members, with zlib+bzip2+LZMA and Windows CNG/AES enabled and Zstd disabled.
 - [x] Add the single static target with 123 selected upstream C sources plus generated `zip_err_str.c`.
 - [x] Build and validate exact 124/124 members, 298/298 `zip*` symbols, x64 `/MD`, and zero static CRT/export/import decoration; runtime smoke testing intentionally skipped.
+
+## Completed Target: MPIR / GMP
+
+- [x] Reconsider MPIR separately from Net-SNMP: keep `ext/gmp`/MPIR for arbitrary-precision arithmetic while leaving the specialized opt-in SNMP stack omitted.
+- [x] Preserve the PHP SDK package as `out/mpir-sdk-reference` and fetch exact `winlibs/mpir` tag `mpir-3.0.0-2` from the SDK SBOM.
+- [x] Inspect the VS18 x64 `lib_mpir_gc` project and native pre-build: exact 516-source generic-C manifest, no assembly, four generated/copied headers, no external link dependency.
+- [x] Add the single direct static `mpir` target using eight broad source patterns and five exact exclusions.
+- [x] Build and validate exact 516/516 members, 606/606 GMP/MPIR symbols, 516 x64 `/MD` objects, and zero static CRT/export/import decoration; the SDK also lacks the optional `mpz_powm_sec` and `mpz_prevprime` probes, and no runtime smoke test is required.
 
 ## Completed Target: libffi
 
