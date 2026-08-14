@@ -504,385 +504,130 @@ target("libintl")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
     on_prepare(function ()
-        io.writefile(
-            "in/deps/libintl/gettext-runtime/intl/config.h",
-            (io.readfile("in/deps/libintl/gettext-runtime/intl/config.h.in")
-                :gsub("#undef ENABLE_NLS", "#define ENABLE_NLS 1")
-                :gsub("#undef FLEXIBLE_ARRAY_MEMBER", "#define FLEXIBLE_ARRAY_MEMBER 1")
-                :gsub("#undef HAVE_C_STATIC_ASSERT", "#define HAVE_C_STATIC_ASSERT 1")
-                :gsub("#undef HAVE_ICONV", "#define HAVE_ICONV 1")
-                :gsub("#undef HAVE_LONG_LONG_INT", "#define HAVE_LONG_LONG_INT 1")
-                :gsub("#undef HAVE_MBRTOWC", "#define HAVE_MBRTOWC 1")
-                :gsub("#undef HAVE_MBSINIT", "#define HAVE_MBSINIT 1")
-                :gsub("#undef HAVE_MBSTATE_T", "#define HAVE_MBSTATE_T 1")
-                :gsub("#undef HAVE_STDBOOL_H", "#define HAVE_STDBOOL_H 1")
-                :gsub("#undef HAVE_STDINT_H_WITH_UINTMAX", "#define HAVE_STDINT_H_WITH_UINTMAX 1")
-                :gsub("#undef HAVE_STDINT_H([%c])", "#define HAVE_STDINT_H 1%1")
-                :gsub("#undef HAVE_UNSIGNED_LONG_LONG_INT", "#define HAVE_UNSIGNED_LONG_LONG_INT 1")
-                :gsub("#undef HAVE_WCHAR_H", "#define HAVE_WCHAR_H 1")
-                :gsub("#undef HAVE_WCRTOMB", "#define HAVE_WCRTOMB 1")
-                :gsub("#undef HAVE_WINT_T", "#define HAVE_WINT_T 1")
-                :gsub("#undef ICONV_CONST", "#define ICONV_CONST")
-                :gsub("#undef PACKAGE([%c])", "#define PACKAGE \"gettext\"%1")
-                :gsub("#undef PACKAGE_NAME", "#define PACKAGE_NAME \"libintl\"")
-                :gsub("#undef PACKAGE_VERSION", "#define PACKAGE_VERSION \"1.0\"")
-                :gsub("#undef rpl_mbrtowc", "#define rpl_mbrtowc _libintl_mbrtowc")
-                :gsub("#undef rpl_mbsinit", "#define rpl_mbsinit _libintl_mbsinit")
-                :gsub("#undef rpl_tdelete", "#define rpl_tdelete _libintl_tdelete")
-                :gsub("#undef rpl_tfind", "#define rpl_tfind _libintl_tfind")
-                :gsub("#undef rpl_tsearch", "#define rpl_tsearch _libintl_tsearch")
-                :gsub("#undef rpl_twalk", "#define rpl_twalk _libintl_twalk")
-                :gsub("#undef tdelete", "#define tdelete _libintl_tdelete")
-                :gsub("#undef tfind", "#define tfind _libintl_tfind")
-                :gsub("#undef tsearch", "#define tsearch _libintl_tsearch")
-                :gsub("#undef twalk", "#define twalk _libintl_twalk")
-                :gsub("#undef USE_WINDOWS_THREADS", "#define USE_WINDOWS_THREADS 1")
-                :gsub("#undef VERSION", "#define VERSION \"1.0\""))
-        )
-        local header = io.readfile("in/deps/libintl/gettext-runtime/intl/libgnuintl.in.h")
-            :gsub("@HAVE_POSIX_PRINTF@", "0")
-            :gsub("@HAVE_ASPRINTF@", "0")
-            :gsub("@HAVE_SNPRINTF@", "0")
-            :gsub("@HAVE_WPRINTF@", "0")
-            :gsub("@HAVE_NEWLOCALE@", "0")
-            :gsub("@ENHANCE_LOCALE_FUNCS@", "0")
-            :gsub("@WOE32DLL@", "0")
-        io.writefile("in/deps/libintl/gettext-runtime/intl/libgnuintl.h", header)
-        io.writefile("in/deps/libintl/gettext-runtime/intl/libintl.h", header)
-        io.writefile(
-            "in/deps/libintl/gettext-runtime/intl/gnulib-lib/search.h",
-            [[#include "c++defs.h"
+        local function render_template(input, replacements, ones, fallback)
+            local text = io.readfile(input)
+            for i = 1, #(replacements or {}), 2 do text = text:gsub(replacements[i], replacements[i + 1]) end
+            for name in (ones or ""):gmatch("%S+") do text = text:gsub("@" .. name .. "@", "1") end
+            if fallback ~= nil then text = text:gsub("@[^@\r\n]+@", fallback) end
+            return text
+        end
+
+        local intl = "in/deps/libintl/gettext-runtime/intl"
+        local gnulib = intl .. "/gnulib-lib"
+        local prelude = [[#include "c++defs.h"
 #include "arg-nonnull.h"
 #include "warn-on-use.h"
-]] .. (io.readfile("in/deps/libintl/gettext-runtime/intl/gnulib-lib/search.in.h")
-                :gsub("@GUARD_PREFIX@", "GL")
-                :gsub("@PRAGMA_SYSTEM_HEADER@", "")
-                :gsub("@PRAGMA_COLUMNS@", "")
-                :gsub("@HAVE_SEARCH_H@", "0")
-                :gsub("@INCLUDE_NEXT@ @NEXT_SEARCH_H@", "include <search.h>")
-                :gsub("@GNULIB_TSEARCH@", "1")
-                :gsub("@HAVE_TSEARCH@", "0")
-                :gsub("@HAVE_TWALK@", "0")
-                :gsub("@HAVE_TYPE_VISIT@", "0")
-                :gsub("@[^@\r\n]+@", "0"))
-        )
-        io.writefile(
-            "in/deps/libintl/gettext-runtime/intl/gnulib-lib/unistd.h",
-            [[#include "c++defs.h"
-#include "arg-nonnull.h"
+]]
+        local function ucrt(name)
+            return path.absolute(path.join(get_config("sdk"), "Windows Kits", "10", "Include",
+                get_config("vs_sdkver"), "ucrt", name)):gsub("\\", "/")
+        end
+        local function header(name, replacements, ones, prefix, fallback)
+            local common = {"@GUARD_PREFIX@", "GL", "@PRAGMA_SYSTEM_HEADER@", "", "@PRAGMA_COLUMNS@", ""}
+            for _, value in ipairs(replacements or {}) do common[#common + 1] = value end
+            io.writefile(gnulib .. "/" .. name .. ".h",
+                (prefix or "") .. render_template(gnulib .. "/" .. name .. ".in.h", common, ones, fallback or "0"))
+        end
+        local function ucrt_header(name, ones, prefix)
+            local next_h = "@NEXT_" .. name:upper() .. "_H@"
+            header(name, {"@INCLUDE_NEXT@", "include", next_h, "\"" .. ucrt(name .. ".h") .. "\""}, ones, prefix)
+        end
+        local function missing_header(name, ones, prefix)
+            local next_h = "@NEXT_" .. name:upper() .. "_H@"
+            header(name, {"@INCLUDE_NEXT@ " .. next_h, "include <" .. name .. ".h>"}, ones, prefix)
+        end
+
+        local config = io.readfile(intl .. "/config.h.in")
+        for name in ([[ENABLE_NLS FLEXIBLE_ARRAY_MEMBER HAVE_ICONV HAVE_MBRTOWC HAVE_STDBOOL_H
+            HAVE_STDINT_H_WITH_UINTMAX HAVE_STDINT_H HAVE_WCRTOMB HAVE_WINT_T USE_WINDOWS_THREADS]]):gmatch("%S+") do
+            config = config:gsub("#undef " .. name .. "([%c])", "#define " .. name .. " 1%1")
+        end
+        config = config:gsub("#undef ICONV_CONST", "#define ICONV_CONST")
+        for _, name in ipairs({"mbrtowc", "mbsinit", "tdelete", "tfind", "tsearch", "twalk"}) do
+            config = config:gsub("#undef rpl_" .. name, "#define rpl_" .. name .. " _libintl_" .. name)
+        end
+        for _, name in ipairs({"tdelete", "tfind", "tsearch", "twalk"}) do
+            config = config:gsub("#undef " .. name, "#define " .. name .. " _libintl_" .. name)
+        end
+        io.writefile(intl .. "/config.h", config)
+
+        local public = render_template(intl .. "/libgnuintl.in.h", nil, nil, "0")
+        io.writefile(intl .. "/libgnuintl.h", public)
+        io.writefile(intl .. "/libintl.h", public)
+
+        missing_header("search", "GNULIB_TSEARCH", prelude)
+        missing_header("unistd", "GNULIB_GETCWD REPLACE_GETCWD", prelude)
+        ucrt_header("locale", [[HAVE_WINDOWS_LOCALE_T GNULIB_LOCALECONV GNULIB_SETLOCALE_NULL
+            GNULIB_GETLOCALENAME_L_UNSAFE GNULIB_LOCALENAME_UNSAFE]], prelude)
+        ucrt_header("float")
+        header("alloca")
+        ucrt_header("string", "GNULIB_STRINGEQ", prelude)
+        missing_header("stdckdint")
+        missing_header("sched", nil, [[#include "c++defs.h"
 #include "warn-on-use.h"
-]] .. (io.readfile("in/deps/libintl/gettext-runtime/intl/gnulib-lib/unistd.in.h")
-                :gsub("@GUARD_PREFIX@", "GL")
-                :gsub("@PRAGMA_SYSTEM_HEADER@", "")
-                :gsub("@PRAGMA_COLUMNS@", "")
-                :gsub("@HAVE_UNISTD_H@", "0")
-                :gsub("@INCLUDE_NEXT@ @NEXT_UNISTD_H@", "include <unistd.h>")
-                :gsub("@GNULIB_GETCWD@", "1")
-                :gsub("@REPLACE_GETCWD@", "1")
-                :gsub("@[^@\r\n]+@", "0"))
-        )
-        local locale_h = path.absolute(path.join(
-            get_config("sdk"), "Windows Kits", "10", "Include",
-            get_config("vs_sdkver"), "ucrt", "locale.h")):gsub("\\", "/")
-        io.writefile(
-            "in/deps/libintl/gettext-runtime/intl/gnulib-lib/locale.h",
-            [[#include "c++defs.h"
-#include "arg-nonnull.h"
-#include "warn-on-use.h"
-]] .. (io.readfile("in/deps/libintl/gettext-runtime/intl/gnulib-lib/locale.in.h")
-                :gsub("@GUARD_PREFIX@", "GL")
-                :gsub("@PRAGMA_SYSTEM_HEADER@", "")
-                :gsub("@PRAGMA_COLUMNS@", "")
-                :gsub("@INCLUDE_NEXT@", "include")
-                :gsub("@NEXT_LOCALE_H@", "\"" .. locale_h .. "\"")
-                :gsub("@HAVE_LOCALE_T@", "0")
-                :gsub("@HAVE_WINDOWS_LOCALE_T@", "1")
-                :gsub("@GNULIB_LOCALECONV@", "1")
-                :gsub("@GNULIB_SETLOCALE@", "0")
-                :gsub("@GNULIB_SETLOCALE_NULL@", "1")
-                :gsub("@GNULIB_NEWLOCALE@", "0")
-                :gsub("@GNULIB_DUPLOCALE@", "0")
-                :gsub("@GNULIB_FREELOCALE@", "0")
-                :gsub("@GNULIB_GETLOCALENAME_L@", "0")
-                :gsub("@GNULIB_GETLOCALENAME_L_UNSAFE@", "1")
-                :gsub("@GNULIB_LOCALENAME_UNSAFE@", "1")
-                :gsub("@HAVE_NEWLOCALE@", "0")
-                :gsub("@HAVE_DUPLOCALE@", "0")
-                :gsub("@HAVE_FREELOCALE@", "0")
-                :gsub("@HAVE_GETLOCALENAME_L@", "0")
-                :gsub("@HAVE_XLOCALE_H@", "0")
-                :gsub("@REPLACE_LOCALECONV@", "0")
-                :gsub("@REPLACE_SETLOCALE@", "0")
-                :gsub("@REPLACE_NEWLOCALE@", "0")
-                :gsub("@REPLACE_DUPLOCALE@", "0")
-                :gsub("@REPLACE_FREELOCALE@", "0")
-                :gsub("@REPLACE_GETLOCALENAME_L@", "0")
-                :gsub("@REPLACE_STRUCT_LCONV@", "0")
-                :gsub("@LOCALENAME_ENHANCE_LOCALE_FUNCS@", "0")
-                :gsub("@[^@\r\n]+@", "0"))
-        )
-        local float_h = path.absolute(path.join(
-            get_config("sdk"), "Windows Kits", "10", "Include",
-            get_config("vs_sdkver"), "ucrt", "float.h")):gsub("\\", "/")
-        io.writefile(
-            "in/deps/libintl/gettext-runtime/intl/gnulib-lib/float.h",
-            (io.readfile("in/deps/libintl/gettext-runtime/intl/gnulib-lib/float.in.h")
-                :gsub("@GUARD_PREFIX@", "GL")
-                :gsub("@INCLUDE_NEXT@", "include")
-                :gsub("@PRAGMA_SYSTEM_HEADER@", "")
-                :gsub("@PRAGMA_COLUMNS@", "")
-                :gsub("@NEXT_FLOAT_H@", "\"" .. float_h .. "\"")
-                :gsub("@REPLACE_ITOLD@", "0"))
-        )
-        io.writefile(
-            "in/deps/libintl/gettext-runtime/intl/gnulib-lib/alloca.h",
-            (io.readfile("in/deps/libintl/gettext-runtime/intl/gnulib-lib/alloca.in.h")
-                :gsub("@HAVE_ALLOCA_H@", "0"))
-        )
-        local string_h = path.absolute(path.join(
-            get_config("sdk"), "Windows Kits", "10", "Include",
-            get_config("vs_sdkver"), "ucrt", "string.h")):gsub("\\", "/")
-        io.writefile(
-            "in/deps/libintl/gettext-runtime/intl/gnulib-lib/string.h",
-            [[#include "c++defs.h"
-#include "arg-nonnull.h"
-#include "warn-on-use.h"
-]] .. (io.readfile("in/deps/libintl/gettext-runtime/intl/gnulib-lib/string.in.h")
-                :gsub("@GUARD_PREFIX@", "GL")
-                :gsub("@INCLUDE_NEXT@", "include")
-                :gsub("@PRAGMA_SYSTEM_HEADER@", "")
-                :gsub("@PRAGMA_COLUMNS@", "")
-                :gsub("@NEXT_STRING_H@", "\"" .. string_h .. "\"")
-                :gsub("@GNULIB_STRINGEQ@", "1")
-                :gsub("@HAVE_DECL_STREQ@", "0")
-                :gsub("@[^@\r\n]+@", "0"))
-        )
-        io.writefile(
-            "in/deps/libintl/gettext-runtime/intl/gnulib-lib/stdckdint.h",
-            (io.readfile("in/deps/libintl/gettext-runtime/intl/gnulib-lib/stdckdint.in.h")
-                :gsub("@GUARD_PREFIX@", "GL")
-                :gsub("@INCLUDE_NEXT@ @NEXT_STDCKDINT_H@", "include <stdckdint.h>")
-                :gsub("@PRAGMA_SYSTEM_HEADER@", "")
-                :gsub("@PRAGMA_COLUMNS@", "")
-                :gsub("@HAVE_C_STDCKDINT_H@", "0")
-                :gsub("@HAVE_WORKING_C_STDCKDINT_H@", "0")
-                :gsub("@HAVE_CXX_STDCKDINT_H@", "0")
-                :gsub("@HAVE_WORKING_CXX_STDCKDINT_H@", "0"))
-        )
-        io.writefile(
-            "in/deps/libintl/gettext-runtime/intl/gnulib-lib/sched.h",
-            [[#include "c++defs.h"
-#include "warn-on-use.h"
-]] .. (io.readfile("in/deps/libintl/gettext-runtime/intl/gnulib-lib/sched.in.h")
-                :gsub("@GUARD_PREFIX@", "GL")
-                :gsub("@HAVE_SCHED_H@", "0")
-                :gsub("@HAVE_SYS_CDEFS_H@", "0")
-                :gsub("@INCLUDE_NEXT@ @NEXT_SCHED_H@", "include <sched.h>")
-                :gsub("@PRAGMA_SYSTEM_HEADER@", "")
-                :gsub("@PRAGMA_COLUMNS@", "")
-                :gsub("@HAVE_STRUCT_SCHED_PARAM@", "0")
-                :gsub("@GNULIB_SCHED_YIELD@", "0")
-                :gsub("@HAVE_SCHED_YIELD@", "0")
-                :gsub("@REPLACE_SCHED_YIELD@", "0")
-                :gsub("@[^@\r\n]+@", "0"))
-        )
-        io.writefile(
-            "in/deps/libintl/gettext-runtime/intl/gnulib-lib/pthread.h",
-            [[#include "c++defs.h"
-#include "arg-nonnull.h"
-#include "warn-on-use.h"
-]] .. (io.readfile("in/deps/libintl/gettext-runtime/intl/gnulib-lib/pthread.in.h")
-                :gsub("@GUARD_PREFIX@", "GL")
-                :gsub("@HAVE_PTHREAD_H@", "0")
-                :gsub("@INCLUDE_NEXT@ @NEXT_PTHREAD_H@", "include <pthread.h>")
-                :gsub("@PRAGMA_SYSTEM_HEADER@", "")
-                :gsub("@PRAGMA_COLUMNS@", "")
-                :gsub("@GNULIB_PTHREAD_ONCE@", "1")
-                :gsub("@HAVE_PTHREAD_T@", "0")
-                :gsub("@HAVE_PTHREAD_ONCE@", "0")
-                :gsub("@REPLACE_PTHREAD_ONCE@", "1")
-                :gsub("@[^@\r\n]+@", "0"))
-        )
-        local wchar_h = path.absolute(path.join(
-            get_config("sdk"), "Windows Kits", "10", "Include",
-            get_config("vs_sdkver"), "ucrt", "wchar.h")):gsub("\\", "/")
-        io.writefile(
-            "in/deps/libintl/gettext-runtime/intl/gnulib-lib/wchar.h",
-            [[#include "c++defs.h"
-#include "arg-nonnull.h"
-#include "warn-on-use.h"
-]] .. (io.readfile("in/deps/libintl/gettext-runtime/intl/gnulib-lib/wchar.in.h")
-                :gsub("@GUARD_PREFIX@", "GL")
-                :gsub("@PRAGMA_SYSTEM_HEADER@", "")
-                :gsub("@PRAGMA_COLUMNS@", "")
-                :gsub("@HAVE_FEATURES_H@", "0")
-                :gsub("@INCLUDE_NEXT@", "include")
-                :gsub("@NEXT_WCHAR_H@", "\"" .. wchar_h .. "\"")
-                :gsub("@HAVE_WCHAR_H@", "1")
-                :gsub("@HAVE_CRTDEFS_H@", "0")
-                :gsub("@GNULIBHEADERS_OVERRIDE_WINT_T@", "0")
-                :gsub("@GNULIB_MBSINIT@", "1")
-                :gsub("@GNULIB_MBSZERO@", "1")
-                :gsub("@GNULIB_MBRTOWC@", "1")
-                :gsub("@GNULIB_WCWIDTH@", "1")
-                :gsub("@GNULIB_WGETCWD@", "1")
-                :gsub("@GNULIB_FREE_POSIX@", "1")
-                :gsub("@HAVE_WINT_T@", "1")
-                :gsub("@HAVE_MBSINIT@", "1")
-                :gsub("@HAVE_MBRTOWC@", "1")
-                :gsub("@HAVE_WCRTOMB@", "1")
-                :gsub("@HAVE_DECL_WCWIDTH@", "0")
-                :gsub("@REPLACE_MBSTATE_T@", "0")
-                :gsub("@REPLACE_MBSINIT@", "1")
-                :gsub("@REPLACE_MBRTOWC@", "1")
-                :gsub("@REPLACE_WCWIDTH@", "0")
-                :gsub("@[^@\r\n]+@", "0"))
-        )
-        local uchar_h = path.absolute(path.join(
-            get_config("sdk"), "Windows Kits", "10", "Include",
-            get_config("vs_sdkver"), "ucrt", "uchar.h")):gsub("\\", "/")
-        io.writefile(
-            "in/deps/libintl/gettext-runtime/intl/gnulib-lib/uchar.h",
-            [[#include "c++defs.h"
-#include "arg-nonnull.h"
-#include "warn-on-use.h"
-]] .. (io.readfile("in/deps/libintl/gettext-runtime/intl/gnulib-lib/uchar.in.h")
-                :gsub("@GUARD_PREFIX@", "GL")
-                :gsub("@HAVE_UCHAR_H@", "1")
-                :gsub("@CXX_HAVE_UCHAR_H@", "1")
-                :gsub("@INCLUDE_NEXT@", "include")
-                :gsub("@PRAGMA_SYSTEM_HEADER@", "")
-                :gsub("@PRAGMA_COLUMNS@", "")
-                :gsub("@NEXT_UCHAR_H@", "\"" .. uchar_h .. "\"")
-                :gsub("@CXX_HAS_CHAR8_TYPE@", "0")
-                :gsub("@CXX_HAS_UCHAR_TYPES@", "1")
-                :gsub("@SMALL_WCHAR_T@", "1")
-                :gsub("@GNULIBHEADERS_OVERRIDE_CHAR8_T@", "0")
-                :gsub("@GNULIBHEADERS_OVERRIDE_CHAR16_T@", "0")
-                :gsub("@GNULIBHEADERS_OVERRIDE_CHAR32_T@", "0")
-                :gsub("@GNULIB_C32ISALNUM@", "1")
-                :gsub("@GNULIB_C32ISALPHA@", "1")
-                :gsub("@GNULIB_C32ISBLANK@", "1")
-                :gsub("@GNULIB_C32ISCNTRL@", "1")
-                :gsub("@GNULIB_C32ISDIGIT@", "1")
-                :gsub("@GNULIB_C32ISGRAPH@", "1")
-                :gsub("@GNULIB_C32ISLOWER@", "1")
-                :gsub("@GNULIB_C32ISPRINT@", "1")
-                :gsub("@GNULIB_C32ISPUNCT@", "1")
-                :gsub("@GNULIB_C32ISSPACE@", "1")
-                :gsub("@GNULIB_C32ISUPPER@", "1")
-                :gsub("@GNULIB_C32ISXDIGIT@", "1")
-                :gsub("@GNULIB_C32TOLOWER@", "1")
-                :gsub("@GNULIB_C32WIDTH@", "1")
-                :gsub("@GNULIB_MBRTOC32@", "1")
-                :gsub("@HAVE_MBRTOC32@", "1")
-                :gsub("@REPLACE_MBRTOC32@", "1")
-                :gsub("@[^@\r\n]+@", "0"))
-        )
-        io.writefile(
-            "in/deps/libintl/gettext-runtime/intl/gnulib-lib/unicase.h",
-            (io.readfile("in/deps/libintl/gettext-runtime/intl/gnulib-lib/unicase.in.h")
-                :gsub("@HAVE_UNISTRING_WOE32DLL_H@", "0")
-                :gsub("@[^@\r\n]+@", ""))
-        )
-        io.writefile(
-            "in/deps/libintl/gettext-runtime/intl/gnulib-lib/unictype.h",
-            (io.readfile("in/deps/libintl/gettext-runtime/intl/gnulib-lib/unictype.in.h")
-                :gsub("@HAVE_UNISTRING_WOE32DLL_H@", "0")
-                :gsub("@[^@\r\n]+@", ""))
-        )
-        io.writefile(
-            "in/deps/libintl/gettext-runtime/intl/gnulib-lib/uninorm.h",
-            (io.readfile("in/deps/libintl/gettext-runtime/intl/gnulib-lib/uninorm.in.h")
-                :gsub("@HAVE_UNISTRING_WOE32DLL_H@", "0")
-                :gsub("@[^@\r\n]+@", ""))
-        )
-        os.cp(
-            "in/deps/libintl/gettext-runtime/intl/gnulib-lib/unitypes.in.h",
-            "in/deps/libintl/gettext-runtime/intl/gnulib-lib/unitypes.h"
-        )
-        os.cp(
-            "in/deps/libintl/gettext-runtime/intl/gnulib-lib/uniwidth.in.h",
-            "in/deps/libintl/gettext-runtime/intl/gnulib-lib/uniwidth.h"
-        )
+]])
+        missing_header("pthread", "GNULIB_PTHREAD_ONCE REPLACE_PTHREAD_ONCE", prelude)
+        ucrt_header("wchar", [[HAVE_WCHAR_H GNULIB_MBSINIT GNULIB_MBSZERO GNULIB_MBRTOWC GNULIB_WCWIDTH
+            GNULIB_WGETCWD GNULIB_FREE_POSIX HAVE_WINT_T HAVE_MBSINIT HAVE_MBRTOWC HAVE_WCRTOMB
+            REPLACE_MBSINIT REPLACE_MBRTOWC]], prelude)
+        ucrt_header("uchar", [[HAVE_UCHAR_H CXX_HAVE_UCHAR_H CXX_HAS_UCHAR_TYPES SMALL_WCHAR_T
+            GNULIB_C32ISALNUM GNULIB_C32ISALPHA GNULIB_C32ISBLANK GNULIB_C32ISCNTRL GNULIB_C32ISDIGIT
+            GNULIB_C32ISGRAPH GNULIB_C32ISLOWER GNULIB_C32ISPRINT GNULIB_C32ISPUNCT GNULIB_C32ISSPACE
+            GNULIB_C32ISUPPER GNULIB_C32ISXDIGIT GNULIB_C32TOLOWER GNULIB_C32WIDTH GNULIB_MBRTOC32
+            HAVE_MBRTOC32 REPLACE_MBRTOC32]], prelude)
+
+        for _, name in ipairs({"unicase", "unictype", "uninorm"}) do
+            io.writefile(gnulib .. "/" .. name .. ".h", render_template(gnulib .. "/" .. name .. ".in.h",
+                {"@HAVE_UNISTRING_WOE32DLL_H@", "0"}, nil, ""))
+        end
+        os.cp(gnulib .. "/unitypes.in.h", gnulib .. "/unitypes.h")
+        os.cp(gnulib .. "/uniwidth.in.h", gnulib .. "/uniwidth.h")
+
         local resource = path.join(get_config("builddir"), "libintl.rc")
         local res = path.join(get_config("builddir"), "libintl.res")
         local object = path.join(get_config("builddir"), "libintl.res.obj")
-        io.writefile(
-            resource,
-            (io.readfile("in/deps/libintl/gettext-runtime/intl/libintl.rc")
-                :gsub("PACKAGE_VERSION_STRING", "\"1.0\"")
-                :gsub("PACKAGE_VERSION_MAJOR", "1")
-                :gsub("PACKAGE_VERSION_MINOR", "0")
-                :gsub("PACKAGE_VERSION_SUBMINOR", "0"))
-        )
-        local sdk_include = path.join(
-            get_config("sdk"), "Windows Kits", "10", "Include", get_config("vs_sdkver")
-        )
-        os.vrunv(path.join(
-            get_config("sdk"), "Windows Kits", "10", "bin",
-            get_config("vs_sdkver"), "x64", "rc.exe"
-        ), {
-            "-nologo",
-            "-I" .. path.join(sdk_include, "um"),
-            "-I" .. path.join(sdk_include, "shared"),
-            "-Fo" .. res,
-            resource
+        io.writefile(resource, (io.readfile(intl .. "/libintl.rc")
+            :gsub("PACKAGE_VERSION_STRING", "\"1.0\"")
+            :gsub("PACKAGE_VERSION_MAJOR", "1")
+            :gsub("PACKAGE_VERSION_MINOR", "0")
+            :gsub("PACKAGE_VERSION_SUBMINOR", "0")))
+        local sdk = path.join(get_config("sdk"), "Windows Kits", "10")
+        local sdk_include = path.join(sdk, "Include", get_config("vs_sdkver"))
+        os.vrunv(path.join(sdk, "bin", get_config("vs_sdkver"), "x64", "rc.exe"), {
+            "-nologo", "-I" .. path.join(sdk_include, "um"), "-I" .. path.join(sdk_include, "shared"),
+            "-Fo" .. res, resource
         })
-        os.vrunv(path.join(
-            get_config("sdk"), "VC", "Tools", "MSVC", get_config("vs_toolset"),
-            "bin", "Hostx64", "x64", "cvtres.exe"
-        ), {"/nologo", "/machine:x64", "/readonly", "/out:" .. object, res})
+        os.vrunv(path.join(get_config("sdk"), "VC", "Tools", "MSVC", get_config("vs_toolset"),
+            "bin", "Hostx64", "x64", "cvtres.exe"),
+            {"/nologo", "/machine:x64", "/readonly", "/out:" .. object, res})
     end)
     add_deps("libiconv")
     add_includedirs("in/deps/libintl/gettext-runtime/intl", {public = true})
     add_includedirs("in/deps/libintl/gettext-runtime/intl/gnulib-lib")
-    add_defines(
-        "BUILDING_LIBINTL",
-        "BUILDING_LIBRARY",
-        "HAVE_CONFIG_H",
-        "LIBDIR=\".\"",
-        "LOCALEDIR=\".\"",
-        "_GL_SMALL_WCHAR_T=1",
-        "_CRT_SECURE_NO_WARNINGS",
-        "_WIN32_WINNT=0x0601"
-    )
+    add_defines("BUILDING_LIBINTL", "BUILDING_LIBRARY", "HAVE_CONFIG_H",
+        "LIBDIR=\".\"", "LOCALEDIR=\".\"", "_GL_SMALL_WCHAR_T=1",
+        "_CRT_SECURE_NO_WARNINGS", "_WIN32_WINNT=0x0601")
     add_syslinks("advapi32", {public = true})
-    add_files(
-        "in/deps/libintl/gettext-runtime/intl/*.c",
+    add_files("in/deps/libintl/gettext-runtime/intl/*.c",
         "in/deps/libintl/gettext-runtime/intl/gnulib-lib/*.c",
         "in/deps/libintl/gettext-runtime/intl/gnulib-lib/glthread/*.c",
         "in/deps/libintl/gettext-runtime/intl/gnulib-lib/unicase/*.c",
         "in/deps/libintl/gettext-runtime/intl/gnulib-lib/unictype/*.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/uniwidth/*.c"
-    )
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/uniwidth/*.c")
     add_files("out/libintl.res.obj", {always_added = true})
-    remove_files(
-        "in/deps/libintl/gettext-runtime/intl/intl-exports.c",
+    remove_files("in/deps/libintl/gettext-runtime/intl/intl-exports.c",
         "in/deps/libintl/gettext-runtime/intl/os2compat.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/frexp.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/frexpl.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/isnan.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/isnand.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/iswblank.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/iswdigit.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/iswpunct.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/iswxdigit.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/itold.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/lc-charset-dispatch.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/localeconv.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/mbtowc-lock.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/memchr.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/setlocale-lock.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/signbitd.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/signbitf.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/signbitl.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/stdio-read.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/stdio-write.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/strncpy.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/wmemcpy.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/wmemset.c"
-    )
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/frexp.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/frexpl.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/isnan.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/isnand.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/iswblank.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/iswdigit.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/iswpunct.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/iswxdigit.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/itold.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/lc-charset-dispatch.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/localeconv.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/mbtowc-lock.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/memchr.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/setlocale-lock.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/signbitd.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/signbitf.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/signbitl.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/stdio-read.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/stdio-write.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/strncpy.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/wmemcpy.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/wmemset.c")
 
 target("libxml2")
     set_enabled(false)

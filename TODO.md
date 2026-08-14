@@ -175,6 +175,7 @@ Integrate zstd as one dependency target:
 - [x] Validate the 103 C archive members as x64 `/MD`, with no static CRT or embedded export directives, and cover all 79 SDK DLL exports.
 - [x] Add and validate the SDK-matching Windows version resource member with native `rc.exe` + `cvtres.exe`.
 - [x] Validate runtime catalog lookup and executable DLL dependencies with the upstream install test.
+- [x] Simplify the validated libintl target from 385 to 131 lines, removing redundant Gnulib substitutions while preserving the exact source manifest, 79/79 SDK export coverage, and upstream runtime behavior.
 
 ## Completed Target: libxml2
 
@@ -240,6 +241,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-14 — libintl simplification validation: reduced the target from 385 to 131 lines by replacing repeated per-placeholder Gnulib substitutions with default-zero template rendering, shared UCRT/missing-header helpers, compact private-symbol remapping loops, and denser declarative file lists. The original expanded implementation was first reproduced byte-for-byte across all 19 generated headers, then ten genuinely unnecessary `config.h` substitutions (`HAVE_LONG_LONG_INT`, `HAVE_UNSIGNED_LONG_LONG_INT`, `HAVE_MBSTATE_T`, `HAVE_C_STATIC_ASSERT`, `HAVE_MBSINIT`, `HAVE_WCHAR_H`, `PACKAGE`, `PACKAGE_NAME`, `PACKAGE_VERSION`, `VERSION`) were removed. `HAVE_STDBOOL_H` was separately tested and proven required: without it Gnulib stops immediately with its `<stdbool.h>` configuration error. The final 131-line target rebuilds successfully, still covers 79/79 PHP SDK DLL exports, and the official `test-api.c` + committed `itest.mo` runtime test exits 0 without skipping; PE dependencies remain Windows/VCRuntime/UCRT only, with no `libintl.dll` or `libiconv.dll`.
 
 - 2026-08-14 — final `libintl` runtime and linkage validation after commit `86d8821`: upstream `gettext-runtime/install-tests/test-api.c` linked successfully against the direct static `libintl.lib` and `libiconv.lib`, then executed against the committed `locale/en_US/LC_MESSAGES/itest.mo` catalog with exit code 0 and no output. Because the test prints an explicit skip message when the Windows locale is unavailable, the silent success confirms that it actually loaded the catalog and verified the UTF-8 translations. `dumpbin /dependents` shows only Advapi32, Kernel32, VCRuntime140, and UCRT API-set DLLs; there is no `libintl.dll`, `libiconv.dll`, MinGW, Cygwin, or other third-party runtime dependency. Final archive reinspection still covers all 79/79 SDK DLL exports, defines no standalone `streq`, contains 103 `MSVCRT` C directives, zero `LIBCMT`, and zero embedded `/EXPORT:` directives. The temporary runtime-test target is removed and completed `libintl`/`libiconv` are disabled by default.
 
