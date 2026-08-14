@@ -231,10 +231,10 @@ Integrate zstd as one dependency target:
 - [x] Build and validate `libsasl.lib`: 72/72 SDK DLL exports, 14 x64 `/MD` members, no static CRT/export directives/import thunks, and a static 2.1.28 runtime version check.
 - [x] Build and validate `openldap.lib`: 695/695 SDK Windows LDAP/LBER APIs, 92 x64 `/MD` members, no static CRT/export directives/import thunks, and a direct LBER runtime smoke test with no third-party runtime DLL.
 
-## Current Cleanup: libpq and libintl
+## Completed Cleanup: libpq and libintl
 
 - [x] Reduce `libpq` from 129 to 53 lines without changing generated configuration bytes, the 54-source/archive-member closure, or validated 187/187 reference symbol coverage.
-- [ ] Reduce the 130-line `libintl` target further if possible while retaining 79/79 SDK DLL export coverage and runtime/catalog validation.
+- [x] Reduce `libintl` from 130 to 93 lines while keeping all 19 generated configuration/header outputs byte-identical, 79/79 SDK DLL export coverage, the 104-member static archive layout, and the upstream catalog runtime validation.
 
 ## Dependency Targets
 
@@ -272,6 +272,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-14 — libintl target simplification: reduced the validated target from 130 to 93 lines by unifying duplicate header-wrapper logic, compacting repeated configuration declarations, and replacing explicit equivalent exclusion sets with verified narrow wildcard patterns. All 19 generated configuration/public wrapper headers are byte-for-byte identical to the prior target. Rebuild still covers 79/79 `dll_compare/libintl.dll` exports; `out/libintl.lib` remains 104 members (103 C `/MD` plus one x64 resource), with zero `LIBCMT` or `/EXPORT:` directives. The upstream `test-api.c` catalog test rebuilt and exited 0, and its PE imports remain limited to Advapi32, Kernel32, VCRuntime, and UCRT API-set DLLs.
 
 - 2026-08-14 — libpq target simplification: reduced the validated PostgreSQL target from 129 to 53 lines by compacting configuration-value/path rendering and the unchanged explicit `src/common`/`src/port` closure. All four generated configuration headers are byte-for-byte identical to the previous target. Rebuild still covers 187/187 reference DLL exports with zero missing names and zero libpq import thunks; the final archive remains 54/54 x64 `MSVCRT` members with zero `LIBCMT` or `/EXPORT:` directives.
 

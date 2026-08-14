@@ -512,13 +512,9 @@ target("libintl")
 
         local intl = "in/deps/libintl/gettext-runtime/intl"
         local gnulib = intl .. "/gnulib-lib"
-        local prelude = [[#include "c++defs.h"
-#include "arg-nonnull.h"
-#include "warn-on-use.h"
-]]
+        local prelude = "#include \"c++defs.h\"\n#include \"arg-nonnull.h\"\n#include \"warn-on-use.h\"\n"
         local function ucrt(name)
-            return path.absolute(path.join(get_config("sdk"), "Windows Kits", "10", "Include",
-                get_config("vs_sdkver"), "ucrt", name)):gsub("\\", "/")
+            return path.absolute(path.join(get_config("sdk"), "Windows Kits", "10", "Include", get_config("vs_sdkver"), "ucrt", name)):gsub("\\", "/")
         end
         local function header(name, replacements, ones, prefix, fallback)
             local common = {"@GUARD_PREFIX@", "GL", "@PRAGMA_SYSTEM_HEADER@", "", "@PRAGMA_COLUMNS@", ""}
@@ -526,57 +522,40 @@ target("libintl")
             io.writefile(gnulib .. "/" .. name .. ".h",
                 (prefix or "") .. render_template(gnulib .. "/" .. name .. ".in.h", common, ones, fallback or "0"))
         end
-        local function ucrt_header(name, ones, prefix)
+        local function next_header(name, ones, prefix, native)
             local next_h = "@NEXT_" .. name:upper() .. "_H@"
-            header(name, {"@INCLUDE_NEXT@", "include", next_h, "\"" .. ucrt(name .. ".h") .. "\""}, ones, prefix)
-        end
-        local function missing_header(name, ones, prefix)
-            local next_h = "@NEXT_" .. name:upper() .. "_H@"
-            header(name, {"@INCLUDE_NEXT@ " .. next_h, "include <" .. name .. ".h>"}, ones, prefix)
+            local replacements = native and {"@INCLUDE_NEXT@", "include", next_h, "\"" .. ucrt(name .. ".h") .. "\""}
+                or {"@INCLUDE_NEXT@ " .. next_h, "include <" .. name .. ".h>"}
+            header(name, replacements, ones, prefix)
         end
 
         local config = io.readfile(intl .. "/config.h.in")
-        for name in ([[ENABLE_NLS FLEXIBLE_ARRAY_MEMBER HAVE_ICONV HAVE_MBRTOWC HAVE_STDBOOL_H
-            HAVE_STDINT_H_WITH_UINTMAX HAVE_STDINT_H HAVE_WCRTOMB HAVE_WINT_T USE_WINDOWS_THREADS]]):gmatch("%S+") do
+        for name in ("ENABLE_NLS FLEXIBLE_ARRAY_MEMBER HAVE_ICONV HAVE_MBRTOWC HAVE_STDBOOL_H HAVE_STDINT_H_WITH_UINTMAX HAVE_STDINT_H HAVE_WCRTOMB HAVE_WINT_T USE_WINDOWS_THREADS"):gmatch("%S+") do
             config = config:gsub("#undef " .. name .. "([%c])", "#define " .. name .. " 1%1")
         end
         config = config:gsub("#undef ICONV_CONST", "#define ICONV_CONST")
-        for _, name in ipairs({"mbrtowc", "mbsinit", "tdelete", "tfind", "tsearch", "twalk"}) do
-            config = config:gsub("#undef rpl_" .. name, "#define rpl_" .. name .. " _libintl_" .. name)
-        end
-        for _, name in ipairs({"tdelete", "tfind", "tsearch", "twalk"}) do
-            config = config:gsub("#undef " .. name, "#define " .. name .. " _libintl_" .. name)
-        end
+        for name in ("mbrtowc mbsinit tdelete tfind tsearch twalk"):gmatch("%S+") do config = config:gsub("#undef rpl_" .. name, "#define rpl_" .. name .. " _libintl_" .. name) end
+        for name in ("tdelete tfind tsearch twalk"):gmatch("%S+") do config = config:gsub("#undef " .. name, "#define " .. name .. " _libintl_" .. name) end
         io.writefile(intl .. "/config.h", config)
 
         local public = render_template(intl .. "/libgnuintl.in.h", nil, nil, "0")
         io.writefile(intl .. "/libgnuintl.h", public)
         io.writefile(intl .. "/libintl.h", public)
 
-        missing_header("search", "GNULIB_TSEARCH", prelude)
-        missing_header("unistd", "GNULIB_GETCWD REPLACE_GETCWD", prelude)
-        ucrt_header("locale", [[HAVE_WINDOWS_LOCALE_T GNULIB_LOCALECONV GNULIB_SETLOCALE_NULL
-            GNULIB_GETLOCALENAME_L_UNSAFE GNULIB_LOCALENAME_UNSAFE]], prelude)
-        ucrt_header("float")
+        next_header("search", "GNULIB_TSEARCH", prelude)
+        next_header("unistd", "GNULIB_GETCWD REPLACE_GETCWD", prelude)
+        next_header("locale", "HAVE_WINDOWS_LOCALE_T GNULIB_LOCALECONV GNULIB_SETLOCALE_NULL GNULIB_GETLOCALENAME_L_UNSAFE GNULIB_LOCALENAME_UNSAFE", prelude, true)
+        next_header("float", nil, nil, true)
         header("alloca")
-        ucrt_header("string", "GNULIB_STRINGEQ", prelude)
-        missing_header("stdckdint")
-        missing_header("sched", nil, [[#include "c++defs.h"
-#include "warn-on-use.h"
-]])
-        missing_header("pthread", "GNULIB_PTHREAD_ONCE REPLACE_PTHREAD_ONCE", prelude)
-        ucrt_header("wchar", [[HAVE_WCHAR_H GNULIB_MBSINIT GNULIB_MBSZERO GNULIB_MBRTOWC GNULIB_WCWIDTH
-            GNULIB_WGETCWD GNULIB_FREE_POSIX HAVE_WINT_T HAVE_MBSINIT HAVE_MBRTOWC HAVE_WCRTOMB
-            REPLACE_MBSINIT REPLACE_MBRTOWC]], prelude)
-        ucrt_header("uchar", [[HAVE_UCHAR_H CXX_HAVE_UCHAR_H CXX_HAS_UCHAR_TYPES SMALL_WCHAR_T
-            GNULIB_C32ISALNUM GNULIB_C32ISALPHA GNULIB_C32ISBLANK GNULIB_C32ISCNTRL GNULIB_C32ISDIGIT
-            GNULIB_C32ISGRAPH GNULIB_C32ISLOWER GNULIB_C32ISPRINT GNULIB_C32ISPUNCT GNULIB_C32ISSPACE
-            GNULIB_C32ISUPPER GNULIB_C32ISXDIGIT GNULIB_C32TOLOWER GNULIB_C32WIDTH GNULIB_MBRTOC32
-            HAVE_MBRTOC32 REPLACE_MBRTOC32]], prelude)
+        next_header("string", "GNULIB_STRINGEQ", prelude, true)
+        next_header("stdckdint")
+        next_header("sched", nil, "#include \"c++defs.h\"\n#include \"warn-on-use.h\"\n")
+        next_header("pthread", "GNULIB_PTHREAD_ONCE REPLACE_PTHREAD_ONCE", prelude)
+        next_header("wchar", "HAVE_WCHAR_H GNULIB_MBSINIT GNULIB_MBSZERO GNULIB_MBRTOWC GNULIB_WCWIDTH GNULIB_WGETCWD GNULIB_FREE_POSIX HAVE_WINT_T HAVE_MBSINIT HAVE_MBRTOWC HAVE_WCRTOMB REPLACE_MBSINIT REPLACE_MBRTOWC", prelude, true)
+        next_header("uchar", "HAVE_UCHAR_H CXX_HAVE_UCHAR_H CXX_HAS_UCHAR_TYPES SMALL_WCHAR_T GNULIB_C32ISALNUM GNULIB_C32ISALPHA GNULIB_C32ISBLANK GNULIB_C32ISCNTRL GNULIB_C32ISDIGIT GNULIB_C32ISGRAPH GNULIB_C32ISLOWER GNULIB_C32ISPRINT GNULIB_C32ISPUNCT GNULIB_C32ISSPACE GNULIB_C32ISUPPER GNULIB_C32ISXDIGIT GNULIB_C32TOLOWER GNULIB_C32WIDTH GNULIB_MBRTOC32 HAVE_MBRTOC32 REPLACE_MBRTOC32", prelude, true)
 
         for _, name in ipairs({"unicase", "unictype", "uninorm"}) do
-            io.writefile(gnulib .. "/" .. name .. ".h", render_template(gnulib .. "/" .. name .. ".in.h",
-                {"@HAVE_UNISTRING_WOE32DLL_H@", "0"}, nil, ""))
+            io.writefile(gnulib .. "/" .. name .. ".h", render_template(gnulib .. "/" .. name .. ".in.h", {"@HAVE_UNISTRING_WOE32DLL_H@", "0"}, nil, ""))
         end
         os.cp(gnulib .. "/unitypes.in.h", gnulib .. "/unitypes.h")
         os.cp(gnulib .. "/uniwidth.in.h", gnulib .. "/uniwidth.h")
@@ -584,48 +563,32 @@ target("libintl")
         local resource = path.join(get_config("builddir"), "libintl.rc")
         local res = path.join(get_config("builddir"), "libintl.res")
         local object = path.join(get_config("builddir"), "libintl.res.obj")
-        io.writefile(resource, (io.readfile(intl .. "/libintl.rc")
-            :gsub("PACKAGE_VERSION_STRING", "\"1.0\"")
-            :gsub("PACKAGE_VERSION_MAJOR", "1")
-            :gsub("PACKAGE_VERSION_MINOR", "0")
-            :gsub("PACKAGE_VERSION_SUBMINOR", "0")))
+        local resource_text = io.readfile(intl .. "/libintl.rc"):gsub("PACKAGE_VERSION_STRING", "\"1.0\"")
+            :gsub("PACKAGE_VERSION_MAJOR", "1"):gsub("PACKAGE_VERSION_MINOR", "0"):gsub("PACKAGE_VERSION_SUBMINOR", "0")
+        io.writefile(resource, resource_text)
         local sdk = path.join(get_config("sdk"), "Windows Kits", "10")
         local sdk_include = path.join(sdk, "Include", get_config("vs_sdkver"))
-        os.vrunv(path.join(sdk, "bin", get_config("vs_sdkver"), "x64", "rc.exe"), {
-            "-nologo", "-I" .. path.join(sdk_include, "um"), "-I" .. path.join(sdk_include, "shared"),
-            "-Fo" .. res, resource
-        })
-        os.vrunv(path.join(get_config("sdk"), "VC", "Tools", "MSVC", get_config("vs_toolset"),
-            "bin", "Hostx64", "x64", "cvtres.exe"),
+        os.vrunv(path.join(sdk, "bin", get_config("vs_sdkver"), "x64", "rc.exe"),
+            {"-nologo", "-I" .. path.join(sdk_include, "um"), "-I" .. path.join(sdk_include, "shared"), "-Fo" .. res, resource})
+        os.vrunv(path.join(get_config("sdk"), "VC", "Tools", "MSVC", get_config("vs_toolset"), "bin", "Hostx64", "x64", "cvtres.exe"),
             {"/nologo", "/machine:x64", "/readonly", "/out:" .. object, res})
     end)
     add_deps("libiconv")
     add_includedirs("in/deps/libintl/gettext-runtime/intl", {public = true})
     add_includedirs("in/deps/libintl/gettext-runtime/intl/gnulib-lib")
-    add_defines("BUILDING_LIBINTL", "BUILDING_LIBRARY", "HAVE_CONFIG_H",
-        "LIBDIR=\".\"", "LOCALEDIR=\".\"", "_GL_SMALL_WCHAR_T=1",
-        "_CRT_SECURE_NO_WARNINGS", "_WIN32_WINNT=0x0601")
+    add_defines("BUILDING_LIBINTL", "BUILDING_LIBRARY", "HAVE_CONFIG_H", "LIBDIR=\".\"", "LOCALEDIR=\".\"",
+        "_GL_SMALL_WCHAR_T=1", "_CRT_SECURE_NO_WARNINGS", "_WIN32_WINNT=0x0601")
     add_syslinks("advapi32", {public = true})
-    add_files("in/deps/libintl/gettext-runtime/intl/*.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/*.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/glthread/*.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/unicase/*.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/unictype/*.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/uniwidth/*.c")
+    add_files("in/deps/libintl/gettext-runtime/intl/*.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/*.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/glthread/*.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/unicase/*.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/unictype/*.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/uniwidth/*.c")
     add_files("out/libintl.res.obj", {always_added = true})
-    remove_files("in/deps/libintl/gettext-runtime/intl/intl-exports.c",
-        "in/deps/libintl/gettext-runtime/intl/os2compat.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/frexp.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/frexpl.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/isnan.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/isnand.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/iswblank.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/iswdigit.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/iswpunct.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/iswxdigit.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/itold.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/lc-charset-dispatch.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/localeconv.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/mbtowc-lock.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/memchr.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/setlocale-lock.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/signbitd.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/signbitf.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/signbitl.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/stdio-read.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/stdio-write.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/strncpy.c",
-        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/wmemcpy.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/wmemset.c")
+    remove_files("in/deps/libintl/gettext-runtime/intl/intl-exports.c", "in/deps/libintl/gettext-runtime/intl/os2compat.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/frexp*.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/isnan.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/isnand.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/isw*.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/itold.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/lc-charset-dispatch.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/localeconv.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/mbtowc-lock.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/memchr.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/setlocale-lock.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/signbit*.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/stdio-read.c",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/stdio-write.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/strncpy.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/wmem*.c")
 
 target("libxml2")
     set_enabled(false)
