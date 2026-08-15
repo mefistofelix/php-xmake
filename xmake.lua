@@ -274,6 +274,7 @@ target("ngtcp2")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
     set_languages("c11")
+    add_deps("openssl")
     add_rules("codegen", {cb = function (target, os, io, path, import, get_config)
         io.writefile(
             "in/deps/ngtcp2/lib/includes/ngtcp2/version.h",
@@ -282,19 +283,8 @@ target("ngtcp2")
                 :gsub("@PACKAGE_VERSION_NUM@", "0x011900"))
         )
     end})
-    add_includedirs("in/deps/ngtcp2/lib/includes", {public = true})
-    add_defines("NGTCP2_STATICLIB", {public = true})
-    add_defines("BUILDING_NGTCP2")
-    add_files("in/deps/ngtcp2/lib/*.c")
-
-target("ngtcp2_crypto_ossl")
-    set_enabled(true)
-    set_kind("static")
-    set_targetdir(get_config("builddir"))
-    set_optimize("fastest")
-    set_languages("c11")
-    add_deps("ngtcp2", "openssl")
     add_includedirs(
+        "in/deps/ngtcp2/lib/includes",
         "in/deps/ngtcp2/crypto/includes",
         "in/deps/openssl/include",
         {public = true}
@@ -315,6 +305,7 @@ target("ngtcp2_crypto_ossl")
         {public = true}
     )
     add_files(
+        "in/deps/ngtcp2/lib/*.c",
         "in/deps/ngtcp2/crypto/ossl/ossl.c",
         "in/deps/ngtcp2/crypto/shared.c"
     )
@@ -1572,26 +1563,6 @@ target("mpir")
     remove_files("in/deps/mpir/compat.c", "in/deps/mpir/cpuid.c", "in/deps/mpir/tal-debug.c", "in/deps/mpir/tal-notreent.c", "in/deps/mpir/mpn/generic/udiv_w_sdiv.c")
 
 
-target("php")
-    set_enabled(true)
-    set_default(false)
-    set_kind("object")
-    set_targetdir(get_config("builddir"))
-    add_rules("codegen", {cb = function (target, os, io, path, import, get_config)
-        local minilua = path.join(get_config("builddir"), "minilua.exe")
-        local foldhash = path.join(get_config("builddir"), "gen_ir_fold_hash.exe")
-        assert(os.isfile(minilua) and os.isfile(foldhash), "run `xmake build minilua gen_ir_fold_hash` before the main build")
-        local ir = "in/php-src/ext/opcache/jit/ir"
-        os.vrunv(minilua,
-            {path.join(ir, "dynasm/dynasm.lua"), "-D", "X64=1", "-D", "X64WIN=1", "-D", "WIN=1", "-o", path.join(ir, "ir_emit_x86.h"), path.join(ir, "ir_x86.dasc")})
-        os.vrunv(foldhash, {},
-            {stdin = path.join(ir, "ir_fold.h"), stdout = path.join(ir, "ir_fold_hash.h")})
-    end})
-    add_files("in/php-src/Zend/zend.c")
-
-    add_asflags("/DBOOST_CONTEXT_EXPORT=EXPORT", {force = true})
-    add_files("in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm")
-
 target("openssl")
     set_enabled(true)
     set_kind("static")
@@ -1721,3 +1692,24 @@ target("openssl")
     -- add_cflags("/Gs0", "/GF", "/Gy", "/W3", "/wd4090", {force = true})
 
     -- add_syslinks("ws2_32", "gdi32", "advapi32", "crypt32", "user32", {public = true})
+
+
+target("php")
+    set_enabled(true)
+    set_default(false)
+    set_kind("object")
+    set_targetdir(get_config("builddir"))
+    add_rules("codegen", {cb = function (target, os, io, path, import, get_config)
+        local minilua = path.join(get_config("builddir"), "minilua.exe")
+        local foldhash = path.join(get_config("builddir"), "gen_ir_fold_hash.exe")
+        assert(os.isfile(minilua) and os.isfile(foldhash), "run `xmake build minilua gen_ir_fold_hash` before the main build")
+        local ir = "in/php-src/ext/opcache/jit/ir"
+        os.vrunv(minilua,
+            {path.join(ir, "dynasm/dynasm.lua"), "-D", "X64=1", "-D", "X64WIN=1", "-D", "WIN=1", "-o", path.join(ir, "ir_emit_x86.h"), path.join(ir, "ir_x86.dasc")})
+        os.vrunv(foldhash, {},
+            {stdin = path.join(ir, "ir_fold.h"), stdout = path.join(ir, "ir_fold_hash.h")})
+    end})
+    add_files("in/php-src/Zend/zend.c")
+
+    add_asflags("/DBOOST_CONTEXT_EXPORT=EXPORT", {force = true})
+    add_files("in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm")
