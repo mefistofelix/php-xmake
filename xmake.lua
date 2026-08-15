@@ -1021,23 +1021,23 @@ target("libjxl")
         io.writefile("out/libjxl/include/jxl/version.h", (io.readfile("in/deps/libjxl/lib/jxl/version.h.in")
             :gsub("@JPEGXL_MAJOR_VERSION@", "0"):gsub("@JPEGXL_MINOR_VERSION@", "11"):gsub("@JPEGXL_PATCH_VERSION@", "2")))
         io.writefile("out/libjxl/include/jxl/jxl_export.h", [[#ifndef JXL_EXPORT_H
-#define JXL_EXPORT_H
-#define JXL_EXPORT
-#define JXL_NO_EXPORT
-#define JXL_DEPRECATED __declspec(deprecated)
-#define JXL_DEPRECATED_EXPORT JXL_EXPORT JXL_DEPRECATED
-#define JXL_DEPRECATED_NO_EXPORT JXL_NO_EXPORT JXL_DEPRECATED
-#endif
-]])
+            #define JXL_EXPORT_H
+            #define JXL_EXPORT
+            #define JXL_NO_EXPORT
+            #define JXL_DEPRECATED __declspec(deprecated)
+            #define JXL_DEPRECATED_EXPORT JXL_EXPORT JXL_DEPRECATED
+            #define JXL_DEPRECATED_NO_EXPORT JXL_NO_EXPORT JXL_DEPRECATED
+            #endif
+        ]])
         io.writefile("out/libjxl/include/jxl/jxl_cms_export.h", [[#ifndef JXL_CMS_EXPORT_H
-#define JXL_CMS_EXPORT_H
-#define JXL_CMS_EXPORT
-#define JXL_CMS_NO_EXPORT
-#define JXL_CMS_DEPRECATED __declspec(deprecated)
-#define JXL_CMS_DEPRECATED_EXPORT JXL_CMS_EXPORT JXL_CMS_DEPRECATED
-#define JXL_CMS_DEPRECATED_NO_EXPORT JXL_CMS_NO_EXPORT JXL_CMS_DEPRECATED
-#endif
-]])
+            #define JXL_CMS_EXPORT_H
+            #define JXL_CMS_EXPORT
+            #define JXL_CMS_NO_EXPORT
+            #define JXL_CMS_DEPRECATED __declspec(deprecated)
+            #define JXL_CMS_DEPRECATED_EXPORT JXL_CMS_EXPORT JXL_CMS_DEPRECATED
+            #define JXL_CMS_DEPRECATED_NO_EXPORT JXL_CMS_NO_EXPORT JXL_CMS_DEPRECATED
+            #endif
+        ]])
     end})
     add_includedirs("out/libjxl/include", "in/deps/libjxl/lib/include", "in/deps/libjxl", "in/deps/libjxl/third_party/highway", {public = true})
     add_includedirs("in/deps/libjxl/third_party/skcms")
@@ -1081,9 +1081,9 @@ target("avif")
         io.writefile("out/avif/config/aom_config.h", table.concat(header, "\n") .. "\n")
         io.writefile("out/avif/config/aom_config.asm", table.concat(assembly, "\n") .. "\n")
         io.writefile("out/avif/config/aom_config.c", [[#include "aom/aom_codec.h"
-static const char* const cfg = "cmake ../ -G \"Visual Studio 18 2026\" -DAOM_TARGET_CPU=x86_64 -DENABLE_DOCS=0 -DENABLE_EXAMPLES=0 -DENABLE_NASM=1 -DENABLE_TESTDATA=0 -DENABLE_TESTS=0 -DENABLE_TOOLS=0 -DENABLE_SSE2=1 -DENABLE_SSE3=1 -DENABLE_SSSE3=1 -DENABLE_SSE4_1=1 -DENABLE_SSE4_2=1 -DENABLE_AVX=1 -DENABLE_AVX2=1";
-const char *aom_codec_build_config(void) { return cfg; }
-]])
+            static const char* const cfg = "cmake ../ -G \"Visual Studio 18 2026\" -DAOM_TARGET_CPU=x86_64 -DENABLE_DOCS=0 -DENABLE_EXAMPLES=0 -DENABLE_NASM=1 -DENABLE_TESTDATA=0 -DENABLE_TESTS=0 -DENABLE_TOOLS=0 -DENABLE_SSE2=1 -DENABLE_SSE3=1 -DENABLE_SSSE3=1 -DENABLE_SSE4_1=1 -DENABLE_SSE4_2=1 -DENABLE_AVX=1 -DENABLE_AVX2=1";
+            const char *aom_codec_build_config(void) { return cfg; }
+        ]])
         io.writefile("out/avif/config/aom_av1_no_op.c", "// Generated no-op source.\n")
         io.writefile("out/avif/config/aom_dsp_no_op.c", "// Generated no-op source.\n")
         local perl = "$(projectdir)/in/perl/perl/bin/perl.exe"
@@ -1100,55 +1100,55 @@ const char *aom_codec_build_config(void) { return cfg; }
             :gsub("@PLUGIN_DIRECTORY@", "")))
         os.mkdir("out/avif/dav1d")
         io.writefile("out/avif/dav1d/config.h", [[#define ARCH_AARCH64 0
-#define ARCH_ARM 0
-#define ARCH_LOONGARCH 0
-#define ARCH_LOONGARCH32 0
-#define ARCH_LOONGARCH64 0
-#define ARCH_PPC64LE 0
-#define ARCH_RISCV 0
-#define ARCH_RV32 0
-#define ARCH_RV64 0
-#define ARCH_X86 1
-#define ARCH_X86_32 0
-#define ARCH_X86_64 1
-#define CONFIG_8BPC 1
-#define CONFIG_16BPC 1
-#define CONFIG_LOG 1
-#define CONFIG_MACOS_KPERF 0
-#define ENDIANNESS_BIG 0
-#define HAVE_ALIGNED_ALLOC 0
-#define HAVE_ASM 1
-#define HAVE_AS_ARCH_DIRECTIVE 0
-#define HAVE_AS_FUNC 0
-#define HAVE_DLSYM 0
-#define HAVE_DOTPROD 0
-#define HAVE_ELF_AUX_INFO 0
-#define HAVE_GETAUXVAL 0
-#define HAVE_I8MM 0
-#define HAVE_IO_H 1
-#define HAVE_MEMALIGN 0
-#define HAVE_POSIX_MEMALIGN 0
-#define HAVE_PTHREAD_GETAFFINITY_NP 0
-#define HAVE_PTHREAD_NP_H 0
-#define HAVE_PTHREAD_SETAFFINITY_NP 0
-#define HAVE_PTHREAD_SETNAME_NP 0
-#define HAVE_PTHREAD_SET_NAME_NP 0
-#define HAVE_SVE2 0
-#define HAVE_SYS_TYPES_H 1
-#define HAVE_UNISTD_H 0
-#define TRIM_DSP_FUNCTIONS 1
-#define _CRT_DECLARE_NONSTDC_NAMES 1
-#define _WIN32_WINNT 0x0601
-#define fseeko _fseeki64
-#define ftello _ftelli64
-]])
+            #define ARCH_ARM 0
+            #define ARCH_LOONGARCH 0
+            #define ARCH_LOONGARCH32 0
+            #define ARCH_LOONGARCH64 0
+            #define ARCH_PPC64LE 0
+            #define ARCH_RISCV 0
+            #define ARCH_RV32 0
+            #define ARCH_RV64 0
+            #define ARCH_X86 1
+            #define ARCH_X86_32 0
+            #define ARCH_X86_64 1
+            #define CONFIG_8BPC 1
+            #define CONFIG_16BPC 1
+            #define CONFIG_LOG 1
+            #define CONFIG_MACOS_KPERF 0
+            #define ENDIANNESS_BIG 0
+            #define HAVE_ALIGNED_ALLOC 0
+            #define HAVE_ASM 1
+            #define HAVE_AS_ARCH_DIRECTIVE 0
+            #define HAVE_AS_FUNC 0
+            #define HAVE_DLSYM 0
+            #define HAVE_DOTPROD 0
+            #define HAVE_ELF_AUX_INFO 0
+            #define HAVE_GETAUXVAL 0
+            #define HAVE_I8MM 0
+            #define HAVE_IO_H 1
+            #define HAVE_MEMALIGN 0
+            #define HAVE_POSIX_MEMALIGN 0
+            #define HAVE_PTHREAD_GETAFFINITY_NP 0
+            #define HAVE_PTHREAD_NP_H 0
+            #define HAVE_PTHREAD_SETAFFINITY_NP 0
+            #define HAVE_PTHREAD_SETNAME_NP 0
+            #define HAVE_PTHREAD_SET_NAME_NP 0
+            #define HAVE_SVE2 0
+            #define HAVE_SYS_TYPES_H 1
+            #define HAVE_UNISTD_H 0
+            #define TRIM_DSP_FUNCTIONS 1
+            #define _CRT_DECLARE_NONSTDC_NAMES 1
+            #define _WIN32_WINNT 0x0601
+            #define fseeko _fseeki64
+            #define ftello _ftelli64
+        ]])
         io.writefile("out/avif/dav1d/config.asm", [[%define private_prefix dav1d
-%define ARCH_X86_64 1
-%define ARCH_X86_32 0
-%define STACK_ALIGNMENT 16
-%define PIC 1
-%define FORCE_VEX_ENCODING 0
-]])
+            %define ARCH_X86_64 1
+            %define ARCH_X86_32 0
+            %define STACK_ALIGNMENT 16
+            %define PIC 1
+            %define FORCE_VEX_ENCODING 0
+        ]])
         io.writefile("out/avif/dav1d/vcs_version.h", "#define DAV1D_VERSION \"1.5.3\"\n")
         for file in ("cdef_apply_tmpl.c cdef_tmpl.c fg_apply_tmpl.c filmgrain_tmpl.c ipred_prepare_tmpl.c ipred_tmpl.c itx_tmpl.c lf_apply_tmpl.c loopfilter_tmpl.c looprestoration_tmpl.c lr_apply_tmpl.c mc_tmpl.c recon_tmpl.c"):gmatch("%S+") do
             for _, depth in ipairs({8, 16}) do
@@ -1421,98 +1421,98 @@ target("libzip")
     add_rules("codegen", {cb = function (target, os, io, path, import, get_config)
         os.mkdir("out/libzip")
         io.writefile("out/libzip/zipconf.h", [[#ifndef _HAD_ZIPCONF_H
-#define _HAD_ZIPCONF_H
-#define LIBZIP_VERSION "1.11.4"
-#define LIBZIP_VERSION_MAJOR 1
-#define LIBZIP_VERSION_MINOR 11
-#define LIBZIP_VERSION_MICRO 4
-#if !defined(__STDC_FORMAT_MACROS)
-#define __STDC_FORMAT_MACROS 1
-#endif
-#include <inttypes.h>
-typedef int8_t zip_int8_t;
-typedef uint8_t zip_uint8_t;
-typedef int16_t zip_int16_t;
-typedef uint16_t zip_uint16_t;
-typedef int32_t zip_int32_t;
-typedef uint32_t zip_uint32_t;
-typedef int64_t zip_int64_t;
-typedef uint64_t zip_uint64_t;
-#define ZIP_INT8_MIN (-ZIP_INT8_MAX-1)
-#define ZIP_INT8_MAX 0x7f
-#define ZIP_UINT8_MAX 0xff
-#define ZIP_INT16_MIN (-ZIP_INT16_MAX-1)
-#define ZIP_INT16_MAX 0x7fff
-#define ZIP_UINT16_MAX 0xffff
-#define ZIP_INT32_MIN (-ZIP_INT32_MAX-1L)
-#define ZIP_INT32_MAX 0x7fffffffL
-#define ZIP_UINT32_MAX 0xffffffffLU
-#define ZIP_INT64_MIN (-ZIP_INT64_MAX-1LL)
-#define ZIP_INT64_MAX 0x7fffffffffffffffLL
-#define ZIP_UINT64_MAX 0xffffffffffffffffULL
-#endif
-]])
+            #define _HAD_ZIPCONF_H
+            #define LIBZIP_VERSION "1.11.4"
+            #define LIBZIP_VERSION_MAJOR 1
+            #define LIBZIP_VERSION_MINOR 11
+            #define LIBZIP_VERSION_MICRO 4
+            #if !defined(__STDC_FORMAT_MACROS)
+            #define __STDC_FORMAT_MACROS 1
+            #endif
+            #include <inttypes.h>
+            typedef int8_t zip_int8_t;
+            typedef uint8_t zip_uint8_t;
+            typedef int16_t zip_int16_t;
+            typedef uint16_t zip_uint16_t;
+            typedef int32_t zip_int32_t;
+            typedef uint32_t zip_uint32_t;
+            typedef int64_t zip_int64_t;
+            typedef uint64_t zip_uint64_t;
+            #define ZIP_INT8_MIN (-ZIP_INT8_MAX-1)
+            #define ZIP_INT8_MAX 0x7f
+            #define ZIP_UINT8_MAX 0xff
+            #define ZIP_INT16_MIN (-ZIP_INT16_MAX-1)
+            #define ZIP_INT16_MAX 0x7fff
+            #define ZIP_UINT16_MAX 0xffff
+            #define ZIP_INT32_MIN (-ZIP_INT32_MAX-1L)
+            #define ZIP_INT32_MAX 0x7fffffffL
+            #define ZIP_UINT32_MAX 0xffffffffLU
+            #define ZIP_INT64_MIN (-ZIP_INT64_MAX-1LL)
+            #define ZIP_INT64_MAX 0x7fffffffffffffffLL
+            #define ZIP_UINT64_MAX 0xffffffffffffffffULL
+            #endif
+        ]])
         io.writefile("out/libzip/config.h", [[#ifndef HAD_CONFIG_H
-#define HAD_CONFIG_H
-#include "zipconf.h"
-#define ENABLE_FDOPEN
-#define HAVE__CLOSE
-#define HAVE__DUP
-#define HAVE__FDOPEN
-#define HAVE__FILENO
-#define HAVE__FSEEKI64
-#define HAVE__FSTAT64
-#define HAVE__SETMODE
-#define HAVE__SNPRINTF
-#define HAVE__SNPRINTF_S
-#define HAVE__SNWPRINTF_S
-#define HAVE__STAT64
-#define HAVE__STRDUP
-#define HAVE__STRICMP
-#define HAVE__STRTOI64
-#define HAVE__STRTOUI64
-#define HAVE__UNLINK
-#define HAVE_CRYPTO
-#define HAVE_LIBBZ2
-#define HAVE_LIBLZMA
-#define HAVE_LOCALTIME_S
-#define HAVE_MEMCPY_S
-#define HAVE_SNPRINTF
-#define HAVE_SNPRINTF_S
-#define HAVE_STDBOOL_H
-#define HAVE_STRERROR_S
-#define HAVE_STRNCPY_S
-#define HAVE_STRTOLL
-#define HAVE_STRTOULL
-#define HAVE_WINDOWS_CRYPTO
-#define SIZEOF_OFF_T 4
-#define SIZEOF_SIZE_T 8
-#define PACKAGE "libzip"
-#define VERSION "1.11.4"
-#endif
-]])
+            #define HAD_CONFIG_H
+            #include "zipconf.h"
+            #define ENABLE_FDOPEN
+            #define HAVE__CLOSE
+            #define HAVE__DUP
+            #define HAVE__FDOPEN
+            #define HAVE__FILENO
+            #define HAVE__FSEEKI64
+            #define HAVE__FSTAT64
+            #define HAVE__SETMODE
+            #define HAVE__SNPRINTF
+            #define HAVE__SNPRINTF_S
+            #define HAVE__SNWPRINTF_S
+            #define HAVE__STAT64
+            #define HAVE__STRDUP
+            #define HAVE__STRICMP
+            #define HAVE__STRTOI64
+            #define HAVE__STRTOUI64
+            #define HAVE__UNLINK
+            #define HAVE_CRYPTO
+            #define HAVE_LIBBZ2
+            #define HAVE_LIBLZMA
+            #define HAVE_LOCALTIME_S
+            #define HAVE_MEMCPY_S
+            #define HAVE_SNPRINTF
+            #define HAVE_SNPRINTF_S
+            #define HAVE_STDBOOL_H
+            #define HAVE_STRERROR_S
+            #define HAVE_STRNCPY_S
+            #define HAVE_STRTOLL
+            #define HAVE_STRTOULL
+            #define HAVE_WINDOWS_CRYPTO
+            #define SIZEOF_OFF_T 4
+            #define SIZEOF_SIZE_T 8
+            #define PACKAGE "libzip"
+            #define VERSION "1.11.4"
+            #endif
+        ]])
         local data = [[#include "zipint.h"
-#define L ZIP_ET_LIBZIP
-#define N ZIP_ET_NONE
-#define S ZIP_ET_SYS
-#define Z ZIP_ET_ZLIB
-#define E ZIP_DETAIL_ET_ENTRY
-#define G ZIP_DETAIL_ET_GLOBAL
-const struct _zip_err_info _zip_err_str[] = {
-]]
+            #define L ZIP_ET_LIBZIP
+            #define N ZIP_ET_NONE
+            #define S ZIP_ET_SYS
+            #define Z ZIP_ET_ZLIB
+            #define E ZIP_DETAIL_ET_ENTRY
+            #define G ZIP_DETAIL_ET_GLOBAL
+            const struct _zip_err_info _zip_err_str[] = {
+        ]]
         for kind, text in io.readfile("in/deps/libzip/lib/zip.h"):gmatch("#define%s+ZIP_ER_[%w_]+%s+%d+%s+/%*%s*([LNSZ])%s+(.-)%s*%*/") do
             data = data .. ("    { %s, %q },\n"):format(kind, text)
         end
         data = data .. [[};
-const int _zip_err_str_count = sizeof(_zip_err_str) / sizeof(_zip_err_str[0]);
-const struct _zip_err_info _zip_err_details[] = {
-]]
+            const int _zip_err_str_count = sizeof(_zip_err_str) / sizeof(_zip_err_str[0]);
+            const struct _zip_err_info _zip_err_details[] = {
+        ]]
         for kind, text in io.readfile("in/deps/libzip/lib/zipint.h"):gmatch("#define%s+ZIP_ER_DETAIL_[%w_]+%s+%d+%s+/%*%s*([EG])%s+(.-)%s*%*/") do
             data = data .. ("    { %s, %q },\n"):format(kind, text)
         end
         io.writefile("out/libzip/zip_err_str.c", data .. [[};
-const int _zip_err_details_count = sizeof(_zip_err_details) / sizeof(_zip_err_details[0]);
-]])
+            const int _zip_err_details_count = sizeof(_zip_err_details) / sizeof(_zip_err_details[0]);
+        ]])
     end})
     add_includedirs("out/libzip", "in/deps/libzip/lib", {public = true})
     add_defines("ZIP_STATIC", {public = true})
@@ -1539,17 +1539,17 @@ target("mpir")
         for line in source:gmatch("([^\n]*)\n") do
             if line:find("@GMP_NAIL_BITS@", 1, true) then
                 header = header .. [[#ifdef _WIN32
-#  ifdef _WIN64
-#    define _LONG_LONG_LIMB  1
-#    define GMP_LIMB_BITS   64
-#  else
-#    define GMP_LIMB_BITS   32
-#  endif
-#  define __GMP_BITS_PER_MP_LIMB  GMP_LIMB_BITS
-#  define SIZEOF_MP_LIMB_T (GMP_LIMB_BITS >> 3)
-#  define GMP_NAIL_BITS                       0
-#endif
-]]
+                    #  ifdef _WIN64
+                    #    define _LONG_LONG_LIMB  1
+                    #    define GMP_LIMB_BITS   64
+                    #  else
+                    #    define GMP_LIMB_BITS   32
+                    #  endif
+                    #  define __GMP_BITS_PER_MP_LIMB  GMP_LIMB_BITS
+                    #  define SIZEOF_MP_LIMB_T (GMP_LIMB_BITS >> 3)
+                    #  define GMP_NAIL_BITS                       0
+                    #endif
+                ]]
             elseif line ~= "" and not line:find("@[A-Z0-9_]+@") then
                 header = header .. line .. "\n"
             end
