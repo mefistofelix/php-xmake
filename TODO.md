@@ -8,7 +8,7 @@ Last updated: 2026-08-15
 - [x] Add an idempotent-oriented `prepare` task for sources, binary dependencies, Perl, MSVC, and the Windows SDK.
 - [x] Complete one successful `xmake prepare` run with all currently pinned inputs.
 - [x] Repeat `xmake prepare` with every current input present and validate idempotence.
-- [x] Use one shared target-level `codegen` rule with `on_prepare`; targets attach it through `add_rules("codegen", {cb = ...})`, and the rule centrally owns `out/.<target>.codegen` incremental skipping.
+- [x] Use one shared target-level `codegen` rule with `on_prepare`; targets attach it through `add_rules("codegen", {cb = ...})`, and the rule centrally owns `out/.<target>.codegen` incremental skipping plus post-codegen source rematching.
 - [x] Define the `minilua` and `gen_ir_fold_hash` helper targets.
 - [x] Record the known PHP code-generation inventory in `AGENTS.md`.
 - [x] Keep all integrated dependency targets enabled for the PHP integration; helper/prototype targets may remain non-default while still enabled.
@@ -20,6 +20,7 @@ Last updated: 2026-08-15
 - [x] Verify a forced zstd build uses `/MD` in every MSVC compile command.
 - [ ] Replace the object-only `php` prototype incrementally; JIT helper-driven prepare-rule codegen is wired, while PHP configuration/Bison/RE2C/resource generation remains.
 - [x] Move the shared `codegen` adapter to target level: each participating target uses `add_rules("codegen", {cb = ...})`; no source-file sentinel is required, and the rule supplies the callback facilities and owns `out/.<target>.codegen`.
+- [x] Validate generated-source timing: `on_load` is early enough but runs for unrelated loaded targets, while `on_prepare` is build-selective but follows the first source match. Keep `on_prepare`, then clear `core.project.target` source-match cache and invalidate the selected target's `files`; removing OpenSSL `params_idx.c` and `aesni-x86_64.asm` proved both are regenerated and compiled in the same invocation.
 - [x] Use one uniform Perl include/module prefix for every OpenSSL `.in` template in `openssl_test`; all 50 C/header templates accept the superset, so template-content inspection and specialized argument construction are unnecessary.
 - [x] Use `**/*x86_64*.pl|crypto/perlasm/**` in `openssl_test`; the declarative exclusion prevents the stdin-driven `x86_64-xlate.pl` helper from hanging an interactive build while retaining the standalone generator matches.
 - [x] Consolidate repeated OpenSSL-root and Perl-program expressions in `openssl_test:on_prepare` into two local values; the simplified callback preserves the validated template and perlasm preparation behavior.

@@ -11,11 +11,14 @@ set_config("builddir", "out")
 rule("codegen")
     on_prepare(function (target, opt)
         local cb = target:extraconf("rules", "codegen", "cb")
+        local memcache = import("core.cache.memcache")
         if type(cb) ~= "function" then return end
         local marker = path.join(get_config("builddir"), "." .. target:name() .. ".codegen")
         os.mkdir(get_config("builddir"))
         if os.isfile(marker) then return end
         cb(target, opt, os, io, path, import, get_config)
+        memcache.cache("core.project.target"):clear()
+        target:_invalidate("files")
         io.writefile(marker, "")
     end)
 
