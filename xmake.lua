@@ -8,6 +8,17 @@ set_config("vs_sdkver", "10.0.28000.0")
 
 set_config("builddir", "out")
 
+rule("codegen")
+    on_prepare(function (target, opt)
+        local cb = target:extraconf("rules", "codegen", "cb")
+        if type(cb) ~= "function" then return end
+        local marker = path.join(get_config("builddir"), "." .. target:name() .. ".codegen")
+        os.mkdir(get_config("builddir"))
+        if os.isfile(marker) then return end
+        cb(target, opt, os, io, path, import, get_config)
+        io.writefile(marker, "")
+    end)
+
 task("prepare")
     set_menu({ usage = "xmake prepare" })
     on_run(function()
@@ -74,22 +85,22 @@ task("prepare")
     end)
 
 target("minilua")
+    set_enabled(true)
     set_default(false)
     set_kind("binary")
     set_targetdir(get_config("builddir"))
-    set_policy("build.fence", true)
     add_files("in/php-src/ext/opcache/jit/ir/dynasm/minilua.c")
 
 target("gen_ir_fold_hash")
+    set_enabled(true)
     set_default(false)
     set_kind("binary")
     set_targetdir(get_config("builddir"))
-    set_policy("build.fence", true)
     add_files("in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c")
     add_defines("IR_TARGET_X64")
 
 target("zlib")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     add_includedirs("in/deps/zlib", {public = true})
@@ -99,7 +110,7 @@ target("zlib")
     add_files("in/deps/zlib/gz*.c", "in/deps/zlib/inf*.c", "in/deps/zlib/zutil.c", {unity_ignored = true})
 
 target("brotli")
-    set_default(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     add_includedirs("in/deps/brotli/c/include", {public = true})
@@ -111,7 +122,7 @@ target("brotli")
     add_files("in/deps/brotli/c/enc/static_dict.c", {unity_ignored = true})
 
 target("zstd")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     add_includedirs("in/deps/zstd/lib", {public = true})
@@ -123,7 +134,7 @@ target("zstd")
     add_files("in/deps/zstd/lib/legacy/*.c", {unity_ignored = true})
 
 target("bzip2")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
@@ -135,7 +146,7 @@ target("bzip2")
         "in/deps/bzip2/spewG.c", "in/deps/bzip2/unzcrash.c")
 
 target("liblzma")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
@@ -185,7 +196,7 @@ target("liblzma")
         "in/deps/xz/src/liblzma/lzma/lzma_encoder*.c", {unity_group = "conflict_4"})
 
 target("libssh2")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
@@ -208,18 +219,18 @@ target("libssh2")
     )
 
 target("nghttp2")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
-    on_prepare(function ()
+    add_rules("codegen", {cb = function (target, opt, os, io, path, import, get_config)
         io.writefile(
             "in/deps/nghttp2/lib/includes/nghttp2/nghttp2ver.h",
             (io.readfile("in/deps/nghttp2/lib/includes/nghttp2/nghttp2ver.h.in")
                 :gsub("@PACKAGE_VERSION@", "1.69.0")
                 :gsub("@PACKAGE_VERSION_NUM@", "0x014500"))
         )
-    end)
+    end})
     add_includedirs("in/deps/nghttp2/lib/includes", {public = true})
     add_defines("NGHTTP2_STATICLIB", {public = true})
     add_defines(
@@ -231,19 +242,19 @@ target("nghttp2")
     add_files("in/deps/nghttp2/lib/*.c")
 
 target("nghttp3")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
     set_languages("c11")
-    on_prepare(function ()
+    add_rules("codegen", {cb = function (target, opt, os, io, path, import, get_config)
         io.writefile(
             "in/deps/nghttp3/lib/includes/nghttp3/version.h",
             (io.readfile("in/deps/nghttp3/lib/includes/nghttp3/version.h.in")
                 :gsub("@PACKAGE_VERSION@", "1.18.0")
                 :gsub("@PACKAGE_VERSION_NUM@", "0x011200"))
         )
-    end)
+    end})
     add_includedirs("in/deps/nghttp3/lib/includes", {public = true})
     add_defines("NGHTTP3_STATICLIB", {public = true})
     add_defines("BUILDING_NGHTTP3")
@@ -253,26 +264,26 @@ target("nghttp3")
     )
 
 target("ngtcp2")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
     set_languages("c11")
-    on_prepare(function ()
+    add_rules("codegen", {cb = function (target, opt, os, io, path, import, get_config)
         io.writefile(
             "in/deps/ngtcp2/lib/includes/ngtcp2/version.h",
             (io.readfile("in/deps/ngtcp2/lib/includes/ngtcp2/version.h.in")
                 :gsub("@PACKAGE_VERSION@", "1.25.0")
                 :gsub("@PACKAGE_VERSION_NUM@", "0x011900"))
         )
-    end)
+    end})
     add_includedirs("in/deps/ngtcp2/lib/includes", {public = true})
     add_defines("NGTCP2_STATICLIB", {public = true})
     add_defines("BUILDING_NGTCP2")
     add_files("in/deps/ngtcp2/lib/*.c")
 
 target("ngtcp2_crypto_ossl")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
@@ -304,7 +315,7 @@ target("ngtcp2_crypto_ossl")
     )
 
 target("libcurl")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
@@ -351,16 +362,16 @@ target("libcurl")
     remove_files("in/deps/libcurl/lib/dllmain.c")
 
 target("libsodium")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
-    on_prepare(function ()
+    add_rules("codegen", {cb = function (target, opt, os, io, path, import, get_config)
         os.cp(
             "in/deps/libsodium/builds/msvc/version.h",
             "in/deps/libsodium/src/libsodium/include/sodium/version.h"
         )
-    end)
+    end})
     add_includedirs("in/deps/libsodium/src/libsodium/include", {public = true})
     add_includedirs("in/deps/libsodium/src/libsodium/include/sodium")
     add_defines("SODIUM_STATIC", {public = true})
@@ -380,7 +391,7 @@ target("libsodium")
     add_files("in/deps/libsodium/src/libsodium/**/*.c")
 
 target("libuv")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
@@ -410,19 +421,22 @@ target("libuv")
     )
 
 target("icu")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
     set_languages("cxx17")
     set_exceptions("no-cxx")
-    on_prepare(function ()
+    add_rules("codegen", {cb = function (target, opt, os, io, path, import, get_config)
         os.vrunv("$(projectdir)/in/tools/icu/genccode.exe", {
             "-q", "-o", "--skip-dll-export", "-e", "icudt77",
             "-d", "in/deps/ICU/icu4c/source/data/in",
             "in/deps/ICU/icu4c/source/data/in/icudt77l.dat"
         })
-    end)
+    end})
+    add_files("in/deps/ICU/icu4c/source/common/ucnv.cpp", {
+        defines = {"U_COMMON_IMPLEMENTATION", "U_PLATFORM_USES_ONLY_WIN32_API=1"}
+    })
     add_includedirs(
         "in/deps/ICU/icu4c/source/common",
         "in/deps/ICU/icu4c/source/i18n",
@@ -441,7 +455,7 @@ target("icu")
     )
     add_cxxflags("/utf-8", {force = true})
     add_syslinks("advapi32", {public = true})
-    add_files("in/deps/ICU/icu4c/source/common/*.cpp", {
+    add_files("in/deps/ICU/icu4c/source/common/*.cpp|ucnv.cpp", {
         defines = {"U_COMMON_IMPLEMENTATION", "U_PLATFORM_USES_ONLY_WIN32_API=1"}
     })
     add_files("in/deps/ICU/icu4c/source/i18n/*.cpp", {
@@ -450,11 +464,11 @@ target("icu")
     add_files("in/deps/ICU/icu4c/source/data/in/icudt77l_dat.obj", {always_added = true})
 
 target("libiconv")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
-    on_prepare(function ()
+    add_rules("codegen", {cb = function (target, opt, os, io, path, import, get_config)
         io.writefile("in/deps/libiconv/lib/config.h", [[
             #define ENABLE_EXTRA 0
             #define HAVE_LANGINFO_CODESET 0
@@ -479,7 +493,7 @@ target("libiconv")
             (io.readfile("in/deps/libiconv/libcharset/include/localcharset.h.build.in")
                 :gsub("@HAVE_VISIBILITY@", "0"))
         )
-    end)
+    end})
     add_includedirs("in/deps/libiconv/include", {public = true})
     add_includedirs(
         "in/deps/libiconv/lib",
@@ -496,11 +510,11 @@ target("libiconv")
     )
 
 target("libintl")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
-    on_prepare(function ()
+    add_rules("codegen", {cb = function (target, opt, os, io, path, import, get_config)
         local function render_template(input, replacements, ones, fallback)
             local text = io.readfile(input)
             for i = 1, #(replacements or {}), 2 do text = text:gsub(replacements[i], replacements[i + 1]) end
@@ -571,7 +585,7 @@ target("libintl")
             {"-nologo", "-I" .. path.join(sdk_include, "um"), "-I" .. path.join(sdk_include, "shared"), "-Fo" .. res, resource})
         os.vrunv(path.join(get_config("sdk"), "VC", "Tools", "MSVC", get_config("vs_toolset"), "bin", "Hostx64", "x64", "cvtres.exe"),
             {"/nologo", "/machine:x64", "/readonly", "/out:" .. object, res})
-    end)
+    end})
     add_deps("libiconv")
     add_includedirs("in/deps/libintl/gettext-runtime/intl", {public = true})
     add_includedirs("in/deps/libintl/gettext-runtime/intl/gnulib-lib")
@@ -590,11 +604,11 @@ target("libintl")
         "in/deps/libintl/gettext-runtime/intl/gnulib-lib/stdio-write.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/strncpy.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/wmem*.c")
 
 target("libxml2")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
-    on_prepare(function ()
+    add_rules("codegen", {cb = function (target, opt, os, io, path, import, get_config)
         os.cp("in/deps/libxml2/include/win32config.h", "in/deps/libxml2/config.h")
         io.writefile(
             "in/deps/libxml2/include/libxml/xmlversion.h",
@@ -613,7 +627,7 @@ target("libxml2")
                 :gsub("@WITH_LZMA@", "0")
                 :gsub("@[^@\r\n]+@", "1"))
         )
-    end)
+    end})
     add_deps("libiconv")
     add_includedirs("in/deps/libxml2/include", {public = true})
     add_includedirs("in/deps/libxml2")
@@ -644,11 +658,11 @@ target("libxml2")
     )
 
 target("libxslt")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
-    on_prepare(function ()
+    add_rules("codegen", {cb = function (target, opt, os, io, path, import, get_config)
         io.writefile(
             "in/deps/libxslt/libxslt/xsltconfig.h",
             (io.readfile("in/deps/libxslt/libxslt/xsltconfig.h.in")
@@ -670,7 +684,7 @@ target("libxslt")
                 :gsub("@LIBEXSLT_VERSION_EXTRA@", "")
                 :gsub("@WITH_CRYPTO@", "0"))
         )
-    end)
+    end})
     add_deps("libxml2")
     add_includedirs("in/deps/libxslt", {public = true})
     add_includedirs(
@@ -697,13 +711,13 @@ target("libxslt")
     )
 
 target("oniguruma")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
-    on_prepare(function ()
+    add_rules("codegen", {cb = function (target, opt, os, io, path, import, get_config)
         os.cp("in/deps/libonig/src/config.h.win64", "in/deps/libonig/src/config.h")
-    end)
+    end})
     add_includedirs("in/deps/libonig/src", {public = true})
     add_defines("ONIG_STATIC", {public = true})
     add_defines(
@@ -724,7 +738,7 @@ target("oniguruma")
 
 
 target("sqlite3")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
@@ -739,18 +753,18 @@ target("sqlite3")
 
 
 target("libpng")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
     add_deps("zlib")
-    on_prepare(function ()
+    add_rules("codegen", {cb = function (target, opt, os, io, path, import, get_config)
         local zlib_vernum = io.readfile("in/deps/zlib/zlib.h"):match("#define ZLIB_VERNUM (0x%x+)")
         local config = io.readfile("in/deps/libpng/scripts/pnglibconf.h.prebuilt")
             :gsub("#define PNG_ZLIB_VERNUM 0 /%* unknown %*/", "#define PNG_ZLIB_VERNUM " .. zlib_vernum)
         os.mkdir("out/libpng")
         io.writefile("out/libpng/pnglibconf.h", config)
-    end)
+    end})
     add_includedirs("in/deps/libpng", "out/libpng", {public = true})
     add_defines("PNG_INTEL_SSE_OPT=1", "_CRT_NONSTDC_NO_DEPRECATE", "_CRT_SECURE_NO_DEPRECATE")
     add_files("in/deps/libpng/png*.c", "in/deps/libpng/intel/*.c")
@@ -758,12 +772,12 @@ target("libpng")
 
 
 target("libjpeg")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
     set_toolset("as", "nasm@$(projectdir)/in/perl/c/bin/nasm.exe")
-    on_prepare(function ()
+    add_rules("codegen", {cb = function (target, opt, os, io, path, import, get_config)
         os.mkdir("out/libjpeg")
         local config = io.readfile("in/deps/libjpeg-turbo/src/jconfig.h.in")
             :gsub("@JPEG_LIB_VERSION@", "80")
@@ -791,7 +805,7 @@ target("libjpeg")
         local version = io.readfile("in/deps/libjpeg-turbo/src/jversion.h.in")
             :gsub("@COPYRIGHT_YEAR@", "1991-2026")
         io.writefile("out/libjpeg/jversion.h", version)
-    end)
+    end})
     add_includedirs("out/libjpeg", "in/deps/libjpeg-turbo/src", {public = true})
     add_includedirs("in/deps/libjpeg-turbo/simd", "in/deps/libjpeg-turbo/simd/x86_64")
     add_defines("_CRT_NONSTDC_NO_WARNINGS")
@@ -845,17 +859,17 @@ target("libjpeg")
 
 
 target("freetype")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
-    on_prepare(function ()
+    add_rules("codegen", {cb = function (target, opt, os, io, path, import, get_config)
         os.mkdir("out/freetype/include/freetype/config")
         local options = io.readfile("in/deps/freetype/include/freetype/config/ftoption.h")
             :gsub("/%* #define FT_CONFIG_OPTION_USE_HARFBUZZ %*/", "#define FT_CONFIG_OPTION_USE_HARFBUZZ")
             :gsub("/%* #define FT_CONFIG_OPTION_USE_HARFBUZZ_DYNAMIC %*/", "#define FT_CONFIG_OPTION_USE_HARFBUZZ_DYNAMIC")
         io.writefile("out/freetype/include/freetype/config/ftoption.h", options)
-    end)
+    end})
     add_includedirs("out/freetype/include", "in/deps/freetype/include", {public = true})
     add_defines("FT2_BUILD_LIBRARY", "NDEBUG", "_CRT_SECURE_NO_WARNINGS", "_CRT_NONSTDC_NO_WARNINGS")
     add_files(
@@ -906,7 +920,7 @@ target("freetype")
 
 
 target("libwebp")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
@@ -925,12 +939,12 @@ target("libwebp")
 
 
 target("libtiff")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
     add_deps("zlib", "libjpeg", "liblzma", "zstd", "libwebp")
-    on_prepare(function ()
+    add_rules("codegen", {cb = function (target, opt, os, io, path, import, get_config)
         os.mkdir("out/libtiff")
         local conf = io.readfile("in/deps/libtiff/tiff-4.7.2/libtiff/tiffconf.h.cmake.in")
             :gsub("@TIFF_INT16_T@", "int16_t")
@@ -990,7 +1004,7 @@ target("libtiff")
             :gsub("#cmakedefine ([%w_]+)", "/* #undef %1 */")
         io.writefile("out/libtiff/tif_config.h", config)
         io.writefile("out/libtiff/tiffvers.h", io.readfile("in/deps/libtiff/tiff-4.7.2/libtiff/tiffvers.h"))
-    end)
+    end})
     add_includedirs("out/libtiff", "in/deps/libtiff/tiff-4.7.2/libtiff", {public = true})
     add_defines("NDEBUG", "TIFF_DO_NOT_USE_NON_EXT_ALLOC_FUNCTIONS", "_CRT_SECURE_NO_DEPRECATE", "_CRT_NONSTDC_NO_DEPRECATE", "_CRT_SECURE_NO_WARNINGS", "_CRT_NONSTDC_NO_WARNINGS")
     add_files("in/deps/libtiff/tiff-4.7.2/libtiff/tif_*.c")
@@ -1000,13 +1014,13 @@ target("libtiff")
 
 
 target("libjxl")
-    set_default(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_languages("cxx17")
     set_optimize("fastest")
     add_deps("brotli")
-    on_prepare(function ()
+    add_rules("codegen", {cb = function (target, opt, os, io, path, import, get_config)
         os.mkdir("out/libjxl/include/jxl")
         io.writefile("out/libjxl/include/jxl/version.h", (io.readfile("in/deps/libjxl/lib/jxl/version.h.in")
             :gsub("@JPEGXL_MAJOR_VERSION@", "0"):gsub("@JPEGXL_MINOR_VERSION@", "11"):gsub("@JPEGXL_PATCH_VERSION@", "2")))
@@ -1028,7 +1042,7 @@ target("libjxl")
 #define JXL_CMS_DEPRECATED_NO_EXPORT JXL_CMS_NO_EXPORT JXL_CMS_DEPRECATED
 #endif
 ]])
-    end)
+    end})
     add_includedirs("out/libjxl/include", "in/deps/libjxl/lib/include", "in/deps/libjxl", "in/deps/libjxl/third_party/highway", {public = true})
     add_includedirs("in/deps/libjxl/third_party/skcms")
     add_defines("JXL_STATIC_DEFINE", "JXL_CMS_STATIC_DEFINE", "HWY_STATIC_DEFINE", {public = true})
@@ -1040,14 +1054,14 @@ target("libjxl")
 
 
 target("avif")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_languages("c11", "cxx20")
     set_optimize("fastest")
     set_toolset("as", "nasm@$(projectdir)/in/perl/c/bin/nasm.exe")
     add_deps("libjpeg")
-    on_prepare(function (target)
+    add_rules("codegen", {cb = function (target, opt, os, io, path, import, get_config)
         os.mkdir("out/avif/config")
         local values = {}
         for name, value in io.readfile("in/deps/aom/cmake/aom_config_defaults.cmake"):gmatch("set_aom_[%w_]+%(%s*([%w_]+)%s+([%d]+)") do
@@ -1144,11 +1158,28 @@ const char *aom_codec_build_config(void) { return cfg; }
             for _, depth in ipairs({8, 16}) do
                 local output = "out/avif/dav1d/dav1d_" .. depth .. "_" .. file
                 io.writefile(output, "#define BITDEPTH " .. depth .. "\n#include \"in/deps/dav1d/dav1d-1.5.3/src/" .. file .. "\"\n")
-                target:add("files", output)
             end
         end
-        target:add("files", "out/avif/config/aom_config.c", "out/avif/config/aom_av1_no_op.c", "out/avif/config/aom_dsp_no_op.c")
-    end)
+    end})
+    add_files(
+        "out/avif/config/aom_config.c",
+        "out/avif/config/aom_av1_no_op.c",
+        "out/avif/config/aom_dsp_no_op.c",
+        "out/avif/dav1d/dav1d_8_cdef_apply_tmpl.c", "out/avif/dav1d/dav1d_16_cdef_apply_tmpl.c",
+        "out/avif/dav1d/dav1d_8_cdef_tmpl.c", "out/avif/dav1d/dav1d_16_cdef_tmpl.c",
+        "out/avif/dav1d/dav1d_8_fg_apply_tmpl.c", "out/avif/dav1d/dav1d_16_fg_apply_tmpl.c",
+        "out/avif/dav1d/dav1d_8_filmgrain_tmpl.c", "out/avif/dav1d/dav1d_16_filmgrain_tmpl.c",
+        "out/avif/dav1d/dav1d_8_ipred_prepare_tmpl.c", "out/avif/dav1d/dav1d_16_ipred_prepare_tmpl.c",
+        "out/avif/dav1d/dav1d_8_ipred_tmpl.c", "out/avif/dav1d/dav1d_16_ipred_tmpl.c",
+        "out/avif/dav1d/dav1d_8_itx_tmpl.c", "out/avif/dav1d/dav1d_16_itx_tmpl.c",
+        "out/avif/dav1d/dav1d_8_lf_apply_tmpl.c", "out/avif/dav1d/dav1d_16_lf_apply_tmpl.c",
+        "out/avif/dav1d/dav1d_8_loopfilter_tmpl.c", "out/avif/dav1d/dav1d_16_loopfilter_tmpl.c",
+        "out/avif/dav1d/dav1d_8_looprestoration_tmpl.c", "out/avif/dav1d/dav1d_16_looprestoration_tmpl.c",
+        "out/avif/dav1d/dav1d_8_lr_apply_tmpl.c", "out/avif/dav1d/dav1d_16_lr_apply_tmpl.c",
+        "out/avif/dav1d/dav1d_8_mc_tmpl.c", "out/avif/dav1d/dav1d_16_mc_tmpl.c",
+        "out/avif/dav1d/dav1d_8_recon_tmpl.c", "out/avif/dav1d/dav1d_16_recon_tmpl.c",
+        {always_added = true}
+    )
     add_includedirs("in/deps/libavif/include", "in/deps/libheif/libheif/api", "out/avif/include", {public = true})
     add_includedirs("out/avif", "out/avif/dav1d", "in/deps/aom", "in/deps/libyuv/include", "in/deps/libheif/libheif", "in/deps/dav1d/dav1d-1.5.3/include", "in/deps/dav1d/dav1d-1.5.3/include/compat/msvc", "in/deps/dav1d/dav1d-1.5.3", "$(projectdir)", "out/libjpeg", "in/deps/libjpeg-turbo/src")
     add_defines("LIBHEIF_STATIC_BUILD", "WITH_UNCOMPRESSED_CODEC=1", {public = true})
@@ -1208,11 +1239,11 @@ const char *aom_codec_build_config(void) { return cfg; }
 
 
 target("libsasl")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
-    on_prepare(function ()
+    add_rules("codegen", {cb = function (target, opt, os, io, path, import, get_config)
         os.mkdir("out/libsasl/include/sasl")
         os.cp("in/deps/libsasl/include/*.h", "out/libsasl/include")
         os.cp("in/deps/libsasl/include/*.h", "out/libsasl/include/sasl")
@@ -1223,7 +1254,7 @@ target("libsasl")
         io.writefile("out/libsasl/include/sasl/prop.h", prop)
         local saslutil = io.readfile("in/deps/libsasl/lib/saslutil.c"):gsub("__declspec%(dllexport%) ", "")
         io.writefile("out/libsasl/saslutil.c", saslutil)
-    end)
+    end})
     add_includedirs("out/libsasl/include", {public = true})
     add_includedirs("in/deps/libsasl/win32/include", "in/deps/libsasl/include", "in/deps/libsasl/lib", "in/deps/libsasl/common")
     add_defines("LIBSASL_STATIC", {public = true})
@@ -1234,12 +1265,12 @@ target("libsasl")
 
 
 target("openldap")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
     add_deps("openssl", "libsasl")
-    on_prepare(function ()
+    add_rules("codegen", {cb = function (target, opt, os, io, path, import, get_config)
         local out = "out/openldap/include"
         os.mkdir(path.join(out, "ac"))
         local defs = {}
@@ -1290,7 +1321,7 @@ uid_t=int
         io.writefile(path.join(out, "ac/time.h"), time)
         local version = io.readfile("in/deps/openldap/build/version.h") .. '\n#include "portable.h"\nconst char __Version[] = "OpenLDAP 2.6.13";\n'
         io.writefile("out/openldap/version.c", version)
-    end)
+    end})
     add_includedirs("out/openldap/include", "in/deps/openldap/include", {public = true})
     add_includedirs("in/deps/openldap/libraries/libldap", "in/deps/openldap/libraries/liblber", "in/deps/rxspencer", "in/deps/openssl/include")
     add_defines("strcasecmp=_stricmp", "strncasecmp=_strnicmp")
@@ -1304,12 +1335,12 @@ uid_t=int
 
 
 target("libpq")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
     add_deps("openssl")
-    on_prepare(function ()
+    add_rules("codegen", {cb = function (target, opt, os, io, path, import, get_config)
         local out = "out/libpq"
         os.mkdir(path.join(out, "include"))
         os.mkdir(path.join(out, "port"))
@@ -1338,7 +1369,7 @@ RELSEG_SIZE=131072;SIZEOF_BOOL=1;SIZEOF_LONG=4;SIZEOF_SIZE_T=8;SIZEOF_VOID_P=8;X
         local paths = "PGBINDIR=/bin PGSHAREDIR=/share SYSCONFDIR=/etc INCLUDEDIR=/include PKGINCLUDEDIR=/include INCLUDEDIRSERVER=/include/server LIBDIR=/lib PKGLIBDIR=/lib LOCALEDIR=/share/locale DOCDIR=/doc HTMLDIR=/doc MANDIR=/man"
         paths = paths:gsub(" ?(%S+)=([^%s]+)", '#define %1 "%2"\n')
         io.writefile(path.join(out, "port/pg_config_paths.h"), paths)
-    end)
+    end})
     add_includedirs("out/libpq/include", "in/deps/libpq/src/interfaces/libpq", "in/deps/libpq/src/include", {public = true})
     add_includedirs("out/libpq/port", "in/deps/libpq/src/port", "in/deps/libpq/src/include/port/win32", "in/deps/libpq/src/include/port/win32_msvc", "in/deps/openssl/include")
     add_defines("FRONTEND", "WIN32", "WINDOWS", "__WINDOWS__", "__WIN32__", "_CRT_SECURE_NO_DEPRECATE", "_CRT_NONSTDC_NO_DEPRECATE", "SO_MAJOR_VERSION=5")
@@ -1359,25 +1390,25 @@ RELSEG_SIZE=131072;SIZEOF_BOOL=1;SIZEOF_LONG=4;SIZEOF_SIZE_T=8;SIZEOF_VOID_P=8;X
 
 
 target("libffi")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
-    on_prepare(function (target)
-        import("core.tool.compiler")
+    add_rules("codegen", {cb = function (target, opt, os, io, path, import, get_config)
+        local compiler = import("core.tool.compiler")
         os.mkdir("out/libffi")
         local cc = compiler.compargv("in/deps/libffi/src/types.c", "out/libffi/probe.obj", {target = target})
         io.writefile("out/libffi/win64.asm", os.iorunv(cc, {"/EP", "/DFFI_BUILDING", "/DFFI_STATIC_BUILD", "/Iin/deps/libffi", "/Iin/deps/libffi/include", "/Iin/deps/libffi/src/x86", "in/deps/libffi/src/x86/win64_intel.S"}))
-        target:add("files", "out/libffi/win64.asm")
-    end)
+    end})
     add_includedirs("in/deps/libffi/include", "in/deps/libffi/src/x86", "in/deps/libffi", {public = true})
     add_defines("FFI_STATIC_BUILD", {public = true})
     add_defines("FFI_BUILDING", "WIN32", "_LIB")
     add_files("in/deps/libffi/src/closures.c", "in/deps/libffi/src/java_raw_api.c", "in/deps/libffi/src/tramp.c", "in/deps/libffi/src/prep_cif.c", "in/deps/libffi/src/raw_api.c", "in/deps/libffi/src/types.c", "in/deps/libffi/src/x86/ffi.c", "in/deps/libffi/src/x86/ffiw64.c")
+    add_files("out/libffi/win64.asm", {always_added = true})
 
 
 target("wineditline")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
@@ -1386,12 +1417,12 @@ target("wineditline")
 
 
 target("libzip")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
     add_deps("zlib", "bzip2", "liblzma")
-    on_prepare(function (target)
+    add_rules("codegen", {cb = function (target, opt, os, io, path, import, get_config)
         os.mkdir("out/libzip")
         io.writefile("out/libzip/zipconf.h", [[#ifndef _HAD_ZIPCONF_H
 #define _HAD_ZIPCONF_H
@@ -1486,22 +1517,22 @@ const struct _zip_err_info _zip_err_details[] = {
         io.writefile("out/libzip/zip_err_str.c", data .. [[};
 const int _zip_err_details_count = sizeof(_zip_err_details) / sizeof(_zip_err_details[0]);
 ]])
-        target:add("files", "out/libzip/zip_err_str.c")
-    end)
+    end})
     add_includedirs("out/libzip", "in/deps/libzip/lib", {public = true})
     add_defines("ZIP_STATIC", {public = true})
     add_defines("WIN32_LEAN_AND_MEAN", "_CRT_SECURE_NO_WARNINGS", "_CRT_NONSTDC_NO_DEPRECATE")
     add_syslinks("bcrypt", {public = true})
     add_files("in/deps/libzip/lib/*.c")
+    add_files("out/libzip/zip_err_str.c", {always_added = true})
     remove_files("in/deps/libzip/lib/zip_algorithm_zstd.c", "in/deps/libzip/lib/zip_crypto_commoncrypto.c", "in/deps/libzip/lib/zip_crypto_gnutls.c", "in/deps/libzip/lib/zip_crypto_mbedtls.c", "in/deps/libzip/lib/zip_crypto_openssl.c", "in/deps/libzip/lib/zip_random_unix.c", "in/deps/libzip/lib/zip_random_uwp.c", "in/deps/libzip/lib/zip_source_file_stdio_named.c")
 
 
 target("mpir")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
-    on_prepare(function ()
+    add_rules("codegen", {cb = function (target, opt, os, io, path, import, get_config)
         os.mkdir("out/mpir/include/mpir")
         io.writefile("out/mpir/include/mpir/config.h", "/* generated by gen_config_h.bat */\n" .. io.readfile("in/deps/mpir/build.vc/cfg.h"))
         io.writefile("out/mpir/include/mpir/gmp-mparam.h", io.readfile("in/deps/mpir/mpn/generic/gmp-mparam.h"))
@@ -1529,7 +1560,7 @@ target("mpir")
         end
         io.writefile("out/mpir/include/mpir/mpir.h", header)
         io.writefile("out/mpir/include/mpir/gmp.h", header)
-    end)
+    end})
     add_includedirs("out/mpir/include/mpir", "in/deps/mpir", {public = true})
     add_defines("NDEBUG", "WIN32", "_LIB", "HAVE_CONFIG_H", "_WIN64")
     add_files("in/deps/mpir/*.c", "in/deps/mpir/fft/*.c", "in/deps/mpir/mpf/*.c", "in/deps/mpir/mpq/*.c", "in/deps/mpir/mpz/*.c", "in/deps/mpir/printf/*.c", "in/deps/mpir/scanf/*.c", "in/deps/mpir/mpn/generic/*.c")
@@ -1537,31 +1568,34 @@ target("mpir")
 
 
 target("php")
+    set_enabled(true)
     set_default(false)
     set_kind("object")
     set_targetdir(get_config("builddir"))
-    add_deps("minilua", "gen_ir_fold_hash")
-    before_build(function (target)
+    add_rules("codegen", {cb = function (target, opt, os, io, path, import, get_config)
+        local minilua = path.join(get_config("builddir"), "minilua.exe")
+        local foldhash = path.join(get_config("builddir"), "gen_ir_fold_hash.exe")
+        assert(os.isfile(minilua) and os.isfile(foldhash), "run `xmake build minilua gen_ir_fold_hash` before the main build")
         local ir = "in/php-src/ext/opcache/jit/ir"
-        os.vrunv(target:dep("minilua"):targetfile(),
+        os.vrunv(minilua,
             {path.join(ir, "dynasm/dynasm.lua"), "-D", "X64=1", "-D", "X64WIN=1", "-D", "WIN=1", "-o", path.join(ir, "ir_emit_x86.h"), path.join(ir, "ir_x86.dasc")})
-        os.vrunv(target:dep("gen_ir_fold_hash"):targetfile(), {},
+        os.vrunv(foldhash, {},
             {stdin = path.join(ir, "ir_fold.h"), stdout = path.join(ir, "ir_fold_hash.h")})
-    end)
+    end})
     add_files("in/php-src/Zend/zend.c")
 
     add_asflags("/DBOOST_CONTEXT_EXPORT=EXPORT", {force = true})
     add_files("in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm")
 
 target("openssl")
-    set_enabled(false)
+    set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_toolset("as", "nasm@$(projectdir)/in/perl/c/bin/nasm.exe")
     -- add_rules("c.unity_build")
-    on_prepare(function ()
-        import("async")
-        import("core.base.option")
+    add_rules("codegen", {cb = function (target, opt, os, io, path, import, get_config)
+        local async = import("async")
+        local option = import("core.base.option")
 
         local root = path.absolute("in/deps/openssl")
         local perl = "$(projectdir)/in/perl/perl/bin/perl.exe"
@@ -1597,7 +1631,7 @@ target("openssl")
             local output = relative:gsub("/asm/", "/"):gsub("%.pl$", ".asm")
             os.vrunv(perl, {relative, "nasm", output}, {curdir = root})
         end, {total = #generators, comax = jobs})
-    end)
+    end})
 
     add_files(
         "in/deps/openssl/**/*.c|engines/*.c",

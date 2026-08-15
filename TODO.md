@@ -8,18 +8,18 @@ Last updated: 2026-08-15
 - [x] Add an idempotent-oriented `prepare` task for sources, binary dependencies, Perl, MSVC, and the Windows SDK.
 - [x] Complete one successful `xmake prepare` run with all currently pinned inputs.
 - [x] Repeat `xmake prepare` with every current input present and validate idempotence.
-- [x] Use native target `on_prepare` callbacks for target-owned code generation.
+- [x] Use one shared target-level `codegen` rule with `on_prepare`; targets attach it through `add_rules("codegen", {cb = ...})`, and the rule centrally owns `out/.<target>.codegen` incremental skipping.
 - [x] Define the `minilua` and `gen_ir_fold_hash` helper targets.
 - [x] Record the known PHP code-generation inventory in `AGENTS.md`.
-- [x] Disable non-priority targets by default so focused builds only exercise the target under integration.
+- [x] Keep all integrated dependency targets enabled for the PHP integration; helper/prototype targets may remain non-default while still enabled.
 - [x] Build and archive `out/zlib.lib` successfully with MSVC x64.
 - [x] Build and archive the complete single-target `out/brotli.lib` successfully with MSVC x64.
-- [x] Validate the `minilua` and `gen_ir_fold_hash` helper targets with MSVC x64 `/MD`, correct `IR_TARGET_X64`, fenced dependency ordering, and successful JIT header generation before PHP compilation.
-- [x] Remove empty and placeholder callbacks; only targets with real codegen/configuration work may define `on_prepare`.
+- [x] Validate the `minilua` and `gen_ir_fold_hash` helper targets with MSVC x64 `/MD` and correct `IR_TARGET_X64`; build them explicitly before the main build so PHP's target-level `codegen` callback can invoke them deterministically.
+- [x] Remove empty and placeholder callbacks; only targets with real codegen/configuration work attach the shared `codegen` rule.
 - [x] Follow upstream Windows PHP and select the dynamic multithreaded MSVC CRT globally with `set_runtimes("MD")` for loadable-extension compatibility.
 - [x] Verify a forced zstd build uses `/MD` in every MSVC compile command.
-- [ ] Replace the object-only `php` prototype incrementally; JIT helper-driven build-phase codegen is wired, while preparation-phase PHP configuration/Bison/RE2C/resource generation remains.
-- [x] Replace the custom file-configuration `cb` adapter with native target `on_prepare` callbacks. The callback imports the dependency module in its own body and calls `os.vrunv` directly; no Xmake API is injected through callback arguments.
+- [ ] Replace the object-only `php` prototype incrementally; JIT helper-driven prepare-rule codegen is wired, while PHP configuration/Bison/RE2C/resource generation remains.
+- [x] Move the shared `codegen` adapter to target level: each participating target uses `add_rules("codegen", {cb = ...})`; no source-file sentinel is required, and the rule supplies the callback facilities and owns `out/.<target>.codegen`.
 - [x] Use one uniform Perl include/module prefix for every OpenSSL `.in` template in `openssl_test`; all 50 C/header templates accept the superset, so template-content inspection and specialized argument construction are unnecessary.
 - [x] Use `**/*x86_64*.pl|crypto/perlasm/**` in `openssl_test`; the declarative exclusion prevents the stdin-driven `x86_64-xlate.pl` helper from hanging an interactive build while retaining the standalone generator matches.
 - [x] Consolidate repeated OpenSSL-root and Perl-program expressions in `openssl_test:on_prepare` into two local values; the simplified callback preserves the validated template and perlasm preparation behavior.
@@ -308,13 +308,13 @@ Every library must receive its own static target. Integrate and validate them on
 ## PHP Code Generation
 
 - [x] Confirm Bison 3.3.2 and RE2C 1.1.1 are already supplied by the prepared PHP SDK and satisfy this PHP tree's minimum versions.
-- [ ] Generate the Zend, PHPDBG, and JSON parsers with Bison in `php:on_prepare`.
-- [ ] Generate all inventoried scanners with RE2C in `php:on_prepare`.
-- [ ] Generate Windows message resources with the configured SDK `mc` in `php:on_prepare`.
-- [x] Build `minilua` as a fenced Xmake dependency and invoke DynASM from `php:before_build` after the executable exists.
-- [x] Build `gen_ir_fold_hash` as a fenced Xmake dependency with `IR_TARGET_X64` and invoke it from `php:before_build` with redirected input/output.
+- [ ] Generate the Zend, PHPDBG, and JSON parsers with Bison in PHP's `codegen` callback.
+- [ ] Generate all inventoried scanners with RE2C in PHP's `codegen` callback.
+- [ ] Generate Windows message resources with the configured SDK `mc` in PHP's `codegen` callback.
+- [x] Build `minilua` explicitly before the main build and invoke DynASM from PHP's target-level `codegen` callback.
+- [x] Build `gen_ir_fold_hash` explicitly before the main build with `IR_TARGET_X64` and invoke it from PHP's target-level `codegen` callback with redirected input/output.
 - [ ] Generate PHP Windows configuration headers/defines using Xmake detection APIs.
-- [ ] Keep preparation-only generation in one compact `php:on_prepare` hook and helper-dependent JIT generation in the single fenced build-phase hook.
+- [ ] Keep all PHP generation in one compact PHP `codegen` callback; helper executables are explicit pre-build prerequisites and are not PHP target dependencies.
 
 ## PHP Target and Final Link
 
