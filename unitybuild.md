@@ -22,7 +22,12 @@ Do not alter a target's real source list, rename upstream symbols, add Unity exc
 | `brotli` | Disabled after test | FAIL | Multiple file-local collisions, mostly inside `c/enc/`; simple `common` / `dec` / `enc` directory partition is insufficient. |
 | `zstd` | Disabled after test | FAIL | `dictBuilder` has an unguarded shared `cover.h`; legacy decoders embed historical FSE/HUF/ZSTD implementations that collide with current code and with each other. |
 | `liblzma` | Disabled after test | FAIL | Widespread file-local enum/type/helper reuse inside `liblzma/common/`, including encoder/decoder pairs; even a directory-level `common` Unity unit is not viable. |
+| `libssh2` | Enabled | PASS | 26 C sources compile as one `unity_1.c` / one object. |
+| `nghttp2` | Disabled after test | FAIL | Duplicate file-local `VALID_AUTHORITY_CHARS` tables in `nghttp2_helper.c` and `nghttp2_http.c`. |
 | `nghttp3` | Disabled after test | FAIL | Duplicate file-local `static int is_ws(uint8_t)` between the main library and bundled `sfparse`. Normal non-Unity build remains valid. |
+| `ngtcp2` | Enabled | PASS | 48 C sources across the core and crypto directories compile as one `unity_1.c` / one object. |
+| `libcurl` | Enabled | PASS | 192 C sources across libcurl's core and protocol subdirectories compile as one `unity_1.c` / one object. |
+| `libuv` | Disabled after test | FAIL | Duplicate file-local Windows backend buffers: `uv_zero_` in pipe/tcp/udp and `uv_null_buf_` in pipe/tty. |
 
 ---
 
@@ -765,6 +770,127 @@ Previous project experiments had already hinted that liblzma needed multiple Uni
 ### Current decision
 
 Leave `liblzma` non-Unity after this test. Do not rename private enums/types, patch upstream source, or add Unity-specific file exclusions during the survey.
+
+---
+
+## `nghttp2`
+
+### Result
+
+FAIL under full Unity. The target has 26 C sources under `in/deps/nghttp2/lib/*.c`; the test added only `add_rules("c.unity_build")`, producing one `unity_1.c`.
+
+The first fatal error is a duplicate file-local lookup table:
+
+```text
+in/deps/nghttp2/lib/nghttp2_helper.c:685
+    static char VALID_AUTHORITY_CHARS[] = { ... }
+
+in/deps/nghttp2/lib/nghttp2_http.c:351
+    static char VALID_AUTHORITY_CHARS[] = { ... }
+```
+
+The two tables are intentionally independent and are not identical in purpose: the HTTP-specific table notes that `@` is not allowed, while the general helper table backs `nghttp2_check_authority()`. Separate translation units give both objects internal linkage; full Unity places both definitions in one file scope and MSVC reports `C2374: redefinition; multiple initialization`.
+
+The corresponding users are also local to their components:
+
+```text
+nghttp2_helper.c:752  nghttp2_check_authority()
+nghttp2_http.c:418    static check_authority()
+```
+
+### Natural partition hypothesis
+
+All target sources physically live in the same `lib/` directory, so there is no useful directory boundary. A semantic split that isolates `nghttp2_http.c` from the core/helper unit would certainly remove this known table collision:
+
+```text
+Unity candidate A: core library sources except nghttp2_http.c
+Unity candidate B: nghttp2_http.c
+```
+
+That is only a first hypothesis. The remaining 25-source core group has not been tested independently, so additional private-name collisions may still exist. No per-file Unity exception is applied during this survey.
+
+### Current decision
+
+Leave `nghttp2` non-Unity after the test. Preserve the normal source list unchanged and revisit semantic grouping only after the full-target survey is complete.
+
+---
+
+## `libcurl`
+
+### Result
+
+PASS under full Unity. The existing target source batch spans libcurl's core implementation and protocol/platform subdirectories. Adding only `add_rules("c.unity_build")` produced one `out/.gens/libcurl/windows/unity_build/unity_1.c` containing **192** C source includes, compiled it as one object, and archived `libcurl.lib` successfully.
+
+No `batchsize`, Unity group, ignored file, source rename, or source-list change was required. The full dependency closure rebuilt during the forced test, but the libcurl target itself was one Unity translation unit.
+
+### Partitioning
+
+No partition is currently needed. Keep full-target Unity enabled unless a later project-wide validation exposes an incremental, memory, or semantic issue not visible in this compile test.
+
+---
+
+## `libuv`
+
+### Result
+
+FAIL under full Unity. The test merged the existing `src/*.c` and `src/win/*.c` source batch into one `unity_1.c` and failed inside the Windows backend.
+
+### Duplicate `uv_zero_`
+
+Three independent Windows I/O implementations define the same private zero-size buffer:
+
+```text
+in/deps/libuv/src/win/pipe.c:39
+    static char uv_zero_[] = "";
+
+in/deps/libuv/src/win/tcp.c:38
+    static char uv_zero_[] = "";
+
+in/deps/libuv/src/win/udp.c:33
+    static char uv_zero_[] = "";
+```
+
+Each object has internal linkage and is legal in its normal translation unit. Full Unity gives all three definitions one file scope, producing MSVC `C2374: 'uv_zero_': redefinition; multiple initialization`.
+
+### Duplicate `uv_null_buf_`
+
+The pipe and console implementations also independently define:
+
+```text
+in/deps/libuv/src/win/pipe.c:42
+    static const uv_buf_t uv_null_buf_ = { 0, NULL };
+
+in/deps/libuv/src/win/tty.c:76
+    static const uv_buf_t uv_null_buf_ = { 0, NULL };
+```
+
+These collide for the same reason.
+
+The compiler also reports `CTL_CODE`, `FILE_READ_ACCESS`, and `FILE_WRITE_ACCESS` macro redefinition warnings between libuv's `src/win/winapi.h` and the Windows SDK `winioctl.h`; these warnings are not the fatal blocker observed in this test, but they are another indication that include/preprocessor state changes when all Windows sources share a translation unit.
+
+### Natural partition hypotheses
+
+A first physical split:
+
+```text
+src/*.c
+src/win/*.c
+```
+
+would not be sufficient because both fatal collision classes are already entirely inside `src/win/`.
+
+The known collision graph suggests that these Windows backends cannot all share one Unity unit:
+
+```text
+pipe.c <-> tcp.c <-> udp.c    through uv_zero_
+pipe.c <-> tty.c              through uv_null_buf_
+```
+
+A principled grouped experiment could therefore isolate the transport/terminal implementation files (`pipe.c`, `tcp.c`, `udp.c`, `tty.c`) from one another, while independently testing whether the remaining generic Windows backend sources can form a larger Unity unit. That is only a hypothesis; the remaining Windows sources have not yet been tested as an isolated group and may contain additional private-name collisions.
+
+### Current decision
+
+Leave `libuv` non-Unity after this test. Do not rename upstream private buffers or add per-file Unity exceptions during the survey.
 
 ---
 

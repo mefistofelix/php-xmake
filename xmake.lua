@@ -119,6 +119,7 @@ target("libssh2")
     )
     add_defines("LIBSSH2_OPENSSL")
     add_syslinks("ws2_32", "crypt32", "bcrypt", {public = true})
+    add_rules("c.unity_build")
     add_files("in/deps/libssh2/src/*.c")
     remove_files(
         "in/deps/libssh2/src/agent_win.c",
@@ -200,6 +201,7 @@ target("ngtcp2")
         "bcrypt",
         {public = true}
     )
+    add_rules("c.unity_build")
     add_files(
         "in/deps/ngtcp2/lib/*.c",
         "in/deps/ngtcp2/crypto/ossl/ossl.c",
@@ -248,6 +250,7 @@ target("libcurl")
         "ws2_32",
         {public = true}
     )
+    add_rules("c.unity_build")
     add_files(
         "in/deps/libcurl/lib/*.c",
         "in/deps/libcurl/lib/**/*.c"

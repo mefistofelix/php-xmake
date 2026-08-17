@@ -11,7 +11,7 @@ Last updated: 2026-08-17
 
 ## Current State
 
-- [ ] Full-target Unity survey in progress. `wineditline` and `bzip2` pass naturally; `nghttp3`, `zlib`, `brotli`, `zstd`, and `liblzma` fail for source-level translation-unit collisions documented in `unitybuild.md`. Failed targets are restored to their validated non-Unity configuration before continuing.
+- [ ] Full-target Unity survey in progress. Natural passes so far: `wineditline`, `bzip2`, `libssh2`, `ngtcp2`, `libcurl`. Failures so far: `nghttp3`, `zlib`, `brotli`, `zstd`, `liblzma`, `nghttp2`, `libuv`; exact translation-unit collisions and possible natural partitions are documented in `unitybuild.md`. Failed targets are restored to their validated non-Unity configuration before continuing.
 - [x] Initialize the Git repository and ignore downloaded sources, tools, caches, and outputs.
 - [x] Replace the monolithic `prepare` task with target-owned `before_config` fetch hooks so a selected build materializes only its requested target/dependency closure.
 - [x] Bootstrap `hx.exe` lazily from the shared `fetch(os, argv)` helper and keep every target fetch idempotent through hx provenance/options matching.
