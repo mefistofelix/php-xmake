@@ -8,88 +8,16 @@ set_config("vs_sdkver", "10.0.28000.0")
 
 set_config("builddir", "out")
 
--- No project target uses IDL. Shadow the built-in rule because its on_config callback
--- eagerly materializes every enabled target's source list before build-graph pruning.
-rule("platform.windows.idl")
-    set_extensions(".idl")
-
-rule("codegen")
-    on_prepare(function (target)
-        local cb = target:extraconf("rules", "codegen", "cb")
-        if type(cb) ~= "function" then return end
-        local marker = path.join(get_config("builddir"), "." .. target:name() .. ".codegen")
-        os.mkdir(get_config("builddir"))
-        if os.isfile(marker) then return end
-        cb(target, os, io, path, import, get_config)
-        io.writefile(marker, "")
-    end, {jobgraph = true})
-
-task("prepare")
-    set_menu({ usage = "xmake prepare" })
-    on_run(function()
-        os.mkdir("in")
-        os.run("curl.exe -Ls --skip-existing -o in/hx.exe %s",
-            "https://github.com/mefistofelix/hx/releases/latest/download/hx.exe")
-        os.run("curl.exe -Ls --skip-existing -o in/msvcup.exe %s",
-            "https://github.com/mefistofelix/msvcup/releases/latest/download/msvcup.exe")
-        os.run("in/hx.exe -delpathseg 1 %s in/php-sdk",
-            "github://php/php-sdk-binary-tools")
-        os.run("in/hx.exe %s in/perl",
-            "https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_54221_64bit/strawberry-perl-5.42.2.1-64bit-portable.zip")
-
-        os.run("in/hx.exe github://true-async/php-src?ref=true-async-stable in/php-src")
-        os.run("in/hx.exe github://true-async/php-async in/php-src/ext/async")
-        os.run("in/hx.exe github://true-async/server in/php-src/ext/http_server")
-
-        os.run("in/hx.exe github://madler/zlib?ref=v1.3.2 in/deps/zlib")
-        os.run("in/hx.exe github://google/brotli?ref=v1.2.0 in/deps/brotli")
-        os.run("in/hx.exe github://facebook/zstd?ref=v1.5.7 in/deps/zstd")
-        os.run("in/hx.exe -delpathseg 1 https://sourceware.org/pub/bzip2/bzip2-1.0.8.tar.gz in/deps/bzip2")
-        os.run("in/hx.exe github://tukaani-project/xz?ref=v5.8.3 in/deps/xz")
-        os.run("in/hx.exe github://nghttp2/nghttp2?ref=v1.69.0 in/deps/nghttp2")
-        os.run("in/hx.exe github://libssh2/libssh2?ref=libssh2-1.11.1 in/deps/libssh2")
-        os.run("in/hx.exe github://ngtcp2/ngtcp2?ref=v1.25.0 in/deps/ngtcp2")
-        os.run("in/hx.exe --recursive github://ngtcp2/nghttp3?ref=dbfc24286138cb0b6490160e7ca87fe1ce6722a0 in/deps/nghttp3")
-        os.run("in/hx.exe github://openssl/openssl?ref=openssl-3.5.7 in/deps/openssl")
-        os.run("in/hx.exe github://curl/curl?ref=curl-8_21_0 in/deps/libcurl")
-        os.run("in/hx.exe github://jedisct1/libsodium?ref=1.0.22 in/deps/libsodium")
-        os.run("in/hx.exe github://libuv/libuv?ref=v1.52.1 in/deps/libuv")
-        os.run("in/hx.exe -delpathseg 1 https://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.19.tar.gz in/deps/libiconv")
-
-        os.run("in/hx.exe github://unicode-org/icu?ref=release-77-1 in/deps/ICU")
-        os.run("in/hx.exe -repath icudt*.dat https://github.com/unicode-org/icu/releases/download/release-77-1/icu4c-77_1-data-bin-l.zip in/deps/ICU/icu4c/source/data/in")
-        os.run("in/hx.exe -repath genccode.exe,icu*.dll https://github.com/unicode-org/icu/releases/download/release-77-1/icu4c-77_1-Win64-MSVC2022.zip in/icu4c")
-        os.run("in/hx.exe github://freetype/freetype?ref=VER-2-14-3 in/deps/freetype")
-        os.run("in/hx.exe github://AOMediaCodec/libavif?ref=v1.4.2 in/deps/libavif")
-        os.run("in/hx.exe https://aomedia.googlesource.com/aom/+archive/refs/tags/v3.14.1.tar.gz in/deps/aom")
-        os.run("in/hx.exe https://chromium.googlesource.com/libyuv/libyuv/+archive/644251f252a84bf8ce91ff0aca86a9b16b069ab8.tar.gz in/deps/libyuv")
-        os.run("in/hx.exe github://winlibs/libffi?ref=libffi-3.6.0 in/deps/libffi")
-        os.run("in/hx.exe github://winlibs/libheif?ref=libheif-1.23.1 in/deps/libheif")
-        os.run("in/hx.exe https://code.videolan.org/videolan/dav1d/-/archive/1.5.3/dav1d-1.5.3.tar.gz in/deps/dav1d")
-        os.run("in/hx.exe -delpathseg 1 https://ftp.gnu.org/pub/gnu/gettext/gettext-1.0.tar.gz in/deps/libintl")
-        os.run("in/hx.exe github://libjpeg-turbo/libjpeg-turbo?ref=3.1.4.1 in/deps/libjpeg-turbo")
-        os.run("in/hx.exe github://libjxl/libjxl?ref=v0.11.2 in/deps/libjxl")
-        os.run("in/hx.exe github://google/highway?ref=457c891775a7397bdb0376bb1031e6e027af1c48 in/deps/libjxl/third_party/highway")
-        os.run("in/hx.exe https://skia.googlesource.com/skcms/+archive/b2e692629c1fb19342517d7fb61f1cf83d075492.tar.gz in/deps/libjxl/third_party/skcms")
-        os.run("in/hx.exe github://kkos/oniguruma?ref=v6.9.10 in/deps/libonig")
-        os.run("in/hx.exe github://pnggroup/libpng?ref=v1.6.58 in/deps/libpng")
-        os.run("in/hx.exe github://postgres/postgres?ref=REL_16_14 in/deps/libpq")
-        os.run("in/hx.exe github://cyrusimap/cyrus-sasl?ref=cyrus-sasl-2.1.28 in/deps/libsasl")
-        os.run("in/hx.exe https://download.osgeo.org/libtiff/tiff-4.7.2.tar.xz in/deps/libtiff")
-        os.run("in/hx.exe github://webmproject/libwebp?ref=v1.6.0 in/deps/libwebp")
-        os.run("in/hx.exe github://winlibs/libxml2?ref=libxml2-2.11.9-7 in/deps/libxml2")
-        os.run("in/hx.exe github://winlibs/libxslt?ref=libxslt-1.1.43-2 in/deps/libxslt")
-        os.run("in/hx.exe github://nih-at/libzip?ref=v1.11.4 in/deps/libzip")
-        os.run("in/hx.exe github://winlibs/mpir?ref=mpir-3.0.0-2 in/deps/mpir")
-        os.run("in/hx.exe -delpathseg 1 https://www.openldap.org/software/download/OpenLDAP/openldap-release/openldap-2.6.13.tgz in/deps/openldap")
-        os.run("in/hx.exe github://garyhouston/rxspencer?ref=v3.9.0 in/deps/rxspencer")
-        os.run("in/hx.exe -delpathseg 1 https://www.sqlite.org/2026/sqlite-amalgamation-3530200.zip in/deps/sqlite3")
-        os.run("in/hx.exe github://ptosco/wineditline?ref=wineditline-2.208 in/deps/wineditline")
-
-        os.run([[in/msvcup.exe install "msvc sdk" in/msvc]])
-    end)
+on_toolchain_prepare(function (toolchain)
+    if toolchain:name() ~= "msvc" then return end
+    os.mkdir("in")
+    os.vrunv("curl.exe", {"-Ls", "--skip-existing", "-o", "in/hx.exe", "https://github.com/mefistofelix/hx/releases/latest/download/hx.exe"})
+    os.vrunv("in/hx.exe", {"https://github.com/mefistofelix/msvcup/releases/latest/download/msvcup.exe", "in/msvcup.exe"})
+    os.vrunv("in/msvcup.exe", {"install", "msvc sdk", "in/msvc"})
+end)
 
 target("minilua")
+    before_config(function () os.vrunv("in/hx.exe", {"github://true-async/php-src?ref=true-async-stable", "in/php-src"}) end)
     set_enabled(true)
     set_default(false)
     set_kind("binary")
@@ -97,6 +25,7 @@ target("minilua")
     add_files("in/php-src/ext/opcache/jit/ir/dynasm/minilua.c")
 
 target("gen_ir_fold_hash")
+    before_config(function () os.vrunv("in/hx.exe", {"github://true-async/php-src?ref=true-async-stable", "in/php-src"}) end)
     set_enabled(true)
     set_default(false)
     set_kind("binary")
@@ -105,6 +34,7 @@ target("gen_ir_fold_hash")
     add_defines("IR_TARGET_X64")
 
 target("zlib")
+    before_config(function () os.vrunv("in/hx.exe", {"github://madler/zlib?ref=v1.3.2", "in/deps/zlib"}) end)
     set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
@@ -115,6 +45,7 @@ target("zlib")
     add_files("in/deps/zlib/gz*.c", "in/deps/zlib/inf*.c", "in/deps/zlib/zutil.c", {unity_ignored = true})
 
 target("brotli")
+    before_config(function () os.vrunv("in/hx.exe", {"github://google/brotli?ref=v1.2.0", "in/deps/brotli"}) end)
     set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
@@ -127,6 +58,7 @@ target("brotli")
     add_files("in/deps/brotli/c/enc/static_dict.c", {unity_ignored = true})
 
 target("zstd")
+    before_config(function () os.vrunv("in/hx.exe", {"github://facebook/zstd?ref=v1.5.7", "in/deps/zstd"}) end)
     set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
@@ -139,6 +71,7 @@ target("zstd")
     add_files("in/deps/zstd/lib/legacy/*.c", {unity_ignored = true})
 
 target("bzip2")
+    before_config(function () os.vrunv("in/hx.exe", {"-delpathseg", "1", "https://sourceware.org/pub/bzip2/bzip2-1.0.8.tar.gz", "in/deps/bzip2"}) end)
     set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
@@ -151,6 +84,7 @@ target("bzip2")
         "in/deps/bzip2/spewG.c", "in/deps/bzip2/unzcrash.c")
 
 target("liblzma")
+    before_config(function () os.vrunv("in/hx.exe", {"github://tukaani-project/xz?ref=v5.8.3", "in/deps/xz"}) end)
     set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
@@ -201,6 +135,7 @@ target("liblzma")
         "in/deps/xz/src/liblzma/lzma/lzma_encoder*.c", {unity_group = "conflict_4"})
 
 target("libssh2")
+    before_config(function () os.vrunv("in/hx.exe", {"github://libssh2/libssh2?ref=libssh2-1.11.1", "in/deps/libssh2"}) end)
     set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
@@ -224,19 +159,15 @@ target("libssh2")
     )
 
 target("nghttp2")
+    before_config(function () os.vrunv("in/hx.exe", {"github://nghttp2/nghttp2?ref=v1.69.0", "in/deps/nghttp2"}) end)
     set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
-    add_rules("codegen", {cb = function (target, os, io, path, import, get_config)
-        io.writefile(
-            "in/deps/nghttp2/lib/includes/nghttp2/nghttp2ver.h",
-            (io.readfile("in/deps/nghttp2/lib/includes/nghttp2/nghttp2ver.h.in")
-                :gsub("@PACKAGE_VERSION@", "1.69.0")
-                :gsub("@PACKAGE_VERSION_NUM@", "0x014500"))
-        )
-    end})
-    add_includedirs("in/deps/nghttp2/lib/includes", {public = true})
+    set_configdir("out/nghttp2/include/nghttp2")
+    add_configfiles("in/deps/nghttp2/lib/includes/nghttp2/nghttp2ver.h.in",
+        {pattern = "@([%u%d_]+)@", variables = {PACKAGE_VERSION = "1.69.0", PACKAGE_VERSION_NUM = "0x014500"}})
+    add_includedirs("out/nghttp2/include", "in/deps/nghttp2/lib/includes", {public = true})
     add_defines("NGHTTP2_STATICLIB", {public = true})
     add_defines(
         "BUILDING_NGHTTP2",
@@ -247,20 +178,16 @@ target("nghttp2")
     add_files("in/deps/nghttp2/lib/*.c")
 
 target("nghttp3")
+    before_config(function () os.vrunv("in/hx.exe", {"--recursive", "github://ngtcp2/nghttp3?ref=dbfc24286138cb0b6490160e7ca87fe1ce6722a0", "in/deps/nghttp3"}) end)
     set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
     set_languages("c11")
-    add_rules("codegen", {cb = function (target, os, io, path, import, get_config)
-        io.writefile(
-            "in/deps/nghttp3/lib/includes/nghttp3/version.h",
-            (io.readfile("in/deps/nghttp3/lib/includes/nghttp3/version.h.in")
-                :gsub("@PACKAGE_VERSION@", "1.18.0")
-                :gsub("@PACKAGE_VERSION_NUM@", "0x011200"))
-        )
-    end})
-    add_includedirs("in/deps/nghttp3/lib/includes", {public = true})
+    set_configdir("out/nghttp3/include/nghttp3")
+    add_configfiles("in/deps/nghttp3/lib/includes/nghttp3/version.h.in",
+        {pattern = "@([%u%d_]+)@", variables = {PACKAGE_VERSION = "1.18.0", PACKAGE_VERSION_NUM = "0x011200"}})
+    add_includedirs("out/nghttp3/include", "in/deps/nghttp3/lib/includes", {public = true})
     add_defines("NGHTTP3_STATICLIB", {public = true})
     add_defines("BUILDING_NGHTTP3")
     add_files(
@@ -269,21 +196,18 @@ target("nghttp3")
     )
 
 target("ngtcp2")
+    before_config(function () os.vrunv("in/hx.exe", {"github://ngtcp2/ngtcp2?ref=v1.25.0", "in/deps/ngtcp2"}) end)
     set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
     set_languages("c11")
     add_deps("openssl")
-    add_rules("codegen", {cb = function (target, os, io, path, import, get_config)
-        io.writefile(
-            "in/deps/ngtcp2/lib/includes/ngtcp2/version.h",
-            (io.readfile("in/deps/ngtcp2/lib/includes/ngtcp2/version.h.in")
-                :gsub("@PACKAGE_VERSION@", "1.25.0")
-                :gsub("@PACKAGE_VERSION_NUM@", "0x011900"))
-        )
-    end})
+    set_configdir("out/ngtcp2/include/ngtcp2")
+    add_configfiles("in/deps/ngtcp2/lib/includes/ngtcp2/version.h.in",
+        {pattern = "@([%u%d_]+)@", variables = {PACKAGE_VERSION = "1.25.0", PACKAGE_VERSION_NUM = "0x011900"}})
     add_includedirs(
+        "out/ngtcp2/include",
         "in/deps/ngtcp2/lib/includes",
         "in/deps/ngtcp2/crypto/includes",
         "in/deps/openssl/include",
@@ -311,6 +235,7 @@ target("ngtcp2")
     )
 
 target("libcurl")
+    before_config(function () os.vrunv("in/hx.exe", {"github://curl/curl?ref=curl-8_21_0", "in/deps/libcurl"}) end)
     set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
@@ -358,17 +283,14 @@ target("libcurl")
     remove_files("in/deps/libcurl/lib/dllmain.c")
 
 target("libsodium")
+    before_config(function () os.vrunv("in/hx.exe", {"github://jedisct1/libsodium?ref=1.0.22", "in/deps/libsodium"}) end)
     set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
-    add_rules("codegen", {cb = function (target, os, io, path, import, get_config)
-        os.cp(
-            "in/deps/libsodium/builds/msvc/version.h",
-            "in/deps/libsodium/src/libsodium/include/sodium/version.h"
-        )
-    end})
-    add_includedirs("in/deps/libsodium/src/libsodium/include", {public = true})
+    set_configdir("out/libsodium/include/sodium")
+    add_configfiles("in/deps/libsodium/builds/msvc/version.h", {onlycopy = true})
+    add_includedirs("out/libsodium/include", "in/deps/libsodium/src/libsodium/include", {public = true})
     add_includedirs("in/deps/libsodium/src/libsodium/include/sodium")
     add_defines("SODIUM_STATIC", {public = true})
     add_defines(
@@ -387,6 +309,7 @@ target("libsodium")
     add_files("in/deps/libsodium/src/libsodium/**/*.c")
 
 target("libuv")
+    before_config(function () os.vrunv("in/hx.exe", {"github://libuv/libuv?ref=v1.52.1", "in/deps/libuv"}) end)
     set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
@@ -417,19 +340,17 @@ target("libuv")
     )
 
 target("icu")
+    before_config(function ()
+        os.vrunv("in/hx.exe", {"github://unicode-org/icu?ref=release-77-1", "in/deps/ICU"})
+        os.vrunv("in/hx.exe", {"-repath", "icudt*.dat", "https://github.com/unicode-org/icu/releases/download/release-77-1/icu4c-77_1-data-bin-l.zip", "in/deps/ICU/icu4c/source/data/in"})
+        os.vrunv("in/hx.exe", {"-repath", "genccode.exe,icu*.dll", "https://github.com/unicode-org/icu/releases/download/release-77-1/icu4c-77_1-Win64-MSVC2022.zip", "in/icu4c"})
+    end)
     set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
     set_languages("cxx17")
     set_exceptions("no-cxx")
-    add_rules("codegen", {cb = function (target, os, io, path, import, get_config)
-        os.vrunv("$(projectdir)/in/icu4c/genccode.exe", {
-            "-q", "-o", "--skip-dll-export", "-e", "icudt77",
-            "-d", "in/deps/ICU/icu4c/source/data/in",
-            "in/deps/ICU/icu4c/source/data/in/icudt77l.dat"
-        })
-    end})
     add_files("in/deps/ICU/icu4c/source/common/ucnv.cpp", {
         defines = {"U_COMMON_IMPLEMENTATION", "U_PLATFORM_USES_ONLY_WIN32_API=1"}
     })
@@ -457,15 +378,22 @@ target("icu")
     add_files("in/deps/ICU/icu4c/source/i18n/*.cpp", {
         defines = {"U_I18N_IMPLEMENTATION"}
     })
-    add_files("in/deps/ICU/icu4c/source/data/in/icudt77l_dat.obj", {always_added = true})
+    add_files("in/deps/ICU/icu4c/source/data/in/icudt77l.dat", {callback = function (sourcefile, sources, depend)
+        local output = sourcefile:sub(1, -5) .. "_dat.obj"
+        table.insert(depend.files, "in/icu4c/genccode.exe")
+        os.vrunv("in/icu4c/genccode.exe", {"-q", "-o", "--skip-dll-export", "-e", "icudt77", "-d", path.directory(output), sourcefile})
+        sources[1] = output
+    end})
 
 target("libiconv")
+    before_config(function () os.vrunv("in/hx.exe", {"-delpathseg", "1", "https://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.19.tar.gz", "in/deps/libiconv"}) end)
     set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
-    add_rules("codegen", {cb = function (target, os, io, path, import, get_config)
-        io.writefile("in/deps/libiconv/lib/config.h", [[
+    add_files("in/deps/libiconv/lib/config.h.in", {callback = function (_, sources, depend)
+        local output = "in/deps/libiconv/lib/config.h"
+        io.writefile(output, [[
             #define ENABLE_EXTRA 0
             #define HAVE_LANGINFO_CODESET 0
             #define HAVE_MBRTOWC 1
@@ -474,27 +402,16 @@ target("libiconv")
             #define ICONV_CONST
             #define WORDS_LITTLEENDIAN 1
         ]])
-        io.writefile(
-            "in/deps/libiconv/include/iconv.h",
-            (io.readfile("in/deps/libiconv/include/iconv.h.build.in")
-                :gsub("@HAVE_VISIBILITY@", "0")
-                :gsub("@DLL_VARIABLE@", "")
-                :gsub("@EILSEQ@", "")
-                :gsub("@ICONV_CONST@", "")
-                :gsub("@USE_MBSTATE_T@", "1")
-                :gsub("@BROKEN_WCHAR_H@", "0"))
-        )
-        io.writefile(
-            "in/deps/libiconv/libcharset/include/localcharset.h",
-            (io.readfile("in/deps/libiconv/libcharset/include/localcharset.h.build.in")
-                :gsub("@HAVE_VISIBILITY@", "0"))
-        )
+        table.insert(depend.files, output)
+        table.remove(sources, 1)
     end})
-    add_includedirs("in/deps/libiconv/include", {public = true})
-    add_includedirs(
-        "in/deps/libiconv/lib",
-        "in/deps/libiconv/libcharset/include"
-    )
+    set_configdir("out/libiconv")
+    add_configfiles("in/deps/libiconv/include/iconv.h.build.in", {filename = "iconv.h", prefixdir = "include",
+        pattern = "@([%u%d_]+)@", variables = {HAVE_VISIBILITY = "0", DLL_VARIABLE = "", EILSEQ = "", ICONV_CONST = "", USE_MBSTATE_T = "1", BROKEN_WCHAR_H = "0"}})
+    add_configfiles("in/deps/libiconv/libcharset/include/localcharset.h.build.in", {filename = "localcharset.h", prefixdir = "libcharset/include",
+        pattern = "@([%u%d_]+)@", variables = {HAVE_VISIBILITY = "0"}})
+    add_includedirs("out/libiconv/include", "in/deps/libiconv/include", {public = true})
+    add_includedirs("in/deps/libiconv/lib", "out/libiconv/libcharset/include", "in/deps/libiconv/libcharset/include")
     add_defines(
         "BUILDING_LIBCHARSET",
         "BUILDING_LIBICONV"
@@ -506,81 +423,113 @@ target("libiconv")
     )
 
 target("libintl")
+    before_config(function () os.vrunv("in/hx.exe", {"-delpathseg", "1", "https://ftp.gnu.org/pub/gnu/gettext/gettext-1.0.tar.gz", "in/deps/libintl"}) end)
     set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
-    add_rules("codegen", {cb = function (target, os, io, path, import, get_config)
-        local function render_template(input, replacements, ones, fallback)
-            local text = io.readfile(input)
-            for i = 1, #(replacements or {}), 2 do text = text:gsub(replacements[i], replacements[i + 1]) end
-            for name in (ones or ""):gmatch("%S+") do text = text:gsub("@" .. name .. "@", "1") end
-            if fallback ~= nil then text = text:gsub("@[^@\r\n]+@", fallback) end
-            return text
-        end
-
-        local intl = "in/deps/libintl/gettext-runtime/intl"
-        local gnulib = intl .. "/gnulib-lib"
-        local prelude = "#include \"c++defs.h\"\n#include \"arg-nonnull.h\"\n#include \"warn-on-use.h\"\n"
-        local function ucrt(name)
-            return path.absolute(path.join(get_config("sdk"), "Windows Kits", "10", "Include", get_config("vs_sdkver"), "ucrt", name)):gsub("\\", "/")
-        end
-        local function header(name, replacements, ones, prefix, fallback)
-            local common = {"@GUARD_PREFIX@", "GL", "@PRAGMA_SYSTEM_HEADER@", "", "@PRAGMA_COLUMNS@", ""}
-            for _, value in ipairs(replacements or {}) do common[#common + 1] = value end
-            io.writefile(gnulib .. "/" .. name .. ".h",
-                (prefix or "") .. render_template(gnulib .. "/" .. name .. ".in.h", common, ones, fallback or "0"))
-        end
-        local function next_header(name, ones, prefix, native)
-            local next_h = "@NEXT_" .. name:upper() .. "_H@"
-            local replacements = native and {"@INCLUDE_NEXT@", "include", next_h, "\"" .. ucrt(name .. ".h") .. "\""}
-                or {"@INCLUDE_NEXT@ " .. next_h, "include <" .. name .. ".h>"}
-            header(name, replacements, ones, prefix)
-        end
-
-        local config = io.readfile(intl .. "/config.h.in")
+    add_files("in/deps/libintl/gettext-runtime/intl/config.h.in", {callback = function (sourcefile, sources, depend)
+        local output = "in/deps/libintl/gettext-runtime/intl/config.h"
+        local config = io.readfile(sourcefile)
         for name in ("ENABLE_NLS FLEXIBLE_ARRAY_MEMBER HAVE_ICONV HAVE_MBRTOWC HAVE_STDBOOL_H HAVE_STDINT_H_WITH_UINTMAX HAVE_STDINT_H HAVE_WCRTOMB HAVE_WINT_T USE_WINDOWS_THREADS"):gmatch("%S+") do
             config = config:gsub("#undef " .. name .. "([%c])", "#define " .. name .. " 1%1")
         end
         config = config:gsub("#undef ICONV_CONST", "#define ICONV_CONST")
         for name in ("mbrtowc mbsinit tdelete tfind tsearch twalk"):gmatch("%S+") do config = config:gsub("#undef rpl_" .. name, "#define rpl_" .. name .. " _libintl_" .. name) end
         for name in ("tdelete tfind tsearch twalk"):gmatch("%S+") do config = config:gsub("#undef " .. name, "#define " .. name .. " _libintl_" .. name) end
-        io.writefile(intl .. "/config.h", config)
-
-        local public = render_template(intl .. "/libgnuintl.in.h", nil, nil, "0")
-        io.writefile(intl .. "/libgnuintl.h", public)
-        io.writefile(intl .. "/libintl.h", public)
-
-        next_header("search", "GNULIB_TSEARCH", prelude)
-        next_header("unistd", "GNULIB_GETCWD REPLACE_GETCWD", prelude)
-        next_header("locale", "HAVE_WINDOWS_LOCALE_T GNULIB_LOCALECONV GNULIB_SETLOCALE_NULL GNULIB_GETLOCALENAME_L_UNSAFE GNULIB_LOCALENAME_UNSAFE", prelude, true)
-        next_header("float", nil, nil, true)
-        header("alloca")
-        next_header("string", "GNULIB_STRINGEQ", prelude, true)
-        next_header("stdckdint")
-        next_header("sched", nil, "#include \"c++defs.h\"\n#include \"warn-on-use.h\"\n")
-        next_header("pthread", "GNULIB_PTHREAD_ONCE REPLACE_PTHREAD_ONCE", prelude)
-        next_header("wchar", "HAVE_WCHAR_H GNULIB_MBSINIT GNULIB_MBSZERO GNULIB_MBRTOWC GNULIB_WCWIDTH GNULIB_WGETCWD GNULIB_FREE_POSIX HAVE_WINT_T HAVE_MBSINIT HAVE_MBRTOWC HAVE_WCRTOMB REPLACE_MBSINIT REPLACE_MBRTOWC", prelude, true)
-        next_header("uchar", "HAVE_UCHAR_H CXX_HAVE_UCHAR_H CXX_HAS_UCHAR_TYPES SMALL_WCHAR_T GNULIB_C32ISALNUM GNULIB_C32ISALPHA GNULIB_C32ISBLANK GNULIB_C32ISCNTRL GNULIB_C32ISDIGIT GNULIB_C32ISGRAPH GNULIB_C32ISLOWER GNULIB_C32ISPRINT GNULIB_C32ISPUNCT GNULIB_C32ISSPACE GNULIB_C32ISUPPER GNULIB_C32ISXDIGIT GNULIB_C32TOLOWER GNULIB_C32WIDTH GNULIB_MBRTOC32 HAVE_MBRTOC32 REPLACE_MBRTOC32", prelude, true)
-
-        for _, name in ipairs({"unicase", "unictype", "uninorm"}) do
-            io.writefile(gnulib .. "/" .. name .. ".h", render_template(gnulib .. "/" .. name .. ".in.h", {"@HAVE_UNISTRING_WOE32DLL_H@", "0"}, nil, ""))
-        end
-        os.cp(gnulib .. "/unitypes.in.h", gnulib .. "/unitypes.h")
-        os.cp(gnulib .. "/uniwidth.in.h", gnulib .. "/uniwidth.h")
-
+        io.writefile(output, config)
+        table.insert(depend.files, output)
+        table.remove(sources, 1)
+    end})
+    add_files("in/deps/libintl/gettext-runtime/intl/libgnuintl.in.h", {callback = function (sourcefile, sources, depend)
+        local intl = "in/deps/libintl/gettext-runtime/intl"
+        local public = io.readfile(sourcefile):gsub("@[^@\r\n]+@", "0")
+        local gnuintl = intl .. "/libgnuintl.h"
+        local libintl = intl .. "/libintl.h"
+        io.writefile(gnuintl, public)
+        io.writefile(libintl, public)
+        table.insert(depend.files, gnuintl)
+        table.insert(depend.files, libintl)
+        table.remove(sources, 1)
+    end})
+    add_files(
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/search.in.h",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/unistd.in.h",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/locale.in.h",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/float.in.h",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/alloca.in.h",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/string.in.h",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/stdckdint.in.h",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/sched.in.h",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/pthread.in.h",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/wchar.in.h",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/uchar.in.h",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/unicase.in.h",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/unictype.in.h",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/uninorm.in.h",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/unitypes.in.h",
+        "in/deps/libintl/gettext-runtime/intl/gnulib-lib/uniwidth.in.h",
+        {callback = function (sourcefile, sources, depend)
+            local name = path.filename(sourcefile):gsub("%.in%.h$", "")
+            local output = path.join(path.directory(sourcefile), name .. ".h")
+                local function render(text, replacements, ones, fallback)
+                for i = 1, #(replacements or {}), 2 do text = text:gsub(replacements[i], replacements[i + 1]) end
+                for item in (ones or ""):gmatch("%S+") do text = text:gsub("@" .. item .. "@", "1") end
+                if fallback ~= nil then text = text:gsub("@[^@\r\n]+@", fallback) end
+                return text
+            end
+            local text = io.readfile(sourcefile)
+            if name == "unicase" or name == "unictype" or name == "uninorm" then
+                text = render(text, {"@HAVE_UNISTRING_WOE32DLL_H@", "0"}, nil, "")
+            elseif name ~= "unitypes" and name ~= "uniwidth" then
+                local prelude = "#include \"c++defs.h\"\n#include \"arg-nonnull.h\"\n#include \"warn-on-use.h\"\n"
+                local ones = {
+                    search = "GNULIB_TSEARCH",
+                    unistd = "GNULIB_GETCWD REPLACE_GETCWD",
+                    locale = "HAVE_WINDOWS_LOCALE_T GNULIB_LOCALECONV GNULIB_SETLOCALE_NULL GNULIB_GETLOCALENAME_L_UNSAFE GNULIB_LOCALENAME_UNSAFE",
+                    string = "GNULIB_STRINGEQ",
+                    pthread = "GNULIB_PTHREAD_ONCE REPLACE_PTHREAD_ONCE",
+                    wchar = "HAVE_WCHAR_H GNULIB_MBSINIT GNULIB_MBSZERO GNULIB_MBRTOWC GNULIB_WCWIDTH GNULIB_WGETCWD GNULIB_FREE_POSIX HAVE_WINT_T HAVE_MBSINIT HAVE_MBRTOWC HAVE_WCRTOMB REPLACE_MBSINIT REPLACE_MBRTOWC",
+                    uchar = "HAVE_UCHAR_H CXX_HAVE_UCHAR_H CXX_HAS_UCHAR_TYPES SMALL_WCHAR_T GNULIB_C32ISALNUM GNULIB_C32ISALPHA GNULIB_C32ISBLANK GNULIB_C32ISCNTRL GNULIB_C32ISDIGIT GNULIB_C32ISGRAPH GNULIB_C32ISLOWER GNULIB_C32ISPRINT GNULIB_C32ISPUNCT GNULIB_C32ISSPACE GNULIB_C32ISUPPER GNULIB_C32ISXDIGIT GNULIB_C32TOLOWER GNULIB_C32WIDTH GNULIB_MBRTOC32 HAVE_MBRTOC32 REPLACE_MBRTOC32"
+                }
+                local prefix = ({search = prelude, unistd = prelude, locale = prelude, string = prelude, pthread = prelude, wchar = prelude, uchar = prelude,
+                    sched = "#include \"c++defs.h\"\n#include \"warn-on-use.h\"\n"})[name] or ""
+                local replacements = {"@GUARD_PREFIX@", "GL", "@PRAGMA_SYSTEM_HEADER@", "", "@PRAGMA_COLUMNS@", ""}
+                if name ~= "alloca" then
+                    local next_h = "@NEXT_" .. name:upper() .. "_H@"
+                    local native = name == "locale" or name == "float" or name == "string" or name == "wchar" or name == "uchar"
+                    if native then
+                        local ucrt = path.join(get_config("sdk"), "Windows Kits", "10", "Include", get_config("vs_sdkver"), "ucrt", name .. ".h"):gsub("\\", "/")
+                        table.insert(replacements, "@INCLUDE_NEXT@")
+                        table.insert(replacements, "include")
+                        table.insert(replacements, next_h)
+                        table.insert(replacements, "\"" .. ucrt .. "\"")
+                    else
+                        table.insert(replacements, "@INCLUDE_NEXT@ " .. next_h)
+                        table.insert(replacements, "include <" .. name .. ".h>")
+                    end
+                end
+                text = prefix .. render(text, replacements, ones[name], "0")
+            end
+            io.writefile(output, text)
+            table.insert(depend.files, output)
+            table.remove(sources, 1)
+        end})
+    add_files("in/deps/libintl/gettext-runtime/intl/libintl.rc", {callback = function (sourcefile, sources, depend)
         local resource = path.join(get_config("builddir"), "libintl.rc")
         local res = path.join(get_config("builddir"), "libintl.res")
         local object = path.join(get_config("builddir"), "libintl.res.obj")
-        local resource_text = io.readfile(intl .. "/libintl.rc"):gsub("PACKAGE_VERSION_STRING", "\"1.0\"")
-            :gsub("PACKAGE_VERSION_MAJOR", "1"):gsub("PACKAGE_VERSION_MINOR", "0"):gsub("PACKAGE_VERSION_SUBMINOR", "0")
-        io.writefile(resource, resource_text)
         local sdk = path.join(get_config("sdk"), "Windows Kits", "10")
         local sdk_include = path.join(sdk, "Include", get_config("vs_sdkver"))
-        os.vrunv(path.join(sdk, "bin", get_config("vs_sdkver"), "x64", "rc.exe"),
-            {"-nologo", "-I" .. path.join(sdk_include, "um"), "-I" .. path.join(sdk_include, "shared"), "-Fo" .. res, resource})
-        os.vrunv(path.join(get_config("sdk"), "VC", "Tools", "MSVC", get_config("vs_toolset"), "bin", "Hostx64", "x64", "cvtres.exe"),
-            {"/nologo", "/machine:x64", "/readonly", "/out:" .. object, res})
+        local rc = path.join(sdk, "bin", get_config("vs_sdkver"), "x64", "rc.exe")
+        local cvtres = path.join(get_config("sdk"), "VC", "Tools", "MSVC", get_config("vs_toolset"), "bin", "Hostx64", "x64", "cvtres.exe")
+        table.insert(depend.files, rc)
+        table.insert(depend.files, cvtres)
+        io.writefile(resource, (io.readfile(sourcefile):gsub("PACKAGE_VERSION_STRING", "\"1.0\"")
+            :gsub("PACKAGE_VERSION_MAJOR", "1"):gsub("PACKAGE_VERSION_MINOR", "0"):gsub("PACKAGE_VERSION_SUBMINOR", "0")))
+        os.vrunv(rc, {"-nologo", "-I" .. path.join(sdk_include, "um"), "-I" .. path.join(sdk_include, "shared"), "-Fo" .. res, resource})
+        os.vrunv(cvtres, {"/nologo", "/machine:x64", "/readonly", "/out:" .. object, res})
+        sources[1] = object
     end})
     add_deps("libiconv")
     add_includedirs("in/deps/libintl/gettext-runtime/intl", {public = true})
@@ -591,7 +540,6 @@ target("libintl")
     add_files("in/deps/libintl/gettext-runtime/intl/*.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/*.c",
         "in/deps/libintl/gettext-runtime/intl/gnulib-lib/glthread/*.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/unicase/*.c",
         "in/deps/libintl/gettext-runtime/intl/gnulib-lib/unictype/*.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/uniwidth/*.c")
-    add_files("out/libintl.res.obj", {always_added = true})
     remove_files("in/deps/libintl/gettext-runtime/intl/intl-exports.c", "in/deps/libintl/gettext-runtime/intl/os2compat.c",
         "in/deps/libintl/gettext-runtime/intl/gnulib-lib/frexp*.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/isnan.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/isnand.c",
         "in/deps/libintl/gettext-runtime/intl/gnulib-lib/isw*.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/itold.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/lc-charset-dispatch.c",
@@ -600,33 +548,22 @@ target("libintl")
         "in/deps/libintl/gettext-runtime/intl/gnulib-lib/stdio-write.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/strncpy.c", "in/deps/libintl/gettext-runtime/intl/gnulib-lib/wmem*.c")
 
 target("libxml2")
+    before_config(function () os.vrunv("in/hx.exe", {"github://winlibs/libxml2?ref=libxml2-2.11.9-7", "in/deps/libxml2"}) end)
     set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
-    add_rules("codegen", {cb = function (target, os, io, path, import, get_config)
-        os.cp("in/deps/libxml2/include/win32config.h", "in/deps/libxml2/config.h")
-        io.writefile(
-            "in/deps/libxml2/include/libxml/xmlversion.h",
-            (io.readfile("in/deps/libxml2/include/libxml/xmlversion.h.in")
-                :gsub("@VERSION@", "2.11.9")
-                :gsub("@LIBXML_VERSION_NUMBER@", "21109")
-                :gsub("@LIBXML_VERSION_EXTRA@", "")
-                :gsub("@MODULE_EXTENSION@", ".dll")
-                :gsub("@WITH_TRIO@", "0")
-                :gsub("@WITH_THREAD_ALLOC@", "0")
-                :gsub("@WITH_XPTR_LOCS@", "0")
-                :gsub("@WITH_ICU@", "0")
-                :gsub("@WITH_ISO8859X@", "0")
-                :gsub("@WITH_MEM_DEBUG@", "0")
-                :gsub("@WITH_ZLIB@", "0")
-                :gsub("@WITH_LZMA@", "0")
-                :gsub("@[^@\r\n]+@", "1"))
-        )
-    end})
+    set_configdir("out/libxml2")
+    add_configfiles("in/deps/libxml2/include/win32config.h", {filename = "config.h", onlycopy = true})
+    add_configfiles("in/deps/libxml2/include/libxml/xmlversion.h.in", {prefixdir = "include/libxml", pattern = "@([%u%d_]+)@", variables = {
+        VERSION = "2.11.9", LIBXML_VERSION_NUMBER = "21109", LIBXML_VERSION_EXTRA = "", MODULE_EXTENSION = ".dll",
+        WITH_TRIO = 0, WITH_THREAD_ALLOC = 0, WITH_XPTR_LOCS = 0, WITH_ICU = 0, WITH_ISO8859X = 0, WITH_MEM_DEBUG = 0, WITH_ZLIB = 0, WITH_LZMA = 0,
+        WITH_THREADS = 1, WITH_TREE = 1, WITH_OUTPUT = 1, WITH_PUSH = 1, WITH_READER = 1, WITH_PATTERN = 1, WITH_WRITER = 1, WITH_SAX1 = 1,
+        WITH_FTP = 1, WITH_HTTP = 1, WITH_VALID = 1, WITH_HTML = 1, WITH_LEGACY = 1, WITH_C14N = 1, WITH_CATALOG = 1, WITH_XPATH = 1,
+        WITH_XPTR = 1, WITH_XINCLUDE = 1, WITH_ICONV = 1, WITH_DEBUG = 1, WITH_REGEXPS = 1, WITH_SCHEMAS = 1, WITH_SCHEMATRON = 1, WITH_MODULES = 1}})
     add_deps("libiconv")
-    add_includedirs("in/deps/libxml2/include", {public = true})
-    add_includedirs("in/deps/libxml2")
+    add_includedirs("out/libxml2/include", "in/deps/libxml2/include", {public = true})
+    add_includedirs("out/libxml2", "in/deps/libxml2")
     add_defines("LIBXML_STATIC", {public = true})
     add_defines(
         "LIBXML_STATIC_FOR_DLL",
@@ -654,35 +591,19 @@ target("libxml2")
     )
 
 target("libxslt")
+    before_config(function () os.vrunv("in/hx.exe", {"github://winlibs/libxslt?ref=libxslt-1.1.43-2", "in/deps/libxslt"}) end)
     set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
-    add_rules("codegen", {cb = function (target, os, io, path, import, get_config)
-        io.writefile(
-            "in/deps/libxslt/libxslt/xsltconfig.h",
-            (io.readfile("in/deps/libxslt/libxslt/xsltconfig.h.in")
-                :gsub("@VERSION@", "1.1.43")
-                :gsub("@LIBXSLT_VERSION_NUMBER@", "10143")
-                :gsub("@LIBXSLT_VERSION_EXTRA@", "")
-                :gsub("@WITH_TRIO@", "0")
-                :gsub("@WITH_XSLT_DEBUG@", "1")
-                :gsub("@WITH_DEBUGGER@", "1")
-                :gsub("@WITH_MODULES@", "1")
-                :gsub("@WITH_PROFILER@", "1")
-                :gsub("@LIBXSLT_DEFAULT_PLUGINS_PATH@", "NULL"))
-        )
-        io.writefile(
-            "in/deps/libxslt/libexslt/exsltconfig.h",
-            (io.readfile("in/deps/libxslt/libexslt/exsltconfig.h.in")
-                :gsub("@LIBEXSLT_VERSION@", "0.8.24")
-                :gsub("@LIBEXSLT_VERSION_NUMBER@", "824")
-                :gsub("@LIBEXSLT_VERSION_EXTRA@", "")
-                :gsub("@WITH_CRYPTO@", "0"))
-        )
-    end})
+    set_configdir("out/libxslt")
+    add_configfiles("in/deps/libxslt/libxslt/xsltconfig.h.in", {prefixdir = "libxslt", pattern = "@([%u%d_]+)@", variables = {
+        VERSION = "1.1.43", LIBXSLT_VERSION_NUMBER = "10143", LIBXSLT_VERSION_EXTRA = "", WITH_TRIO = "0",
+        WITH_XSLT_DEBUG = "1", WITH_DEBUGGER = "1", WITH_MODULES = "1", WITH_PROFILER = "1", LIBXSLT_DEFAULT_PLUGINS_PATH = "NULL"}})
+    add_configfiles("in/deps/libxslt/libexslt/exsltconfig.h.in", {prefixdir = "libexslt", pattern = "@([%u%d_]+)@", variables = {
+        LIBEXSLT_VERSION = "0.8.24", LIBEXSLT_VERSION_NUMBER = "824", LIBEXSLT_VERSION_EXTRA = "", WITH_CRYPTO = "0"}})
     add_deps("libxml2")
-    add_includedirs("in/deps/libxslt", {public = true})
+    add_includedirs("out/libxslt", "in/deps/libxslt", {public = true})
     add_includedirs(
         "in/deps/libxslt/libexslt",
         "in/deps/libxslt/libxslt"
@@ -707,14 +628,14 @@ target("libxslt")
     )
 
 target("oniguruma")
+    before_config(function () os.vrunv("in/hx.exe", {"github://kkos/oniguruma?ref=v6.9.10", "in/deps/libonig"}) end)
     set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
-    add_rules("codegen", {cb = function (target, os, io, path, import, get_config)
-        os.cp("in/deps/libonig/src/config.h.win64", "in/deps/libonig/src/config.h")
-    end})
-    add_includedirs("in/deps/libonig/src", {public = true})
+    set_configdir("out/oniguruma")
+    add_configfiles("in/deps/libonig/src/config.h.win64", {filename = "config.h", onlycopy = true})
+    add_includedirs("out/oniguruma", "in/deps/libonig/src", {public = true})
     add_defines("ONIG_STATIC", {public = true})
     add_defines(
         "HAVE_CONFIG_H",
@@ -734,6 +655,7 @@ target("oniguruma")
 
 
 target("sqlite3")
+    before_config(function () os.vrunv("in/hx.exe", {"-delpathseg", "1", "https://www.sqlite.org/2026/sqlite-amalgamation-3530200.zip", "in/deps/sqlite3"}) end)
     set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
@@ -749,17 +671,22 @@ target("sqlite3")
 
 
 target("libpng")
+    before_config(function () os.vrunv("in/hx.exe", {"github://pnggroup/libpng?ref=v1.6.58", "in/deps/libpng"}) end)
     set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
     add_deps("zlib")
-    add_rules("codegen", {cb = function (target, os, io, path, import, get_config)
-        local zlib_vernum = io.readfile("in/deps/zlib/zlib.h"):match("#define ZLIB_VERNUM (0x%x+)")
-        local config = io.readfile("in/deps/libpng/scripts/pnglibconf.h.prebuilt")
-            :gsub("#define PNG_ZLIB_VERNUM 0 /%* unknown %*/", "#define PNG_ZLIB_VERNUM " .. zlib_vernum)
+    add_files("in/deps/libpng/scripts/pnglibconf.h.prebuilt", {callback = function (sourcefile, sources, depend)
+        local zlib = "in/deps/zlib/zlib.h"
+        local output = "out/libpng/pnglibconf.h"
+        table.insert(depend.files, zlib)
+        local zlib_vernum = io.readfile(zlib):match("#define ZLIB_VERNUM (0x%x+)")
+        local config = io.readfile(sourcefile):gsub("#define PNG_ZLIB_VERNUM 0 /%* unknown %*/", "#define PNG_ZLIB_VERNUM " .. zlib_vernum)
         os.mkdir("out/libpng")
-        io.writefile("out/libpng/pnglibconf.h", config)
+        io.writefile(output, config)
+        table.insert(depend.files, output)
+        table.remove(sources, 1)
     end})
     add_includedirs("in/deps/libpng", "out/libpng", {public = true})
     add_defines("PNG_INTEL_SSE_OPT=1", "_CRT_NONSTDC_NO_DEPRECATE", "_CRT_SECURE_NO_DEPRECATE")
@@ -768,23 +695,33 @@ target("libpng")
 
 
 target("libjpeg")
+    before_config(function ()
+        os.vrunv("in/hx.exe", {"github://libjpeg-turbo/libjpeg-turbo?ref=3.1.4.1", "in/deps/libjpeg-turbo"})
+        os.vrunv("in/hx.exe", {"https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_54221_64bit/strawberry-perl-5.42.2.1-64bit-portable.zip", "in/perl"})
+    end)
     set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
     set_toolset("as", "nasm@$(projectdir)/in/perl/c/bin/nasm.exe")
-    add_rules("codegen", {cb = function (target, os, io, path, import, get_config)
+    add_files("in/deps/libjpeg-turbo/src/jconfig.h.in", {callback = function (sourcefile, sources, depend)
+        local output = "out/libjpeg/jconfig.h"
         os.mkdir("out/libjpeg")
-        local config = io.readfile("in/deps/libjpeg-turbo/src/jconfig.h.in")
+        io.writefile(output, (io.readfile(sourcefile)
             :gsub("@JPEG_LIB_VERSION@", "80")
             :gsub("@VERSION@", "3.1.4.1")
             :gsub("@LIBJPEG_TURBO_VERSION_NUMBER@", "3001004")
             :gsub("#cmakedefine C_ARITH_CODING_SUPPORTED 1", "#define C_ARITH_CODING_SUPPORTED 1")
             :gsub("#cmakedefine D_ARITH_CODING_SUPPORTED 1", "#define D_ARITH_CODING_SUPPORTED 1")
             :gsub("#cmakedefine WITH_SIMD 1", "#define WITH_SIMD 1")
-            :gsub("#cmakedefine RIGHT_SHIFT_IS_UNSIGNED 1", "/* #undef RIGHT_SHIFT_IS_UNSIGNED */")
-        io.writefile("out/libjpeg/jconfig.h", config)
-        local configint = io.readfile("in/deps/libjpeg-turbo/src/jconfigint.h.in")
+            :gsub("#cmakedefine RIGHT_SHIFT_IS_UNSIGNED 1", "/* #undef RIGHT_SHIFT_IS_UNSIGNED */")))
+        table.insert(depend.files, output)
+        table.remove(sources, 1)
+    end})
+    add_files("in/deps/libjpeg-turbo/src/jconfigint.h.in", {callback = function (sourcefile, sources, depend)
+        local output = "out/libjpeg/jconfigint.h"
+        os.mkdir("out/libjpeg")
+        io.writefile(output, (io.readfile(sourcefile)
             :gsub("@BUILD@", "20260804")
             :gsub("@HIDDEN@", "")
             :gsub("@INLINE@", "__forceinline")
@@ -796,11 +733,16 @@ target("libjpeg")
             :gsub("#cmakedefine HAVE_INTRIN_H", "#define HAVE_INTRIN_H 1")
             :gsub("#cmakedefine C_ARITH_CODING_SUPPORTED 1", "#define C_ARITH_CODING_SUPPORTED 1")
             :gsub("#cmakedefine D_ARITH_CODING_SUPPORTED 1", "#define D_ARITH_CODING_SUPPORTED 1")
-            :gsub("#cmakedefine WITH_SIMD 1", "#define WITH_SIMD 1")
-        io.writefile("out/libjpeg/jconfigint.h", configint)
-        local version = io.readfile("in/deps/libjpeg-turbo/src/jversion.h.in")
-            :gsub("@COPYRIGHT_YEAR@", "1991-2026")
-        io.writefile("out/libjpeg/jversion.h", version)
+            :gsub("#cmakedefine WITH_SIMD 1", "#define WITH_SIMD 1")))
+        table.insert(depend.files, output)
+        table.remove(sources, 1)
+    end})
+    add_files("in/deps/libjpeg-turbo/src/jversion.h.in", {callback = function (sourcefile, sources, depend)
+        local output = "out/libjpeg/jversion.h"
+        os.mkdir("out/libjpeg")
+        io.writefile(output, (io.readfile(sourcefile):gsub("@COPYRIGHT_YEAR@", "1991-2026")))
+        table.insert(depend.files, output)
+        table.remove(sources, 1)
     end})
     add_includedirs("out/libjpeg", "in/deps/libjpeg-turbo/src", {public = true})
     add_includedirs("in/deps/libjpeg-turbo/simd", "in/deps/libjpeg-turbo/simd/x86_64")
@@ -855,17 +797,16 @@ target("libjpeg")
 
 
 target("freetype")
+    before_config(function () os.vrunv("in/hx.exe", {"github://freetype/freetype?ref=VER-2-14-3", "in/deps/freetype"}) end)
     set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
-    add_rules("codegen", {cb = function (target, os, io, path, import, get_config)
-        os.mkdir("out/freetype/include/freetype/config")
-        local options = io.readfile("in/deps/freetype/include/freetype/config/ftoption.h")
-            :gsub("/%* #define FT_CONFIG_OPTION_USE_HARFBUZZ %*/", "#define FT_CONFIG_OPTION_USE_HARFBUZZ")
-            :gsub("/%* #define FT_CONFIG_OPTION_USE_HARFBUZZ_DYNAMIC %*/", "#define FT_CONFIG_OPTION_USE_HARFBUZZ_DYNAMIC")
-        io.writefile("out/freetype/include/freetype/config/ftoption.h", options)
-    end})
+    set_configdir("out/freetype/include/freetype/config")
+    add_configfiles("in/deps/freetype/include/freetype/config/ftoption.h", {
+        pattern = "/%* #define (FT_CONFIG_OPTION_USE_HARFBUZZ[A-Z_]*) %*/",
+        variables = {FT_CONFIG_OPTION_USE_HARFBUZZ = "#define FT_CONFIG_OPTION_USE_HARFBUZZ",
+            FT_CONFIG_OPTION_USE_HARFBUZZ_DYNAMIC = "#define FT_CONFIG_OPTION_USE_HARFBUZZ_DYNAMIC"}})
     add_includedirs("out/freetype/include", "in/deps/freetype/include", {public = true})
     add_defines("FT2_BUILD_LIBRARY", "NDEBUG", "_CRT_SECURE_NO_WARNINGS", "_CRT_NONSTDC_NO_WARNINGS")
     add_files(
@@ -916,6 +857,7 @@ target("freetype")
 
 
 target("libwebp")
+    before_config(function () os.vrunv("in/hx.exe", {"github://webmproject/libwebp?ref=v1.6.0", "in/deps/libwebp"}) end)
     set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
@@ -935,14 +877,16 @@ target("libwebp")
 
 
 target("libtiff")
+    before_config(function () os.vrunv("in/hx.exe", {"https://download.osgeo.org/libtiff/tiff-4.7.2.tar.xz", "in/deps/libtiff"}) end)
     set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
     add_deps("zlib", "libjpeg", "liblzma", "zstd", "libwebp")
-    add_rules("codegen", {cb = function (target, os, io, path, import, get_config)
+    add_files("in/deps/libtiff/tiff-4.7.2/libtiff/tiffconf.h.cmake.in", {callback = function (sourcefile, sources, depend)
+        local output = "out/libtiff/tiffconf.h"
         os.mkdir("out/libtiff")
-        local conf = io.readfile("in/deps/libtiff/tiff-4.7.2/libtiff/tiffconf.h.cmake.in")
+        local conf = io.readfile(sourcefile)
             :gsub("@TIFF_INT16_T@", "int16_t")
             :gsub("@TIFF_INT32_T@", "int32_t")
             :gsub("@TIFF_INT64_T@", "int64_t")
@@ -971,8 +915,14 @@ target("libtiff")
             :gsub("#cmakedefine MDI_SUPPORT 1", "#define MDI_SUPPORT 1")
             :gsub("#cmakedefine ([%w_]+) 1", "/* #undef %1 */")
             :gsub("#cmakedefine ([%w_]+)", "/* #undef %1 */")
-        io.writefile("out/libtiff/tiffconf.h", conf)
-        local config = io.readfile("in/deps/libtiff/tiff-4.7.2/libtiff/tif_config.h.cmake.in")
+        io.writefile(output, conf)
+        table.insert(depend.files, output)
+        table.remove(sources, 1)
+    end})
+    add_files("in/deps/libtiff/tiff-4.7.2/libtiff/tif_config.h.cmake.in", {callback = function (sourcefile, sources, depend)
+        local output = "out/libtiff/tif_config.h"
+        os.mkdir("out/libtiff")
+        local config = io.readfile(sourcefile)
             :gsub("@LIBJPEG_12_PATH@", "")
             :gsub("@PACKAGE_NAME@", "LibTIFF Software")
             :gsub("@PACKAGE_BUGREPORT@", "tiff@lists.osgeo.org")
@@ -998,8 +948,16 @@ target("libtiff")
             :gsub("#cmakedefine01 WORDS_BIGENDIAN", "#define WORDS_BIGENDIAN 0")
             :gsub("#cmakedefine ([%w_]+) 1", "/* #undef %1 */")
             :gsub("#cmakedefine ([%w_]+)", "/* #undef %1 */")
-        io.writefile("out/libtiff/tif_config.h", config)
-        io.writefile("out/libtiff/tiffvers.h", io.readfile("in/deps/libtiff/tiff-4.7.2/libtiff/tiffvers.h"))
+        io.writefile(output, config)
+        table.insert(depend.files, output)
+        table.remove(sources, 1)
+    end})
+    add_files("in/deps/libtiff/tiff-4.7.2/libtiff/tiffvers.h", {callback = function (sourcefile, sources, depend)
+        local output = "out/libtiff/tiffvers.h"
+        os.mkdir("out/libtiff")
+        io.writefile(output, io.readfile(sourcefile))
+        table.insert(depend.files, output)
+        table.remove(sources, 1)
     end})
     add_includedirs("out/libtiff", "in/deps/libtiff/tiff-4.7.2/libtiff", {public = true})
     add_defines("NDEBUG", "TIFF_DO_NOT_USE_NON_EXT_ALLOC_FUNCTIONS", "_CRT_SECURE_NO_DEPRECATE", "_CRT_NONSTDC_NO_DEPRECATE", "_CRT_SECURE_NO_WARNINGS", "_CRT_NONSTDC_NO_WARNINGS")
@@ -1010,17 +968,25 @@ target("libtiff")
 
 
 target("libjxl")
+    before_config(function ()
+        os.vrunv("in/hx.exe", {"github://libjxl/libjxl?ref=v0.11.2", "in/deps/libjxl"})
+        os.vrunv("in/hx.exe", {"github://google/highway?ref=457c891775a7397bdb0376bb1031e6e027af1c48", "in/deps/libjxl/third_party/highway"})
+        os.vrunv("in/hx.exe", {"https://skia.googlesource.com/skcms/+archive/b2e692629c1fb19342517d7fb61f1cf83d075492.tar.gz", "in/deps/libjxl/third_party/skcms"})
+    end)
     set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_languages("cxx17")
     set_optimize("fastest")
     add_deps("brotli")
-    add_rules("codegen", {cb = function (target, os, io, path, import, get_config)
+    set_configdir("out/libjxl/include/jxl")
+    add_configfiles("in/deps/libjxl/lib/jxl/version.h.in", {pattern = "@([%u%d_]+)@", variables = {
+        JPEGXL_MAJOR_VERSION = "0", JPEGXL_MINOR_VERSION = "11", JPEGXL_PATCH_VERSION = "2"}})
+    add_files("in/deps/libjxl/lib/jxl/version.h.in", {callback = function (_, sources, depend)
+        local export = "out/libjxl/include/jxl/jxl_export.h"
+        local cms_export = "out/libjxl/include/jxl/jxl_cms_export.h"
         os.mkdir("out/libjxl/include/jxl")
-        io.writefile("out/libjxl/include/jxl/version.h", (io.readfile("in/deps/libjxl/lib/jxl/version.h.in")
-            :gsub("@JPEGXL_MAJOR_VERSION@", "0"):gsub("@JPEGXL_MINOR_VERSION@", "11"):gsub("@JPEGXL_PATCH_VERSION@", "2")))
-        io.writefile("out/libjxl/include/jxl/jxl_export.h", [[#ifndef JXL_EXPORT_H
+        io.writefile(export, [[#ifndef JXL_EXPORT_H
             #define JXL_EXPORT_H
             #define JXL_EXPORT
             #define JXL_NO_EXPORT
@@ -1029,7 +995,7 @@ target("libjxl")
             #define JXL_DEPRECATED_NO_EXPORT JXL_NO_EXPORT JXL_DEPRECATED
             #endif
         ]])
-        io.writefile("out/libjxl/include/jxl/jxl_cms_export.h", [[#ifndef JXL_CMS_EXPORT_H
+        io.writefile(cms_export, [[#ifndef JXL_CMS_EXPORT_H
             #define JXL_CMS_EXPORT_H
             #define JXL_CMS_EXPORT
             #define JXL_CMS_NO_EXPORT
@@ -1038,6 +1004,9 @@ target("libjxl")
             #define JXL_CMS_DEPRECATED_NO_EXPORT JXL_CMS_NO_EXPORT JXL_CMS_DEPRECATED
             #endif
         ]])
+        table.insert(depend.files, export)
+        table.insert(depend.files, cms_export)
+        table.remove(sources, 1)
     end})
     add_includedirs("out/libjxl/include", "in/deps/libjxl/lib/include", "in/deps/libjxl", "in/deps/libjxl/third_party/highway", {public = true})
     add_includedirs("in/deps/libjxl/third_party/skcms")
@@ -1050,6 +1019,14 @@ target("libjxl")
 
 
 target("avif")
+    before_config(function ()
+        os.vrunv("in/hx.exe", {"github://AOMediaCodec/libavif?ref=v1.4.2", "in/deps/libavif"})
+        os.vrunv("in/hx.exe", {"https://aomedia.googlesource.com/aom/+archive/refs/tags/v3.14.1.tar.gz", "in/deps/aom"})
+        os.vrunv("in/hx.exe", {"https://chromium.googlesource.com/libyuv/libyuv/+archive/644251f252a84bf8ce91ff0aca86a9b16b069ab8.tar.gz", "in/deps/libyuv"})
+        os.vrunv("in/hx.exe", {"github://winlibs/libheif?ref=libheif-1.23.1", "in/deps/libheif"})
+        os.vrunv("in/hx.exe", {"https://code.videolan.org/videolan/dav1d/-/archive/1.5.3/dav1d-1.5.3.tar.gz", "in/deps/dav1d"})
+        os.vrunv("in/hx.exe", {"https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_54221_64bit/strawberry-perl-5.42.2.1-64bit-portable.zip", "in/perl"})
+    end)
     set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
@@ -1057,15 +1034,17 @@ target("avif")
     set_optimize("fastest")
     set_toolset("as", "nasm@$(projectdir)/in/perl/c/bin/nasm.exe")
     add_deps("libjpeg")
-    add_rules("codegen", {cb = function (target, os, io, path, import, get_config)
-        os.mkdir("out/avif/config")
+    set_configdir("out/avif")
+    add_configfiles("in/deps/libheif/libheif/api/libheif/heif_version.h.in", {prefixdir = "include/libheif", pattern = "@([%u%d_]+)@", variables = {
+        PROJECT_VERSION_MAJOR = "1", PROJECT_VERSION_MINOR = "23", PROJECT_VERSION_PATCH = "1", PLUGIN_DIRECTORY = ""}})
+    add_files("in/deps/aom/cmake/aom_config_defaults.cmake", {callback = function (sourcefile, sources, depend)
+        local out = "out/avif/config"
+        local rtcd_config = out .. "/aom_config_rtcd.h"
+        local assembly_config = out .. "/aom_config.asm"
+        os.mkdir(out)
         local values = {}
-        for name, value in io.readfile("in/deps/aom/cmake/aom_config_defaults.cmake"):gmatch("set_aom_[%w_]+%(%s*([%w_]+)%s+([%d]+)") do
-            values[name] = value
-        end
-        for name in ("AOM_ARCH_X86_64 HAVE_MMX HAVE_SSE HAVE_SSE2 HAVE_SSE3 HAVE_SSSE3 HAVE_SSE4_1 HAVE_SSE4_2 HAVE_AVX HAVE_AVX2 HAVE_AVX512 CONFIG_OS_SUPPORT CONFIG_PIC"):gmatch("%S+") do
-            values[name] = "1"
-        end
+        for name, value in io.readfile(sourcefile):gmatch("set_aom_[%w_]+%(%s*([%w_]+)%s+([%d]+)") do values[name] = value end
+        for name in ("AOM_ARCH_X86_64 HAVE_MMX HAVE_SSE HAVE_SSE2 HAVE_SSE3 HAVE_SSSE3 HAVE_SSE4_1 HAVE_SSE4_2 HAVE_AVX HAVE_AVX2 HAVE_AVX512 CONFIG_OS_SUPPORT CONFIG_PIC"):gmatch("%S+") do values[name] = "1" end
         values.CONFIG_WEBM_IO = "0"
         values.CONFIG_LIBYUV = "0"
         local names = {}
@@ -1078,28 +1057,55 @@ target("avif")
             table.insert(assembly, name .. " equ " .. values[name])
         end
         table.insert(header, "#endif  // AOM_CONFIG_H_")
-        io.writefile("out/avif/config/aom_config.h", table.concat(header, "\n") .. "\n")
-        io.writefile("out/avif/config/aom_config.asm", table.concat(assembly, "\n") .. "\n")
-        io.writefile("out/avif/config/aom_config.c", [[#include "aom/aom_codec.h"
+        io.writefile(rtcd_config, table.concat(header, "\n") .. "\n")
+        io.writefile(assembly_config, table.concat(assembly, "\n") .. "\n")
+        io.writefile(out .. "/aom_config.c", [[#include "aom/aom_codec.h"
             static const char* const cfg = "cmake ../ -G \"Visual Studio 18 2026\" -DAOM_TARGET_CPU=x86_64 -DENABLE_DOCS=0 -DENABLE_EXAMPLES=0 -DENABLE_NASM=1 -DENABLE_TESTDATA=0 -DENABLE_TESTS=0 -DENABLE_TOOLS=0 -DENABLE_SSE2=1 -DENABLE_SSE3=1 -DENABLE_SSSE3=1 -DENABLE_SSE4_1=1 -DENABLE_SSE4_2=1 -DENABLE_AVX=1 -DENABLE_AVX2=1";
             const char *aom_codec_build_config(void) { return cfg; }
         ]])
-        io.writefile("out/avif/config/aom_av1_no_op.c", "// Generated no-op source.\n")
-        io.writefile("out/avif/config/aom_dsp_no_op.c", "// Generated no-op source.\n")
-        local perl = "$(projectdir)/in/perl/perl/bin/perl.exe"
-        os.vrunv(perl, {"in/deps/aom/cmake/version.pl", "--version_data=in/deps/aom/CHANGELOG", "--version_filename=out/avif/config/aom_version.h"})
-        os.vrunv(perl, {"in/deps/aom/cmake/rtcd.pl", "--arch=x86_64", "--sym=aom_dsp_rtcd", "--config=out/avif/config/aom_config.h", "in/deps/aom/aom_dsp/aom_dsp_rtcd_defs.pl"}, {stdout = "out/avif/config/aom_dsp_rtcd.h"})
-        os.vrunv(perl, {"in/deps/aom/cmake/rtcd.pl", "--arch=x86_64", "--sym=aom_scale_rtcd", "--config=out/avif/config/aom_config.h", "in/deps/aom/aom_scale/aom_scale_rtcd.pl"}, {stdout = "out/avif/config/aom_scale_rtcd.h"})
-        os.vrunv(perl, {"in/deps/aom/cmake/rtcd.pl", "--arch=x86_64", "--sym=av1_rtcd", "--config=out/avif/config/aom_config.h", "in/deps/aom/av1/common/av1_rtcd_defs.pl"}, {stdout = "out/avif/config/av1_rtcd.h"})
-        io.writefile("out/avif/config/aom_config.h", (io.readfile("out/avif/config/aom_config.h"):gsub("#define CONFIG_LIBYUV 0", "#define CONFIG_LIBYUV 1")))
-        os.mkdir("out/avif/include/libheif")
-        io.writefile("out/avif/include/libheif/heif_version.h", (io.readfile("in/deps/libheif/libheif/api/libheif/heif_version.h.in")
-            :gsub("@PROJECT_VERSION_MAJOR@", "1")
-            :gsub("@PROJECT_VERSION_MINOR@", "23")
-            :gsub("@PROJECT_VERSION_PATCH@", "1")
-            :gsub("@PLUGIN_DIRECTORY@", "")))
-        os.mkdir("out/avif/dav1d")
-        io.writefile("out/avif/dav1d/config.h", [[#define ARCH_AARCH64 0
+        io.writefile(out .. "/aom_av1_no_op.c", "// Generated no-op source.\n")
+        io.writefile(out .. "/aom_dsp_no_op.c", "// Generated no-op source.\n")
+        table.insert(depend.files, rtcd_config)
+        table.insert(depend.files, assembly_config)
+        sources[1] = out .. "/aom_config.c"
+        table.insert(sources, out .. "/aom_av1_no_op.c")
+        table.insert(sources, out .. "/aom_dsp_no_op.c")
+    end})
+    add_files("in/deps/aom/CHANGELOG", {callback = function (sourcefile, sources, depend)
+        local perl = "in/perl/perl/bin/perl.exe"
+        local script = "in/deps/aom/cmake/version.pl"
+        local output = "out/avif/config/aom_version.h"
+        table.insert(depend.files, perl)
+        table.insert(depend.files, script)
+        os.vrunv(perl, {script, "--version_data=" .. sourcefile, "--version_filename=" .. output})
+        table.insert(depend.files, output)
+        table.remove(sources, 1)
+    end})
+    add_files("in/deps/aom/aom_dsp/aom_dsp_rtcd_defs.pl", "in/deps/aom/aom_scale/aom_scale_rtcd.pl", "in/deps/aom/av1/common/av1_rtcd_defs.pl", {callback = function (sourcefile, sources, depend)
+        local perl = "in/perl/perl/bin/perl.exe"
+        local script = "in/deps/aom/cmake/rtcd.pl"
+        local config = "out/avif/config/aom_config_rtcd.h"
+        local sym, output
+        if sourcefile:find("aom_dsp_rtcd_defs", 1, true) then sym, output = "aom_dsp_rtcd", "out/avif/config/aom_dsp_rtcd.h"
+        elseif sourcefile:find("aom_scale_rtcd", 1, true) then sym, output = "aom_scale_rtcd", "out/avif/config/aom_scale_rtcd.h"
+        else sym, output = "av1_rtcd", "out/avif/config/av1_rtcd.h" end
+        table.insert(depend.files, perl)
+        table.insert(depend.files, script)
+        table.insert(depend.files, config)
+        os.vrunv(perl, {script, "--arch=x86_64", "--sym=" .. sym, "--config=" .. config, sourcefile}, {stdout = output})
+        table.insert(depend.files, output)
+        table.remove(sources, 1)
+    end})
+    add_files("out/avif/config/aom_config_rtcd.h", {callback = function (sourcefile, sources, depend)
+        local output = "out/avif/config/aom_config.h"
+        io.writefile(output, (io.readfile(sourcefile):gsub("#define CONFIG_LIBYUV 0", "#define CONFIG_LIBYUV 1")))
+        table.insert(depend.files, output)
+        table.remove(sources, 1)
+    end})
+    add_files("in/deps/dav1d/dav1d-1.5.3/meson.build", {callback = function (_, sources, depend)
+        local out = "out/avif/dav1d"
+        os.mkdir(out)
+        io.writefile(out .. "/config.h", [[#define ARCH_AARCH64 0
             #define ARCH_ARM 0
             #define ARCH_LOONGARCH 0
             #define ARCH_LOONGARCH32 0
@@ -1142,40 +1148,29 @@ target("avif")
             #define fseeko _fseeki64
             #define ftello _ftelli64
         ]])
-        io.writefile("out/avif/dav1d/config.asm", [[%define private_prefix dav1d
+        io.writefile(out .. "/config.asm", [[%define private_prefix dav1d
             %define ARCH_X86_64 1
             %define ARCH_X86_32 0
             %define STACK_ALIGNMENT 16
             %define PIC 1
             %define FORCE_VEX_ENCODING 0
         ]])
-        io.writefile("out/avif/dav1d/vcs_version.h", "#define DAV1D_VERSION \"1.5.3\"\n")
-        for file in ("cdef_apply_tmpl.c cdef_tmpl.c fg_apply_tmpl.c filmgrain_tmpl.c ipred_prepare_tmpl.c ipred_tmpl.c itx_tmpl.c lf_apply_tmpl.c loopfilter_tmpl.c looprestoration_tmpl.c lr_apply_tmpl.c mc_tmpl.c recon_tmpl.c"):gmatch("%S+") do
-            for _, depth in ipairs({8, 16}) do
-                local output = "out/avif/dav1d/dav1d_" .. depth .. "_" .. file
-                io.writefile(output, "#define BITDEPTH " .. depth .. "\n#include \"in/deps/dav1d/dav1d-1.5.3/src/" .. file .. "\"\n")
-            end
-        end
+        io.writefile(out .. "/vcs_version.h", "#define DAV1D_VERSION \"1.5.3\"\n")
+        table.insert(depend.files, out .. "/config.h")
+        table.insert(depend.files, out .. "/config.asm")
+        table.insert(depend.files, out .. "/vcs_version.h")
+        table.remove(sources, 1)
     end})
-    add_files(
-        "out/avif/config/aom_config.c",
-        "out/avif/config/aom_av1_no_op.c",
-        "out/avif/config/aom_dsp_no_op.c",
-        "out/avif/dav1d/dav1d_8_cdef_apply_tmpl.c", "out/avif/dav1d/dav1d_16_cdef_apply_tmpl.c",
-        "out/avif/dav1d/dav1d_8_cdef_tmpl.c", "out/avif/dav1d/dav1d_16_cdef_tmpl.c",
-        "out/avif/dav1d/dav1d_8_fg_apply_tmpl.c", "out/avif/dav1d/dav1d_16_fg_apply_tmpl.c",
-        "out/avif/dav1d/dav1d_8_filmgrain_tmpl.c", "out/avif/dav1d/dav1d_16_filmgrain_tmpl.c",
-        "out/avif/dav1d/dav1d_8_ipred_prepare_tmpl.c", "out/avif/dav1d/dav1d_16_ipred_prepare_tmpl.c",
-        "out/avif/dav1d/dav1d_8_ipred_tmpl.c", "out/avif/dav1d/dav1d_16_ipred_tmpl.c",
-        "out/avif/dav1d/dav1d_8_itx_tmpl.c", "out/avif/dav1d/dav1d_16_itx_tmpl.c",
-        "out/avif/dav1d/dav1d_8_lf_apply_tmpl.c", "out/avif/dav1d/dav1d_16_lf_apply_tmpl.c",
-        "out/avif/dav1d/dav1d_8_loopfilter_tmpl.c", "out/avif/dav1d/dav1d_16_loopfilter_tmpl.c",
-        "out/avif/dav1d/dav1d_8_looprestoration_tmpl.c", "out/avif/dav1d/dav1d_16_looprestoration_tmpl.c",
-        "out/avif/dav1d/dav1d_8_lr_apply_tmpl.c", "out/avif/dav1d/dav1d_16_lr_apply_tmpl.c",
-        "out/avif/dav1d/dav1d_8_mc_tmpl.c", "out/avif/dav1d/dav1d_16_mc_tmpl.c",
-        "out/avif/dav1d/dav1d_8_recon_tmpl.c", "out/avif/dav1d/dav1d_16_recon_tmpl.c",
-        {always_added = true}
-    )
+    add_files("in/deps/dav1d/dav1d-1.5.3/src/*_tmpl.c", {callback = function (sourcefile, sources)
+        local name = path.filename(sourcefile)
+        local out8 = "out/avif/dav1d/dav1d_8_" .. name
+        local out16 = "out/avif/dav1d/dav1d_16_" .. name
+        os.mkdir("out/avif/dav1d")
+        io.writefile(out8, "#define BITDEPTH 8\n#include \"" .. sourcefile .. "\"\n")
+        io.writefile(out16, "#define BITDEPTH 16\n#include \"" .. sourcefile .. "\"\n")
+        sources[1] = out8
+        table.insert(sources, out16)
+    end})
     add_includedirs("in/deps/libavif/include", "in/deps/libheif/libheif/api", "out/avif/include", {public = true})
     add_includedirs("out/avif", "out/avif/dav1d", "in/deps/aom", "in/deps/libyuv/include", "in/deps/libheif/libheif", "in/deps/dav1d/dav1d-1.5.3/include", "in/deps/dav1d/dav1d-1.5.3/include/compat/msvc", "in/deps/dav1d/dav1d-1.5.3", "$(projectdir)", "out/libjpeg", "in/deps/libjpeg-turbo/src")
     add_defines("LIBHEIF_STATIC_BUILD", "WITH_UNCOMPRESSED_CODEC=1", {public = true})
@@ -1235,40 +1230,63 @@ target("avif")
 
 
 target("libsasl")
+    before_config(function () os.vrunv("in/hx.exe", {"github://cyrusimap/cyrus-sasl?ref=cyrus-sasl-2.1.28", "in/deps/libsasl"}) end)
     set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
-    add_rules("codegen", {cb = function (target, os, io, path, import, get_config)
+    add_files("in/deps/libsasl/include/*.h", {callback = function (sourcefile, sources, depend)
+        local name = path.filename(sourcefile)
+        local output = "out/libsasl/include/" .. name
+        local nested = "out/libsasl/include/sasl/" .. name
         os.mkdir("out/libsasl/include/sasl")
-        os.cp("in/deps/libsasl/include/*.h", "out/libsasl/include")
-        os.cp("in/deps/libsasl/include/*.h", "out/libsasl/include/sasl")
-        os.cp("in/deps/libsasl/win32/include/md5global.h", "out/libsasl/include")
-        os.cp("in/deps/libsasl/win32/include/md5global.h", "out/libsasl/include/sasl")
-        local prop = io.readfile("in/deps/libsasl/include/prop.h"):gsub("#ifdef WIN32\n# ifdef LIBSASL_EXPORTS", "#if defined(WIN32) && !defined(LIBSASL_STATIC)\n# ifdef LIBSASL_EXPORTS")
-        io.writefile("out/libsasl/include/prop.h", prop)
-        io.writefile("out/libsasl/include/sasl/prop.h", prop)
-        local saslutil = io.readfile("in/deps/libsasl/lib/saslutil.c"):gsub("__declspec%(dllexport%) ", "")
-        io.writefile("out/libsasl/saslutil.c", saslutil)
+        local content = io.readfile(sourcefile)
+        if name == "prop.h" then
+                content = content:gsub("#ifdef WIN32\n# ifdef LIBSASL_EXPORTS", "#if defined(WIN32) && !defined(LIBSASL_STATIC)\n# ifdef LIBSASL_EXPORTS")
+        end
+        io.writefile(output, content)
+        io.writefile(nested, content)
+        table.insert(depend.files, output)
+        table.insert(depend.files, nested)
+        table.remove(sources, 1)
+    end})
+    add_files("in/deps/libsasl/win32/include/md5global.h", {callback = function (sourcefile, sources, depend)
+        local output = "out/libsasl/include/md5global.h"
+        local nested = "out/libsasl/include/sasl/md5global.h"
+        os.mkdir("out/libsasl/include/sasl")
+        local content = io.readfile(sourcefile)
+        io.writefile(output, content)
+        io.writefile(nested, content)
+        table.insert(depend.files, output)
+        table.insert(depend.files, nested)
+        table.remove(sources, 1)
     end})
     add_includedirs("out/libsasl/include", {public = true})
     add_includedirs("in/deps/libsasl/win32/include", "in/deps/libsasl/include", "in/deps/libsasl/lib", "in/deps/libsasl/common")
     add_defines("LIBSASL_STATIC", {public = true})
     add_defines("NO_STATIC_PLUGINS", "WIN32", "UNICODE", "_UNICODE", "_CRT_SECURE_NO_WARNINGS", "GCC_FALLTHROUGH=")
     add_syslinks("ws2_32", "advapi32", {public = true})
-    add_files("in/deps/libsasl/lib/*.c", "in/deps/libsasl/common/plugin_common.c", "out/libsasl/saslutil.c", {always_added = true})
+    add_files("in/deps/libsasl/lib/*.c", "in/deps/libsasl/common/plugin_common.c")
+    add_files("in/deps/libsasl/lib/saslutil.c", {callback = function (sourcefile, sources)
+        local output = "out/libsasl/saslutil.c"
+        os.mkdir("out/libsasl")
+        io.writefile(output, (io.readfile(sourcefile):gsub("__declspec%(dllexport%) ", "")))
+        sources[1] = output
+    end})
     remove_files("in/deps/libsasl/lib/dlopen.c", "in/deps/libsasl/lib/getaddrinfo.c", "in/deps/libsasl/lib/getnameinfo.c", "in/deps/libsasl/lib/snprintf.c", "in/deps/libsasl/lib/saslutil.c")
 
 
 target("openldap")
+    before_config(function ()
+        os.vrunv("in/hx.exe", {"-delpathseg", "1", "https://www.openldap.org/software/download/OpenLDAP/openldap-release/openldap-2.6.13.tgz", "in/deps/openldap"})
+        os.vrunv("in/hx.exe", {"github://garyhouston/rxspencer?ref=v3.9.0", "in/deps/rxspencer"})
+    end)
     set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
     add_deps("openssl", "libsasl")
-    add_rules("codegen", {cb = function (target, os, io, path, import, get_config)
-        local out = "out/openldap/include"
-        os.mkdir(path.join(out, "ac"))
+    add_files("in/deps/openldap/include/portable.hin", "in/deps/openldap/include/lber_types.hin", "in/deps/openldap/include/ldap_features.hin", {callback = function (sourcefile, sources, depend)
         local defs = {}
         for name in ([=[THREADSAFE _THREADSAFE THREAD_SAFE _THREAD_SAFE HAVE_ASSERT_H HAVE_CLOSESOCKET HAVE_CONIO_H HAVE_CYRUS_SASL HAVE_DIRECT_H HAVE_ERRNO_H HAVE_FCNTL_H HAVE_FSTAT HAVE_GETADDRINFO HAVE_GETHOSTNAME HAVE_GETOPT HAVE_GMTIME_R HAVE_INET_NTOP HAVE_INTTYPES_H HAVE_IOCTL HAVE_IO_H HAVE_LIMITS_H HAVE_LOCALE_H HAVE_LOCALTIME_R HAVE_LONG_LONG HAVE_MALLOC_H HAVE_MEMCPY HAVE_MEMMOVE HAVE_MEMORY_H HAVE_MKTEMP HAVE_MKVERSION HAVE_NT_EVENT_LOG HAVE_NT_SERVICE_MANAGER HAVE_NT_THREADS HAVE_OPENSSL HAVE_OPENSSL_BN_H HAVE_OPENSSL_CRL HAVE_OPENSSL_CRYPTO_H HAVE_OPENSSL_SSL_H HAVE_PROCESS_H HAVE_PTRDIFF_T HAVE_READ HAVE_RECV HAVE_RECVFROM HAVE_REGEX_H HAVE_SASL_SASL_H HAVE_SASL_VERSION HAVE_SIGNAL HAVE_SNPRINTF HAVE_SPAWNLP HAVE_STDDEF_H HAVE_STDINT_H HAVE_STDLIB_H HAVE_STRDUP HAVE_STRERROR HAVE_STRFTIME HAVE_STRINGS_H HAVE_STRING_H HAVE_STRPBRK HAVE_STRRCHR HAVE_STRSPN HAVE_STRSTR HAVE_STRTOL HAVE_STRTOLL HAVE_STRTOUL HAVE_STRTOULL HAVE_SYS_ERRLIST HAVE_SYS_FILE_H HAVE_SYS_STAT_H HAVE_SYS_TYPES_H HAVE_TLS HAVE_UTIME_H HAVE_VPRINTF HAVE_VSNPRINTF HAVE_WINSOCK HAVE_WINSOCK2 HAVE_WINSOCK2_H HAVE_WINSOCK_H HAVE_WRITE HAVE_YIELDING_SELECT HAVE__VSNPRINTF LDAP_API_FEATURE_X_OPENLDAP_REENTRANT LDAP_API_FEATURE_X_OPENLDAP_THREAD_SAFE LDAP_DEBUG LDAP_PF_INET6 LDAP_PROCTITLE STDC_HEADERS USE_MP_LONG_LONG]=]):gmatch("%S+") do defs[name] = "1" end
         local values = [=[
@@ -1300,23 +1318,34 @@ target("openldap")
             uid_t=int
         ]=]
         for line in values:gmatch("[^\r\n]+") do local n, v = line:match("^%s*([^=]+)=(.*)$"); if n then defs[n] = v end end
-        local function render(input, output)
-            local data = io.readfile(input):gsub("#undef%s+([%w_]+)", function (name)
-                return defs[name] and ("#define " .. name .. " " .. defs[name]) or ("/* #undef " .. name .. " */")
-            end)
-            io.writefile(output, data)
+        local output = "out/openldap/include/" .. path.filename(sourcefile):gsub("%.hin$", ".h")
+        os.mkdir("out/openldap/include")
+        io.writefile(output, (io.readfile(sourcefile):gsub("#undef%s+([%w_]+)", function (name)
+            return defs[name] and ("#define " .. name .. " " .. defs[name]) or ("/* #undef " .. name .. " */")
+        end)))
+        table.insert(depend.files, output)
+        table.remove(sources, 1)
+    end})
+    add_files("in/deps/openldap/include/ldap_config.hin", {callback = function (sourcefile, sources, depend)
+        local output = "out/openldap/include/ldap_config.h"
+        os.mkdir("out/openldap/include")
+        io.writefile(output, (io.readfile(sourcefile):gsub("%%[A-Z]+DIR%%", ".")))
+        table.insert(depend.files, output)
+        table.remove(sources, 1)
+    end})
+    add_files("in/deps/openldap/include/ac/socket.h", "in/deps/openldap/include/ac/time.h", {callback = function (sourcefile, sources, depend)
+        local name = path.filename(sourcefile)
+        local output = "out/openldap/include/ac/" .. name
+        local content = io.readfile(sourcefile)
+        os.mkdir("out/openldap/include/ac")
+        if name == "socket.h" then
+            content = content:gsub("#define EWOULDBLOCK WSAEWOULDBLOCK", "#undef EWOULDBLOCK\n#undef EINPROGRESS\n#undef ETIMEDOUT\n#undef ENOTCONN\n#define EWOULDBLOCK WSAEWOULDBLOCK")
+        else
+            content = content:gsub("#if defined%(_WIN32%) && !defined%(HAVE_CLOCK_GETTIME%)", "#if defined(_WIN32) && !defined(HAVE_CLOCK_GETTIME) && (!defined(_MSC_VER) || _MSC_VER < 1900)")
         end
-        render("in/deps/openldap/include/portable.hin", path.join(out, "portable.h"))
-        render("in/deps/openldap/include/lber_types.hin", path.join(out, "lber_types.h"))
-        render("in/deps/openldap/include/ldap_features.hin", path.join(out, "ldap_features.h"))
-        local config = io.readfile("in/deps/openldap/include/ldap_config.hin"):gsub("%%[A-Z]+DIR%%", ".")
-        io.writefile(path.join(out, "ldap_config.h"), config)
-        local socket = io.readfile("in/deps/openldap/include/ac/socket.h"):gsub("#define EWOULDBLOCK WSAEWOULDBLOCK", "#undef EWOULDBLOCK\n#undef EINPROGRESS\n#undef ETIMEDOUT\n#undef ENOTCONN\n#define EWOULDBLOCK WSAEWOULDBLOCK")
-        io.writefile(path.join(out, "ac/socket.h"), socket)
-        local time = io.readfile("in/deps/openldap/include/ac/time.h"):gsub("#if defined%(_WIN32%) && !defined%(HAVE_CLOCK_GETTIME%)", "#if defined(_WIN32) && !defined(HAVE_CLOCK_GETTIME) && (!defined(_MSC_VER) || _MSC_VER < 1900)")
-        io.writefile(path.join(out, "ac/time.h"), time)
-        local version = io.readfile("in/deps/openldap/build/version.h") .. '\n#include "portable.h"\nconst char __Version[] = "OpenLDAP 2.6.13";\n'
-        io.writefile("out/openldap/version.c", version)
+        io.writefile(output, content)
+        table.insert(depend.files, output)
+        table.remove(sources, 1)
     end})
     add_includedirs("out/openldap/include", "in/deps/openldap/include", {public = true})
     add_includedirs("in/deps/openldap/libraries/libldap", "in/deps/openldap/libraries/liblber", "in/deps/rxspencer", "in/deps/openssl/include")
@@ -1327,20 +1356,22 @@ target("openldap")
     add_files("in/deps/openldap/libraries/liblber/*.c", {defines = {"LBER_LIBRARY"}})
     remove_files("in/deps/openldap/libraries/liblber/dtest.c", "in/deps/openldap/libraries/liblber/etest.c", "in/deps/openldap/libraries/liblber/idtest.c", "in/deps/openldap/libraries/liblber/stdio.c")
     add_files("in/deps/rxspencer/regcomp.c", "in/deps/rxspencer/regerror.c", "in/deps/rxspencer/regexec.c", "in/deps/rxspencer/regfree.c", {defines = {"POSIX_MISTAKE", "REDEBUG"}})
-    add_files("out/openldap/version.c", {always_added = true})
+    add_files("in/deps/openldap/build/version.h", {callback = function (sourcefile, sources)
+        local output = "out/openldap/version.c"
+        os.mkdir("out/openldap")
+        io.writefile(output, io.readfile(sourcefile) .. '\n#include "portable.h"\nconst char __Version[] = "OpenLDAP 2.6.13";\n')
+        sources[1] = output
+    end})
 
 
 target("libpq")
+    before_config(function () os.vrunv("in/hx.exe", {"github://postgres/postgres?ref=REL_16_14", "in/deps/libpq"}) end)
     set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
     add_deps("openssl")
-    add_rules("codegen", {cb = function (target, os, io, path, import, get_config)
-        local out = "out/libpq"
-        os.mkdir(path.join(out, "include"))
-        os.mkdir(path.join(out, "port"))
-
+    add_files("in/deps/libpq/src/include/pg_config.h.in", "in/deps/libpq/src/include/pg_config_ext.h.in", {callback = function (sourcefile, sources, depend)
         local defs = {}
         for name in ([=[ENABLE_THREAD_SAFETY HAVE_ASN1_STRING_GET0_DATA HAVE_ATOMICS HAVE_BIO_METH_NEW HAVE_DECL_STRNLEN HAVE_FSEEKO HAVE_HMAC_CTX_FREE HAVE_HMAC_CTX_NEW HAVE_INET_PTON HAVE_INT_TIMEZONE HAVE_LOCALE_T HAVE_LONG_LONG_INT_64 HAVE_MBSTOWCS_L HAVE_MEMORY_H HAVE_OPENSSL_INIT_SSL HAVE_SOCKLEN_T HAVE_SPINLOCKS HAVE_SSL_CTX_SET_CERT_CB HAVE_SSL_CTX_SET_NUM_TICKETS HAVE_STDINT_H HAVE_STDLIB_H HAVE_STRING_H HAVE_STRNLEN HAVE_SYS_STAT_H HAVE_SYS_TYPES_H HAVE_UNISTD_H HAVE_WCSTOMBS_L HAVE_X509_GET_SIGNATURE_INFO HAVE_X509_GET_SIGNATURE_NID HAVE__CONFIGTHREADLOCALE HAVE__CPUID PG_USE_STDBOOL STDC_HEADERS USE_LDAP USE_OPENSSL USE_SSE42_CRC32C_WITH_RUNTIME_CHECK USE_WIN32_SEMAPHORES USE_WIN32_SHARED_MEMORY]=]):gmatch("%S+") do defs[name] = "1" end
         for name in ([=[HAVE_DECL_FDATASYNC HAVE_DECL_F_FULLFSYNC HAVE_DECL_LLVMCREATEGDBREGISTRATIONLISTENER HAVE_DECL_LLVMCREATEPERFJITEVENTLISTENER HAVE_DECL_LLVMGETHOSTCPUFEATURES HAVE_DECL_LLVMGETHOSTCPUNAME HAVE_DECL_LLVMORCGETSYMBOLADDRESSIN HAVE_DECL_MEMSET_S HAVE_DECL_POSIX_FADVISE HAVE_DECL_PREADV HAVE_DECL_PWRITEV HAVE_DECL_STRCHRNUL HAVE_DECL_STRLCAT HAVE_DECL_STRLCPY HAVE_DECL_TIMINGSAFE_BCMP]=]):gmatch("%S+") do defs[name] = "0" end
@@ -1352,19 +1383,29 @@ target("libpq")
             RELSEG_SIZE=131072;SIZEOF_BOOL=1;SIZEOF_LONG=4;SIZEOF_SIZE_T=8;SIZEOF_VOID_P=8;XLOG_BLCKSZ=8192;inline=__inline;pg_restrict=__restrict
         ]=]
         for item in values:gmatch("[^;\r\n]+") do local name, value = item:match("^%s*([^=]+)=(.*)$"); if name then defs[name] = value end end
-
-        local function render(input, output)
-            local data = io.readfile(input):gsub("#(%s*)undef%s+([%w_]+)", function (_, name)
-                return defs[name] and ("#define " .. name .. " " .. defs[name]) or ("/* #undef " .. name .. " */")
-            end)
-            io.writefile(output, data)
-        end
-        render("in/deps/libpq/src/include/pg_config.h.in", path.join(out, "include/pg_config.h"))
-        render("in/deps/libpq/src/include/pg_config_ext.h.in", path.join(out, "include/pg_config_ext.h"))
-        os.cp("in/deps/libpq/src/include/port/win32.h", path.join(out, "include/pg_config_os.h"))
+        local output = "out/libpq/include/" .. path.filename(sourcefile):gsub("%.in$", "")
+        os.mkdir("out/libpq/include")
+        io.writefile(output, (io.readfile(sourcefile):gsub("#(%s*)undef%s+([%w_]+)", function (_, name)
+            return defs[name] and ("#define " .. name .. " " .. defs[name]) or ("/* #undef " .. name .. " */")
+        end)))
+        table.insert(depend.files, output)
+        table.remove(sources, 1)
+    end})
+    add_files("in/deps/libpq/src/include/port/win32.h", {callback = function (sourcefile, sources, depend)
+        local output = "out/libpq/include/pg_config_os.h"
+        os.mkdir("out/libpq/include")
+        io.writefile(output, io.readfile(sourcefile))
+        table.insert(depend.files, output)
+        table.remove(sources, 1)
+    end})
+    add_files("in/deps/libpq/src/tools/msvc/Solution.pm", {callback = function (_, sources, depend)
+        local output = "out/libpq/port/pg_config_paths.h"
         local paths = "PGBINDIR=/bin PGSHAREDIR=/share SYSCONFDIR=/etc INCLUDEDIR=/include PKGINCLUDEDIR=/include INCLUDEDIRSERVER=/include/server LIBDIR=/lib PKGLIBDIR=/lib LOCALEDIR=/share/locale DOCDIR=/doc HTMLDIR=/doc MANDIR=/man"
+        os.mkdir("out/libpq/port")
         paths = paths:gsub(" ?(%S+)=([^%s]+)", '#define %1 "%2"\n')
-        io.writefile(path.join(out, "port/pg_config_paths.h"), paths)
+        io.writefile(output, paths)
+        table.insert(depend.files, output)
+        table.remove(sources, 1)
     end})
     add_includedirs("out/libpq/include", "in/deps/libpq/src/interfaces/libpq", "in/deps/libpq/src/include", {public = true})
     add_includedirs("out/libpq/port", "in/deps/libpq/src/port", "in/deps/libpq/src/include/port/win32", "in/deps/libpq/src/include/port/win32_msvc", "in/deps/openssl/include")
@@ -1386,24 +1427,29 @@ target("libpq")
 
 
 target("libffi")
+    before_config(function () os.vrunv("in/hx.exe", {"github://winlibs/libffi?ref=libffi-3.6.0", "in/deps/libffi"}) end)
     set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
-    add_rules("codegen", {cb = function (target, os, io, path, import, get_config)
-        local compiler = import("core.tool.compiler")
+    add_files("in/deps/libffi/src/x86/win64_intel.S", {callback = function (sourcefile, sources, depend)
+        local output = "out/libffi/win64.asm"
+        local target = import("core.project.project").target("libffi")
+        local cc = import("core.tool.compiler").compargv("in/deps/libffi/src/types.c", "out/libffi/probe.obj", {target = target})
+        if type(cc) == "string" then table.insert(depend.files, cc) end
         os.mkdir("out/libffi")
-        local cc = compiler.compargv("in/deps/libffi/src/types.c", "out/libffi/probe.obj", {target = target})
-        io.writefile("out/libffi/win64.asm", os.iorunv(cc, {"/EP", "/DFFI_BUILDING", "/DFFI_STATIC_BUILD", "/Iin/deps/libffi", "/Iin/deps/libffi/include", "/Iin/deps/libffi/src/x86", "in/deps/libffi/src/x86/win64_intel.S"}))
+        io.writefile(output, os.iorunv(cc, {"/EP", "/DFFI_BUILDING", "/DFFI_STATIC_BUILD", "/Iin/deps/libffi", "/Iin/deps/libffi/include", "/Iin/deps/libffi/src/x86", sourcefile}))
+        sources[1] = output
     end})
     add_includedirs("in/deps/libffi/include", "in/deps/libffi/src/x86", "in/deps/libffi", {public = true})
     add_defines("FFI_STATIC_BUILD", {public = true})
     add_defines("FFI_BUILDING", "WIN32", "_LIB")
     add_files("in/deps/libffi/src/closures.c", "in/deps/libffi/src/java_raw_api.c", "in/deps/libffi/src/tramp.c", "in/deps/libffi/src/prep_cif.c", "in/deps/libffi/src/raw_api.c", "in/deps/libffi/src/types.c", "in/deps/libffi/src/x86/ffi.c", "in/deps/libffi/src/x86/ffiw64.c")
-    add_files("out/libffi/win64.asm", {always_added = true})
+
 
 
 target("wineditline")
+    before_config(function () os.vrunv("in/hx.exe", {"github://ptosco/wineditline?ref=wineditline-2.208", "in/deps/wineditline"}) end)
     set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
@@ -1413,14 +1459,17 @@ target("wineditline")
 
 
 target("libzip")
+    before_config(function () os.vrunv("in/hx.exe", {"github://nih-at/libzip?ref=v1.11.4", "in/deps/libzip"}) end)
     set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
     add_deps("zlib", "bzip2", "liblzma")
-    add_rules("codegen", {cb = function (target, os, io, path, import, get_config)
+    add_files("in/deps/libzip/CMakeLists.txt", {callback = function (_, sources, depend)
+        local zipconf = "out/libzip/zipconf.h"
+        local config = "out/libzip/config.h"
         os.mkdir("out/libzip")
-        io.writefile("out/libzip/zipconf.h", [[#ifndef _HAD_ZIPCONF_H
+        io.writefile(zipconf, [[#ifndef _HAD_ZIPCONF_H
             #define _HAD_ZIPCONF_H
             #define LIBZIP_VERSION "1.11.4"
             #define LIBZIP_VERSION_MAJOR 1
@@ -1452,7 +1501,7 @@ target("libzip")
             #define ZIP_UINT64_MAX 0xffffffffffffffffULL
             #endif
         ]])
-        io.writefile("out/libzip/config.h", [[#ifndef HAD_CONFIG_H
+        io.writefile(config, [[#ifndef HAD_CONFIG_H
             #define HAD_CONFIG_H
             #include "zipconf.h"
             #define ENABLE_FDOPEN
@@ -1491,6 +1540,19 @@ target("libzip")
             #define VERSION "1.11.4"
             #endif
         ]])
+        table.insert(depend.files, zipconf)
+        table.insert(depend.files, config)
+        table.remove(sources, 1)
+    end})
+    add_includedirs("out/libzip", "in/deps/libzip/lib", {public = true})
+    add_defines("ZIP_STATIC", {public = true})
+    add_defines("WIN32_LEAN_AND_MEAN", "_CRT_SECURE_NO_WARNINGS", "_CRT_NONSTDC_NO_DEPRECATE")
+    add_syslinks("bcrypt", {public = true})
+    add_files("in/deps/libzip/lib/*.c")
+    add_files("in/deps/libzip/lib/zip.h", {callback = function (sourcefile, sources, depend)
+        local output = "out/libzip/zip_err_str.c"
+        local zipint = "in/deps/libzip/lib/zipint.h"
+        table.insert(depend.files, zipint)
         local data = [[#include "zipint.h"
             #define L ZIP_ET_LIBZIP
             #define N ZIP_ET_NONE
@@ -1500,42 +1562,61 @@ target("libzip")
             #define G ZIP_DETAIL_ET_GLOBAL
             const struct _zip_err_info _zip_err_str[] = {
         ]]
-        for kind, text in io.readfile("in/deps/libzip/lib/zip.h"):gmatch("#define%s+ZIP_ER_[%w_]+%s+%d+%s+/%*%s*([LNSZ])%s+(.-)%s*%*/") do
+        for kind, text in io.readfile(sourcefile):gmatch("#define%s+ZIP_ER_[%w_]+%s+%d+%s+/%*%s*([LNSZ])%s+(.-)%s*%*/") do
             data = data .. ("    { %s, %q },\n"):format(kind, text)
         end
         data = data .. [[};
             const int _zip_err_str_count = sizeof(_zip_err_str) / sizeof(_zip_err_str[0]);
             const struct _zip_err_info _zip_err_details[] = {
         ]]
-        for kind, text in io.readfile("in/deps/libzip/lib/zipint.h"):gmatch("#define%s+ZIP_ER_DETAIL_[%w_]+%s+%d+%s+/%*%s*([EG])%s+(.-)%s*%*/") do
+        for kind, text in io.readfile(zipint):gmatch("#define%s+ZIP_ER_DETAIL_[%w_]+%s+%d+%s+/%*%s*([EG])%s+(.-)%s*%*/") do
             data = data .. ("    { %s, %q },\n"):format(kind, text)
         end
-        io.writefile("out/libzip/zip_err_str.c", data .. [[};
+        io.writefile(output, data .. [[};
             const int _zip_err_details_count = sizeof(_zip_err_details) / sizeof(_zip_err_details[0]);
         ]])
+        sources[1] = output
     end})
-    add_includedirs("out/libzip", "in/deps/libzip/lib", {public = true})
-    add_defines("ZIP_STATIC", {public = true})
-    add_defines("WIN32_LEAN_AND_MEAN", "_CRT_SECURE_NO_WARNINGS", "_CRT_NONSTDC_NO_DEPRECATE")
-    add_syslinks("bcrypt", {public = true})
-    add_files("in/deps/libzip/lib/*.c")
-    add_files("out/libzip/zip_err_str.c", {always_added = true})
     remove_files("in/deps/libzip/lib/zip_algorithm_zstd.c", "in/deps/libzip/lib/zip_crypto_commoncrypto.c", "in/deps/libzip/lib/zip_crypto_gnutls.c", "in/deps/libzip/lib/zip_crypto_mbedtls.c", "in/deps/libzip/lib/zip_crypto_openssl.c", "in/deps/libzip/lib/zip_random_unix.c", "in/deps/libzip/lib/zip_random_uwp.c", "in/deps/libzip/lib/zip_source_file_stdio_named.c")
 
 
 target("mpir")
+    before_config(function () os.vrunv("in/hx.exe", {"github://winlibs/mpir?ref=mpir-3.0.0-2", "in/deps/mpir"}) end)
     set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
-    add_rules("codegen", {cb = function (target, os, io, path, import, get_config)
+    add_files("in/deps/mpir/build.vc/cfg.h", {callback = function (sourcefile, sources, depend)
+        local output = "out/mpir/include/mpir/config.h"
         os.mkdir("out/mpir/include/mpir")
-        io.writefile("out/mpir/include/mpir/config.h", "/* generated by gen_config_h.bat */\n" .. io.readfile("in/deps/mpir/build.vc/cfg.h"))
-        io.writefile("out/mpir/include/mpir/gmp-mparam.h", io.readfile("in/deps/mpir/mpn/generic/gmp-mparam.h"))
-        io.writefile("out/mpir/include/mpir/longlong.h", io.readfile("in/deps/mpir/longlong_pre.h") .. io.readfile("in/deps/mpir/mpn/x86_64w/longlong_inc.h") .. io.readfile("in/deps/mpir/longlong_post.h"))
-
+        io.writefile(output, "/* generated by gen_config_h.bat */\n" .. io.readfile(sourcefile))
+        table.insert(depend.files, output)
+        table.remove(sources, 1)
+    end})
+    add_files("in/deps/mpir/mpn/generic/gmp-mparam.h", {callback = function (sourcefile, sources, depend)
+        local output = "out/mpir/include/mpir/gmp-mparam.h"
+        os.mkdir("out/mpir/include/mpir")
+        io.writefile(output, io.readfile(sourcefile))
+        table.insert(depend.files, output)
+        table.remove(sources, 1)
+    end})
+    add_files("in/deps/mpir/longlong_pre.h", {callback = function (sourcefile, sources, depend)
+        local inc = "in/deps/mpir/mpn/x86_64w/longlong_inc.h"
+        local post = "in/deps/mpir/longlong_post.h"
+        local output = "out/mpir/include/mpir/longlong.h"
+        table.insert(depend.files, inc)
+        table.insert(depend.files, post)
+        os.mkdir("out/mpir/include/mpir")
+        io.writefile(output, io.readfile(sourcefile) .. io.readfile(inc) .. io.readfile(post))
+        table.insert(depend.files, output)
+        table.remove(sources, 1)
+    end})
+    add_files("in/deps/mpir/gmp-h.in", {callback = function (sourcefile, sources, depend)
+        local mpir = "out/mpir/include/mpir/mpir.h"
+        local gmp = "out/mpir/include/mpir/gmp.h"
+        os.mkdir("out/mpir/include/mpir")
         local header = "/* generated from gmp-h.in by gen_mpir_h.bat */\n"
-        local source = io.readfile("in/deps/mpir/gmp-h.in"):gsub("\r\n", "\n") .. "\n"
+        local source = io.readfile(sourcefile):gsub("\r\n", "\n") .. "\n"
         for line in source:gmatch("([^\n]*)\n") do
             if line:find("@GMP_NAIL_BITS@", 1, true) then
                 header = header .. [[#ifdef _WIN32
@@ -1554,8 +1635,11 @@ target("mpir")
                 header = header .. line .. "\n"
             end
         end
-        io.writefile("out/mpir/include/mpir/mpir.h", header)
-        io.writefile("out/mpir/include/mpir/gmp.h", header)
+        io.writefile(mpir, header)
+        io.writefile(gmp, header)
+        table.insert(depend.files, mpir)
+        table.insert(depend.files, gmp)
+        table.remove(sources, 1)
     end})
     add_includedirs("out/mpir/include/mpir", "in/deps/mpir", {public = true})
     add_defines("NDEBUG", "WIN32", "_LIB", "HAVE_CONFIG_H", "_WIN64")
@@ -1564,49 +1648,70 @@ target("mpir")
 
 
 target("openssl")
+    before_config(function ()
+        os.vrunv("in/hx.exe", {"github://openssl/openssl?ref=openssl-3.5.7", "in/deps/openssl"})
+        os.vrunv("in/hx.exe", {"https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_54221_64bit/strawberry-perl-5.42.2.1-64bit-portable.zip", "in/perl"})
+    end)
     set_enabled(true)
     set_kind("static")
     set_targetdir(get_config("builddir"))
     set_toolset("as", "nasm@$(projectdir)/in/perl/c/bin/nasm.exe")
     -- add_rules("c.unity_build")
-    add_rules("codegen", {cb = function (target, os, io, path, import, get_config)
-        local async = import("async")
-        local option = import("core.base.option")
-
-        local root = path.absolute("in/deps/openssl")
-        local perl = "$(projectdir)/in/perl/perl/bin/perl.exe"
-        local jobs = option.get("jobs") or os.default_njob()
-
+    add_files("in/deps/openssl/Configure", {callback = function (sourcefile, sources, depend)
+        local root = "in/deps/openssl"
+        local perl = "in/perl/perl/bin/perl.exe"
+        local output = "in/deps/openssl/configdata.pm"
+        table.insert(depend.files, perl)
+        table.insert(depend.files, "in/deps/openssl/VERSION.dat")
+        for _, file in ipairs(os.files("in/deps/openssl/Configurations/*.conf")) do table.insert(depend.files, file) end
+        os.vrunv(perl, {path.filename(sourcefile), "VC-WIN64A", "no-shared", "no-module", "no-tests", "no-docs"},
+            {curdir = root, addenvs = {PATH = path.relative("in/perl/c/bin", root)}})
+        table.insert(depend.files, output)
+        table.remove(sources, 1)
+    end})
+    add_files("in/deps/openssl/util/mkbuildinf.pl", {callback = function (sourcefile, sources, depend)
+        local root = "in/deps/openssl"
+        local perl = "in/perl/perl/bin/perl.exe"
+        local config = "in/deps/openssl/configdata.pm"
+        local output = "in/deps/openssl/crypto/buildinf.h"
+        table.insert(depend.files, perl)
+        table.insert(depend.files, config)
+        os.vrunv(perl, {path.relative(sourcefile, root), "cl /MD /O2", "VC-WIN64A"},
+            {curdir = root, stdout = output})
+        table.insert(depend.files, output)
+        table.remove(sources, 1)
+    end})
+    add_files("in/deps/openssl/**/*.[ch].in", {callback = function (sourcefile, sources, depend)
+        local root = "in/deps/openssl"
+        local perl = "in/perl/perl/bin/perl.exe"
+        local config = "in/deps/openssl/configdata.pm"
+        local dofile = "in/deps/openssl/util/dofile.pl"
+        local output = sourcefile:sub(1, -4)
+        table.insert(depend.files, perl)
+        table.insert(depend.files, config)
+        table.insert(depend.files, dofile)
+        for _, file in ipairs(os.files("in/deps/openssl/util/perl/**/*.pm")) do table.insert(depend.files, file) end
+        for _, file in ipairs(os.files("in/deps/openssl/providers/common/der/*.pm")) do table.insert(depend.files, file) end
         os.vrunv(perl,
-            {"Configure", "VC-WIN64A", "no-shared", "no-module", "no-tests", "no-docs"},
-            {curdir = root, addenvs = {PATH = path.absolute("in/perl/c/bin")}})
-
-        os.vrunv(perl, {"util/mkbuildinf.pl", "cl /MD /O2", "VC-WIN64A"},
-            {curdir = root, stdout = path.join(root, "crypto/buildinf.h")})
-
-        os.vrunv(perl, {"apps/progs.pl", "-C", "apps\\openssl"},
-            {curdir = root, stdout = path.join(root, "apps/progs.c")})
-        os.vrunv(perl, {"apps/progs.pl", "-H", "apps\\openssl"},
-            {curdir = root, stdout = path.join(root, "apps/progs.h")})
-
-        local templates = os.files(path.join(root, "**/*.[ch].in"))
-        async.runjobs("openssl_test.templates", function (index)
-            local input = templates[index]
-            local output = input:sub(1, -4)
-            os.vrunv(perl,
-                {"-I.", "-Iutil/perl", "-Iproviders/common/der", "-Mconfigdata",
-                 "-MOpenSSL::paramnames", "-Moids_to_c", "util/dofile.pl", "-omakefile",
-                 path.relative(input, root)},
-                {curdir = root, stdout = output})
-        end, {total = #templates, comax = jobs})
-
-        local generators = os.files(path.join(root, "**/*x86_64*.pl|crypto/perlasm/**"))
-        async.runjobs("openssl_test.perlasm", function (index)
-            local generator = generators[index]
-            local relative = path.relative(generator, root):gsub("\\", "/")
-            local output = relative:gsub("/asm/", "/"):gsub("%.pl$", ".asm")
-            os.vrunv(perl, {relative, "nasm", output}, {curdir = root})
-        end, {total = #generators, comax = jobs})
+            {"-I.", "-Iutil/perl", "-Iproviders/common/der", "-Mconfigdata", "-MOpenSSL::paramnames", "-Moids_to_c",
+             "util/dofile.pl", "-omakefile", path.relative(sourcefile, root)},
+            {curdir = root, stdout = output})
+        if output:endswith(".c") then
+            sources[1] = output
+        else
+            table.insert(depend.files, output)
+            table.remove(sources, 1)
+        end
+    end})
+    add_files("in/deps/openssl/**/*x86_64*.pl|crypto/perlasm/**", {callback = function (sourcefile, sources, depend)
+        local root = "in/deps/openssl"
+        local perl = "in/perl/perl/bin/perl.exe"
+        local relative = path.relative(sourcefile, root):gsub("\\", "/")
+        local output = "in/deps/openssl/" .. relative:gsub("/asm/", "/"):gsub("%.pl$", ".asm")
+        table.insert(depend.files, perl)
+        for _, file in ipairs(os.files("in/deps/openssl/crypto/perlasm/*.pl")) do table.insert(depend.files, file) end
+        os.vrunv(perl, {relative, "nasm", path.relative(output, root):gsub("\\", "/")}, {curdir = root})
+        sources[1] = output
     end})
 
     add_files(
@@ -1639,7 +1744,6 @@ target("openssl")
     )
 
     add_asflags("-Ox", "-f", "win64", "-DNEAR", "-g", {force = true})
-    add_files("in/deps/openssl/**/*x86_64*.asm", "in/deps/openssl/**/*avx*.asm")
 
     add_includedirs(
         "in/deps/openssl/apps/include",
@@ -1695,19 +1799,50 @@ target("openssl")
 
 
 target("php")
+    before_config(function ()
+        os.vrunv("in/hx.exe", {"-delpathseg", "1", "github://php/php-sdk-binary-tools", "in/php-sdk"})
+        os.vrunv("in/hx.exe", {"github://true-async/php-src?ref=true-async-stable", "in/php-src"})
+        os.vrunv("in/hx.exe", {"github://true-async/php-async", "in/php-src/ext/async"})
+        os.vrunv("in/hx.exe", {"github://true-async/server", "in/php-src/ext/http_server"})
+    end)
     set_enabled(true)
     set_default(false)
     set_kind("object")
     set_targetdir(get_config("builddir"))
-    add_rules("codegen", {cb = function (target, os, io, path, import, get_config)
-        local minilua = path.join(get_config("builddir"), "minilua.exe")
-        local foldhash = path.join(get_config("builddir"), "gen_ir_fold_hash.exe")
-        assert(os.isfile(minilua) and os.isfile(foldhash), "run `xmake build minilua gen_ir_fold_hash` before the main build")
+    add_files("in/php-src/ext/opcache/jit/ir/dynasm/minilua.c", "in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c", {callback = function (sourcefile, sources, depend)
+        local name = sourcefile:endswith("minilua.c") and "minilua" or "gen_ir_fold_hash"
+        local tool = assert(import("core.project.project").target(name))
+        local object = tool:objectfile(sourcefile)
+        local output = tool:targetfile()
+        local compiler = tool:compiler("cc")
+        local linker = tool:linker()
+        local program = tool:tool("cc")
+        if program then table.insert(depend.files, program) end
+        os.mkdir(path.directory(object))
+        os.mkdir(path.directory(output))
+        compiler:compile(sourcefile, object, {target = tool})
+        linker:link({object}, output, {target = tool})
+        table.insert(depend.files, object)
+        table.insert(depend.files, output)
+        table.remove(sources, 1)
+    end})
+    add_files("in/php-src/ext/opcache/jit/ir/ir_x86.dasc", {callback = function (sourcefile, sources, depend)
         local ir = "in/php-src/ext/opcache/jit/ir"
-        os.vrunv(minilua,
-            {path.join(ir, "dynasm/dynasm.lua"), "-D", "X64=1", "-D", "X64WIN=1", "-D", "WIN=1", "-o", path.join(ir, "ir_emit_x86.h"), path.join(ir, "ir_x86.dasc")})
-        os.vrunv(foldhash, {},
-            {stdin = path.join(ir, "ir_fold.h"), stdout = path.join(ir, "ir_fold_hash.h")})
+        local minilua = path.join(get_config("builddir"), "minilua.exe")
+        local output = path.join(ir, "ir_emit_x86.h")
+        table.insert(depend.files, minilua)
+        for _, file in ipairs(os.files(path.join(ir, "dynasm/**/*.lua"))) do table.insert(depend.files, file) end
+        os.vrunv(minilua, {path.join(ir, "dynasm/dynasm.lua"), "-D", "X64=1", "-D", "X64WIN=1", "-D", "WIN=1", "-o", output, sourcefile})
+        table.insert(depend.files, output)
+        table.remove(sources, 1)
+    end})
+    add_files("in/php-src/ext/opcache/jit/ir/ir_fold.h", {callback = function (sourcefile, sources, depend)
+        local foldhash = path.join(get_config("builddir"), "gen_ir_fold_hash.exe")
+        local output = "in/php-src/ext/opcache/jit/ir/ir_fold_hash.h"
+        table.insert(depend.files, foldhash)
+        os.vrunv(foldhash, {}, {stdin = sourcefile, stdout = output})
+        table.insert(depend.files, output)
+        table.remove(sources, 1)
     end})
     add_files("in/php-src/Zend/zend.c")
 

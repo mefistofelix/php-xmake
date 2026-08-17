@@ -1,28 +1,29 @@
 # Build Roadmap
 
-Last updated: 2026-08-15
+Last updated: 2026-08-17
 
 ## Current State
 
 - [x] Initialize the Git repository and ignore downloaded sources, tools, caches, and outputs.
-- [x] Add an idempotent-oriented `prepare` task for sources, binary dependencies, Perl, MSVC, and the Windows SDK.
-- [x] Complete one successful `xmake prepare` run with all currently pinned inputs.
-- [x] Repeat `xmake prepare` with every current input present and validate idempotence.
-- [x] Use one shared target-level `codegen` rule with synchronous `on_prepare(..., {jobgraph = true})`; targets attach it through `add_rules("codegen", {cb = ...})`, and the rule centrally owns `out/.<target>.codegen` incremental skipping without source-cache rematching.
+- [x] Replace the monolithic `prepare` task with target-owned `before_config` fetch hooks so a selected build materializes only its requested target/dependency closure.
+- [x] Bootstrap `hx.exe` lazily from the shared `fetch(os, argv)` helper and keep every target fetch idempotent through hx provenance/options matching.
+- [x] Bootstrap `msvcup`, MSVC, and the Windows SDK in patched `on_toolchain_prepare` immediately before MSVC detection; extend the patch so the hook runs in a normal operational sandbox.
+- [x] Extend selected-build pruning to `add_configfiles`; unrelated enabled targets no longer require their templates/source trees during `xmake build <target>`, while standalone `xmake config` remains all-target.
+- [x] Remove the shared target-level `codegen` rule and all `out/.<target>.codegen` markers; move generation/configuration to `add_configfiles` or per-input patched `add_files` materialization with Xmake's normal `depend` records.
 - [x] Define the `minilua` and `gen_ir_fold_hash` helper targets.
 - [x] Record the known PHP code-generation inventory in `AGENTS.md`.
 - [x] Keep all integrated dependency targets enabled for the PHP integration; helper/prototype targets may remain non-default while still enabled.
 - [x] Build and archive `out/zlib.lib` successfully with MSVC x64.
 - [x] Build and archive the complete single-target `out/brotli.lib` successfully with MSVC x64.
-- [x] Validate the `minilua` and `gen_ir_fold_hash` helper targets with MSVC x64 `/MD` and correct `IR_TARGET_X64`; build them explicitly before the main build so PHP's target-level `codegen` callback can invoke them deterministically.
+- [x] Validate `minilua` and `gen_ir_fold_hash` with MSVC x64 `/MD` and correct `IR_TARGET_X64`; PHP now materializes the helper executables incrementally through Xmake compiler/linker APIs before the JIT callbacks consume them, so no manual helper prebuild is required.
 - [x] Remove empty and placeholder callbacks; only targets with real codegen/configuration work attach the shared `codegen` rule.
 - [x] Follow upstream Windows PHP and select the dynamic multithreaded MSVC CRT globally with `set_runtimes("MD")` for loadable-extension compatibility.
 - [x] Verify a forced zstd build uses `/MD` in every MSVC compile command.
-- [ ] Replace the object-only `php` prototype incrementally; JIT helper-driven prepare-rule codegen is wired, while PHP configuration/Bison/RE2C/resource generation remains.
-- [x] Move the shared `codegen` adapter to target level: each participating target uses `add_rules("codegen", {cb = ...})`; no source-file sentinel is required, and the rule supplies the callback facilities and owns `out/.<target>.codegen`.
-- [x] Identify `platform.windows.idl:on_config` as the premature source-list materialization point: its `target:sourcebatches()` call expands all enabled targets' source globs before the build action prunes the requested root/dependency graph. Document the upstream lazy fix in `patch.md` and shadow the unused IDL rule locally.
-- [x] Validate the clean generated-source timing after disabling the IDL config scan: synchronous `on_prepare(..., {jobgraph = true})` runs only for the requested target and its dependencies; generated sources declared by later ordinary `add_files` patterns are then discovered and compiled in the same invocation, with no `memcache.clear()`, `target:_invalidate("files")`, or dynamic file insertion.
-- [x] Revalidate the new timing on the real `libzip` target by deleting only `out/.libzip.codegen` and `out/libzip/zip_err_str.c`: the callback regenerated the source and the same `xmake build libzip` compiled it through the existing declarative `add_files`; the immediate second build was a 0.141 s no-op.
+- [ ] Replace the object-only `php` prototype incrementally; JIT helper/tool materialization is now automatic and incremental, while PHP configuration/Bison/RE2C/resource generation remains. A direct `xmake build php` reaches normal compilation and currently stops at the pre-existing missing `zend_config.h` work.
+- [x] Convert all former target-level codegen participants to file-owned `add_files`/`depend` materialization; there is no shared codegen adapter or project-owned incremental marker left.
+- [x] Use the patched Xmake bundle's lazy Windows IDL implementation; remove the project's local `platform.windows.idl` shadow now that the bundle itself fixes the premature `target:sourcebatches()` expansion.
+- [x] Validate the patched lazy-source timing: synchronous selected-target `on_prepare` and post-callback `add_files` materialization both work without `memcache.clear()`, `target:_invalidate("files")`, or dynamic target file insertion.
+- [x] Replace libzip's separate generated-source callback plus `always_added` declaration with patched `add_files` materialization from `zip.h` directly to `out/libzip/zip_err_str.c`; rebuild succeeds with the returned `.c` path compiled normally.
 - [x] Use one uniform Perl include/module prefix for every OpenSSL `.in` template in `openssl_test`; all 50 C/header templates accept the superset, so template-content inspection and specialized argument construction are unnecessary.
 - [x] Use `**/*x86_64*.pl|crypto/perlasm/**` in `openssl_test`; the declarative exclusion prevents the stdin-driven `x86_64-xlate.pl` helper from hanging an interactive build while retaining the standalone generator matches.
 - [x] Consolidate repeated OpenSSL-root and Perl-program expressions in `openssl_test:on_prepare` into two local values; the simplified callback preserves the validated template and perlasm preparation behavior.
@@ -34,6 +35,14 @@ Last updated: 2026-08-15
 - [x] Complete a clean parallel build of the broad `openssl_test` source-glob experiment with preparation temporarily bypassed, using declarative exclusions for disabled, platform-incompatible, test/example, and textually included implementation sources.
 - [x] Promote the compact `openssl_test` declaration to the official `openssl` target and remove the obsolete 109-group unity declaration.
 - [x] Preserve the validated compact OpenSSL structure; later static-link closure fixes are limited to source/assembly selection and do not increase its 131-line target size.
+- [x] Refactor configuration/source generation around the patched Xmake features: remove the local IDL workaround; use `add_configfiles` for nghttp2, nghttp3, ngtcp2, libsodium, libiconv public headers, libxml2, libxslt, Oniguruma, FreeType, libjxl version metadata, and libheif version metadata; use `add_files` source materialization for ICU data, Cyrus SASL `saslutil.c`, OpenLDAP `version.c`, and libzip `zip_err_str.c`. Focused rebuilds all pass with a fresh patched-bundle TEMP.
+- [x] Eliminate the remaining target-level `codegen` attachments entirely. OpenSSL, AVIF/dav1d/AOM, libintl, libffi, libjpeg, libtiff, libpq, OpenLDAP/Cyrus SASL, libzip, MPIR, ICU, libjxl, and PHP JIT generation now use fine-grained materialization records.
+- [x] Extend patched Xmake so materialized outputs refresh built-in file/language rules from their final paths; transformations such as `.pl -> .asm`, `.S -> .asm`, `.in -> .c`, and `.rc -> .obj` no longer need duplicate generated-source declarations.
+- [x] Fix the patched `add_files` source loop so `remove_files()` patterns are retained without requiring the literal wildcard path to exist; OpenSSL source filtering again excludes apps and non-x64/platform fallbacks after materialization.
+- [x] Serialize `toolchain:check()` with Xmake's coroutine lock so parallel first-use consumers cannot race through `on_toolchain_prepare` and launch the same MSVC installer repeatedly.
+- [x] Validate a full OpenSSL build through the final materialization path, then validate no-change reuse and single-output invalidation: deleting only generated `crypto/params_idx.c` reruns only its owning `.c.in` generator and recompiles that source.
+- [x] Smoke-test the three other critical materialization shapes with the patched bundle: libffi `.S -> .asm`, libintl `.rc -> .obj` plus generated headers, and dav1d one-template-to-two-generated-C expansion inside `avif`; all focused builds complete successfully.
+- [x] Validate PHP JIT ordering from missing helper executables: `php` materializes both helper tools, then the two JIT headers, before normal compilation. A second unchanged run skips those generators; the current PHP prototype later stops at the pre-existing missing `zend_config.h` work.
 - [x] Defer new unity-build work until all dependencies and the complete PHP target have validated baseline builds.
 
 ## Completed Target: zlib
