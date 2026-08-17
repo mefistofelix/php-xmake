@@ -40,9 +40,7 @@ target("zlib")
     set_targetdir(get_config("builddir"))
     add_includedirs("in/deps/zlib", {public = true})
     add_defines("ZLIB_BUILD", "NO_FSEEKO", "_CRT_SECURE_NO_DEPRECATE", "_CRT_NONSTDC_NO_DEPRECATE")
-    add_rules("c.unity_build")
     add_files("in/deps/zlib/*.c")
-    add_files("in/deps/zlib/gz*.c", "in/deps/zlib/inf*.c", "in/deps/zlib/zutil.c", {unity_ignored = true})
 
 target("brotli")
     before_config(function () os.vrunv("in/hx.exe", {"github://google/brotli?ref=v1.2.0", "in/deps/brotli"}) end)
@@ -51,11 +49,7 @@ target("brotli")
     set_targetdir(get_config("builddir"))
     add_includedirs("in/deps/brotli/c/include", {public = true})
     add_defines("_CRT_SECURE_NO_WARNINGS")
-    add_rules("c.unity_build")
     add_files("in/deps/brotli/c/common/*.c", "in/deps/brotli/c/dec/*.c", "in/deps/brotli/c/enc/*.c")
-    add_files("in/deps/brotli/c/enc/compress_fragment_two_pass.c",
-        "in/deps/brotli/c/enc/entropy_encode.c", {unity_group = "secondary"})
-    add_files("in/deps/brotli/c/enc/static_dict.c", {unity_ignored = true})
 
 target("zstd")
     before_config(function () os.vrunv("in/hx.exe", {"github://facebook/zstd?ref=v1.5.7", "in/deps/zstd"}) end)
@@ -64,11 +58,8 @@ target("zstd")
     set_targetdir(get_config("builddir"))
     add_includedirs("in/deps/zstd/lib", {public = true})
     add_defines("ZSTD_MULTITHREAD", "ZSTD_LEGACY_SUPPORT=5", "ZSTD_DISABLE_ASM", "ZSTD_HEAPMODE=0", "_CRT_SECURE_NO_WARNINGS")
-    add_rules("c.unity_build")
     add_files("in/deps/zstd/lib/common/*.c", "in/deps/zstd/lib/compress/*.c",
         "in/deps/zstd/lib/decompress/*.c", "in/deps/zstd/lib/dictBuilder/*.c", "in/deps/zstd/lib/legacy/*.c")
-    add_files("in/deps/zstd/lib/dictBuilder/fastcover.c", {unity_ignored = true})
-    add_files("in/deps/zstd/lib/legacy/*.c", {unity_ignored = true})
 
 target("bzip2")
     before_config(function () os.vrunv("in/hx.exe", {"-delpathseg", "1", "https://sourceware.org/pub/bzip2/bzip2-1.0.8.tar.gz", "in/deps/bzip2"}) end)
@@ -107,7 +98,6 @@ target("liblzma")
         "HAVE_DECODER_LZMA1", "HAVE_DECODER_LZMA2", "HAVE_DECODER_DELTA",
         "HAVE_DECODER_X86", "HAVE_DECODER_ARM", "HAVE_DECODER_ARMTHUMB", "HAVE_DECODER_ARM64",
         "HAVE_DECODER_POWERPC", "HAVE_DECODER_IA64", "HAVE_DECODER_SPARC", "HAVE_DECODER_RISCV")
-    add_rules("c.unity_build")
     add_files("in/deps/xz/src/common/tuklib_cpucores.c", "in/deps/xz/src/common/tuklib_physmem.c")
     add_files("in/deps/xz/src/liblzma/common/*.c", "in/deps/xz/src/liblzma/delta/*.c",
         "in/deps/xz/src/liblzma/lz/*.c", "in/deps/xz/src/liblzma/simple/*.c")
@@ -115,24 +105,6 @@ target("liblzma")
         "in/deps/xz/src/liblzma/check/crc64_fast.c", "in/deps/xz/src/liblzma/check/sha256.c")
     add_files("in/deps/xz/src/liblzma/lzma/*.c|*tablegen.c",
         "in/deps/xz/src/liblzma/rangecoder/price_table.c")
-    add_files("in/deps/xz/src/common/tuklib_physmem.c", "in/deps/xz/src/liblzma/check/crc64_fast.c",
-        "in/deps/xz/src/liblzma/common/block_encoder.c", "in/deps/xz/src/liblzma/common/filter_encoder.c",
-        "in/deps/xz/src/liblzma/common/microlzma_encoder.c",
-        "in/deps/xz/src/liblzma/common/stream_buffer_encoder.c",
-        "in/deps/xz/src/liblzma/common/stream_decoder_mt.c",
-        "in/deps/xz/src/liblzma/delta/delta_decoder.c", "in/deps/xz/src/liblzma/lz/lz_encoder.c",
-        "in/deps/xz/src/liblzma/lzma/lzma2_encoder.c", {unity_group = "conflict_1"})
-    add_files("in/deps/xz/src/liblzma/common/alone_decoder.c",
-        "in/deps/xz/src/liblzma/common/index_hash.c",
-        "in/deps/xz/src/liblzma/common/stream_decoder.c",
-        "in/deps/xz/src/liblzma/lzma/lzma_decoder.c", {unity_group = "conflict_2"})
-    add_files("in/deps/xz/src/liblzma/common/auto_decoder.c",
-        "in/deps/xz/src/liblzma/common/index_decoder.c",
-        "in/deps/xz/src/liblzma/common/stream_encoder.c", {unity_group = "conflict_3"})
-    add_files("in/deps/xz/src/liblzma/common/alone_encoder.c",
-        "in/deps/xz/src/liblzma/common/index_encoder.c",
-        "in/deps/xz/src/liblzma/lz/lz_encoder_mf.c",
-        "in/deps/xz/src/liblzma/lzma/lzma_encoder*.c", {unity_group = "conflict_4"})
 
 target("libssh2")
     before_config(function () os.vrunv("in/hx.exe", {"github://libssh2/libssh2?ref=libssh2-1.11.1", "in/deps/libssh2"}) end)
@@ -1455,6 +1427,7 @@ target("wineditline")
     set_targetdir(get_config("builddir"))
     set_optimize("fastest")
     add_includedirs("in/deps/wineditline/src", {public = true})
+    add_rules("c.unity_build")
     add_files("in/deps/wineditline/src/editline.c", "in/deps/wineditline/src/fn_complete.c", "in/deps/wineditline/src/history.c")
 
 

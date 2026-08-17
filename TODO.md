@@ -2,6 +2,13 @@
 
 Last updated: 2026-08-17
 
+## Unity Validation
+
+- `wineditline`: full-target default `c.unity_build` passes; all 3 C sources are emitted into one `unity_1.c`.
+- `bzip2`: full-target default `c.unity_build` passes; all 7 selected C sources are emitted into one `unity_1.c`.
+- `nghttp3`: full-target default `c.unity_build` fails without any Xmake-side grouping/ignoring. `lib/nghttp3_http.c` and `lib/sfparse/sfparse.c` both define file-local `static int is_ws(uint8_t)`. They are legal in separate translation units but become duplicate definitions in one Unity translation unit (`MSVC C2084`). Do not work around this in the target with `unity_group`, `unity_ignored`, or source-list changes; keep the normal non-Unity build unless a general solution or upstream source change is deliberately chosen.
+
+
 ## Current State
 
 - [x] Initialize the Git repository and ignore downloaded sources, tools, caches, and outputs.

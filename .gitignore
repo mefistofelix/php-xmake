@@ -3,5 +3,6 @@
 !/xmake.lua
 !/AGENTS.md
 !/TODO.md
+!/unitybuild.md
 !/patch.md
 !/patch-toolchain.md
