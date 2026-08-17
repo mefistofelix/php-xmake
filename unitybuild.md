@@ -28,6 +28,11 @@ Do not alter a target's real source list, rename upstream symbols, add Unity exc
 | `ngtcp2` | Enabled | PASS | 48 C sources across the core and crypto directories compile as one `unity_1.c` / one object. |
 | `libcurl` | Enabled | PASS | 192 C sources across libcurl's core and protocol subdirectories compile as one `unity_1.c` / one object. |
 | `libuv` | Disabled after test | FAIL | Duplicate file-local Windows backend buffers: `uv_zero_` in pipe/tcp/udp and `uv_null_buf_` in pipe/tty. |
+| `libsodium` | Disabled after test | FAIL | Alternative AEGIS-128L AES-NI and software backends reuse `aes_block_t`, AES macros, and shared static helper bodies inside the same algorithm directory. |
+| `oniguruma` | Disabled after test | FAIL | Per-encoding implementation files deliberately reuse private helper/table names; generated gperf/unicode sources also reuse `hash` and generic macros. |
+| `sqlite3` | N/A | SINGLE TU | The target is already the single upstream amalgamation source `sqlite3.c`; Unity would be a no-op. |
+| `libpng` | Disabled after test | FAIL | Upstream `pngpriv.h` explicitly errors on duplicate inclusion; all 15 main library sources and both Intel C sources include it once per normal translation unit. |
+| `libjpeg` | Disabled after test | FAIL | Baseline/lossless/progressive Huffman implementations reuse private state/helper names; `jchuff.c` also leaks the `emit_byte` macro into `jcmarker.c`. NASM remains correctly separate. |
 
 ---
 
@@ -891,6 +896,370 @@ A principled grouped experiment could therefore isolate the transport/terminal i
 ### Current decision
 
 Leave `libuv` non-Unity after this test. Do not rename upstream private buffers or add per-file Unity exceptions during the survey.
+
+---
+
+## `libsodium`
+
+### Result
+
+FAIL under full Unity. The target recursively includes all 141 C sources under `src/libsodium`; adding only `add_rules("c.unity_build")` makes alternative implementation backends that are normally separate translation units share one file scope.
+
+The first fatal collision is already inside the AEGIS-128L algorithm directory:
+
+```text
+in/deps/libsodium/src/libsodium/crypto_aead/aegis128l/aegis128l_aesni.c
+in/deps/libsodium/src/libsodium/crypto_aead/aegis128l/aegis128l_soft.c
+```
+
+### Alternative backend type and macro collisions
+
+The AES-NI source defines:
+
+```text
+aegis128l_aesni.c:32
+    typedef __m128i aes_block_t;
+
+aegis128l_aesni.c:33-38
+    AES_BLOCK_XOR
+    AES_BLOCK_AND
+    AES_BLOCK_LOAD
+    AES_BLOCK_LOAD_64x2
+    AES_BLOCK_STORE
+    AES_ENC
+```
+
+The software fallback defines the same private abstraction names with a different underlying type and different operations:
+
+```text
+aegis128l_soft.c:25
+    typedef SoftAesBlock aes_block_t;
+
+aegis128l_soft.c:26-31
+    AES_BLOCK_XOR
+    AES_BLOCK_AND
+    AES_BLOCK_LOAD
+    AES_BLOCK_LOAD_64x2
+    AES_BLOCK_STORE
+    AES_ENC
+```
+
+In normal compilation each backend gets its own private `aes_block_t` abstraction. Full Unity first reports `C2371: 'aes_block_t': redefinition; different basic types`, followed by the expected macro redefinition warnings and type-mismatch cascade.
+
+### Shared implementation-header bodies
+
+Both backend sources also define the same backend-local update helper and then include the same implementation header:
+
+```text
+aegis128l_aesni.c:41
+    static inline void aegis128l_update(...)
+
+aegis128l_soft.c:34
+    static inline void aegis128l_update(...)
+
+both include:
+    aegis128l_common.h
+```
+
+`aegis128l_common.h` contains static implementation bodies parameterized by the backend's `aes_block_t` and AES macros, including functions such as:
+
+```text
+aegis128l_init
+aegis128l_mac
+aegis128l_absorb
+aegis128l_absorb2
+aegis128l_enc
+```
+
+Including that implementation header once per backend is intentional. Full Unity includes it twice in one translation unit under two incompatible backend macro/type environments, causing duplicate function bodies in addition to the type collision.
+
+### Natural partition hypotheses
+
+The source tree has strong algorithm/component directories, but this result proves that a simple "one Unity per algorithm directory" policy is not universally valid: a single algorithm directory may contain mutually exclusive or runtime-selected optimized backends.
+
+For AEGIS-128L, the natural boundary is at least:
+
+```text
+AES-NI backend: aegis128l_aesni.c
+software backend: aegis128l_soft.c
+```
+
+The public/dispatch source for the algorithm could potentially form another unit with compatible code, but that requires a dedicated grouped test. The same implementation pattern may occur in other libsodium algorithms with portable, SSE/AVX, AES-NI, or architecture-specific implementations, so a future grouped design should follow backend implementation boundaries rather than blindly grouping by directory.
+
+### Current decision
+
+Leave `libsodium` non-Unity after this test. Do not rename the backend abstraction, rewrite implementation headers, or exclude optimized backends merely to make a full-target Unity compile pass.
+
+---
+
+## `oniguruma`
+
+### Result
+
+FAIL under full Unity. All selected Oniguruma C sources physically live under `in/deps/libonig/src/`, but many are independent encoding implementations that deliberately reuse the same private names because they normally compile as separate translation units.
+
+Representative direct collisions from the full-Unity compile include:
+
+```text
+is_valid_mbc_string
+    big5.c:75
+    euc_jp.c:60
+
+CaseFoldMap
+    cp1251.c:131
+    iso8859_1.c:73
+    iso8859_2.c:128
+    iso8859_3.c:137
+    iso8859_4.c:137
+    iso8859_5.c:130
+    iso8859_7.c:130
+    iso8859_9.c:137
+    iso8859_10.c:137
+    iso8859_13.c:137
+    iso8859_14.c:137
+    iso8859_15.c:137
+    iso8859_16.c:137
+    koi8_r.c:130
+
+mbc_case_fold
+    euc_jp.c:155
+    iso8859_1.c:224
+
+is_code_ctype
+    euc_jp.c:244
+    iso8859_1.c:246
+
+mbc_enc_len / code_to_mbclen / mbc_to_code / code_to_mbc /
+left_adjust_char_head / is_allowed_reverse_match
+    independently implemented by euc_jp.c and sjis.c
+
+CR_Hiragana / CR_Katakana / PropertyList
+    euc_jp.c and sjis.c, with some names also present in unicode_property_data.c
+
+init
+    ascii.c:33
+    utf16_be.c:34
+
+EncLen_UTF16
+    utf16_be.c:79
+    utf16_le.c:77
+```
+
+This is not accidental duplication: each encoding module provides similarly shaped private operations behind its exported encoding descriptor.
+
+### Generated/gperf collisions
+
+The generated property/fold sources also assume separate translation units. For example the EUC-JP and Shift-JIS gperf outputs both define a private `hash()` function, while `unicode_property_data.c`, `unicode_fold1_key.c`, `unicode_fold2_key.c`, `unicode_fold3_key.c`, and `unicode_unfold_key.c` reuse generic generated macros such as:
+
+```text
+TOTAL_KEYWORDS
+MIN_WORD_LENGTH
+MAX_WORD_LENGTH
+MIN_HASH_VALUE
+MAX_HASH_VALUE
+```
+
+Once merged, macro leakage also makes later generated calls bind to the wrong `hash` signature and produces cascading type/argument errors.
+
+### Natural partition hypotheses
+
+A directory split is useless because core code, encoding backends, and generated tables are all in `src/`. The source architecture suggests instead:
+
+```text
+Unity candidate: compatible regex/core engine sources
+Separate TU or independently tested unit: each encoding backend (ascii, big5, euc_jp, sjis,
+    iso8859_*, utf16_*, utf32_*, cp1251, koi8_r, etc.)
+Separate generated units: property/fold/gperf-generated sources unless proven compatible
+```
+
+The repeated private API shape across encodings means combining many encoding files is fundamentally likely to collide; a useful grouped strategy would need to identify a compatible core subset rather than force the encoding implementations together.
+
+### Current decision
+
+Leave `oniguruma` non-Unity after this test. Do not rename upstream encoding helpers or generated symbols during the survey.
+
+---
+
+## `sqlite3`
+
+### Result
+
+N/A: the target already consists of exactly one C translation unit:
+
+```text
+in/deps/sqlite3/sqlite3.c
+```
+
+SQLite's amalgamation has already performed the source-merging role that Unity Build would otherwise provide. Xmake's Unity rule does not create a Unity file for a source batch containing only one source, so adding `c.unity_build` would not change compilation.
+
+### Current decision
+
+Keep the target unchanged and count it separately as **SINGLE TU**, not as a Unity PASS or FAIL.
+
+---
+
+## `libpng`
+
+### Result
+
+FAIL under full Unity by explicit upstream design. Adding only `add_rules("c.unity_build")` causes the generated Unity source to include more than one libpng implementation file, and the second implementation immediately triggers a deliberate `#error` in `pngpriv.h`.
+
+The header states:
+
+```text
+in/deps/libpng/pngpriv.h:23-30
+```
+
+```c
+/* pngpriv.h must be included first in each translation unit inside libpng. */
+#ifndef PNGPRIV_H
+#  define PNGPRIV_H
+#else
+#  error Duplicate inclusion of pngpriv.h; please check the libpng source files
+#endif
+```
+
+This is stronger than an accidental duplicate-symbol problem: upstream explicitly requires `pngpriv.h` to be included once at the start of each libpng translation unit and treats a second inclusion in the same translation unit as a source error.
+
+All 15 selected top-level library C sources include `pngpriv.h` directly:
+
+```text
+png.c
+pngerror.c
+pngget.c
+pngmem.c
+pngpread.c
+pngread.c
+pngrio.c
+pngrtran.c
+pngrutil.c
+pngset.c
+pngtrans.c
+pngwio.c
+pngwrite.c
+pngwtran.c
+pngwutil.c
+```
+
+and both selected Intel implementation sources include the same header through `../pngpriv.h`:
+
+```text
+intel/filter_sse2_intrinsics.c
+intel/intel_init.c
+```
+
+Therefore the current 17-source target cannot combine any two of these ordinary implementation files into one Unity translation unit without changing the upstream private-header contract.
+
+### Natural partition hypotheses
+
+There is no useful multi-file Unity partition under the current source contract: because every selected C source includes `pngpriv.h`, every Unity unit containing two or more selected sources will hit the same deliberate duplicate-inclusion error.
+
+A hypothetical source patch could redesign `pngpriv.h` for Unity use, but that would be an upstream-source semantic change and is outside this survey. Merely grouping by read/write/core/Intel directories cannot solve the explicit header check.
+
+### Current decision
+
+Leave `libpng` non-Unity. This target is best classified as **explicitly non-Unity-safe upstream**, rather than a candidate for Xmake-side grouping.
+
+---
+
+## `libjpeg`
+
+### Result
+
+FAIL for the complete C source batch. The target also contains x86-64 NASM sources; `c.unity_build` correctly leaves those assembly files as separate compilation units and merges only C. The generated `out/.gens/libjpeg/windows/unity_build/unity_1.c` contained 102 source includes from the target's C batch.
+
+The first fatal collisions occur in libjpeg-turbo's independent Huffman entropy implementations.
+
+### Baseline vs lossless Huffman encoder state
+
+`jchuff.c` and `jclhuff.c` independently define private state types with the same names but different layouts:
+
+```text
+savable_state
+    in/deps/libjpeg-turbo/src/jchuff.c:85
+    in/deps/libjpeg-turbo/src/jclhuff.c:48
+
+working_state
+    in/deps/libjpeg-turbo/src/jchuff.c:124
+    in/deps/libjpeg-turbo/src/jclhuff.c:109
+```
+
+Both names are intentionally file-local implementation details. Full Unity makes the second typedef a conflicting redefinition and subsequent code starts accessing fields from the wrong private structure.
+
+The same two files also reuse private function names, including:
+
+```text
+dump_buffer
+    jchuff.c:334
+    jclhuff.c:223
+
+flush_bits
+    jchuff.c:481
+    jclhuff.c:285
+
+emit_restart
+    jchuff.c:668
+    jclhuff.c:300
+
+finish_pass_huff
+    jchuff.c:770
+    jclhuff.c:422
+
+finish_pass_gather
+    jchuff.c:1116
+    jclhuff.c:534
+```
+
+The decoder side follows the same architecture. For example `jdhuff.c` and `jdphuff.c` both define different private `savable_state` records (`jdhuff.c:43`, `jdphuff.c:44`). The compile reached the error limit before every decoder-side collision could be enumerated, so those families must be tested independently rather than assumed compatible.
+
+### `emit_byte` preprocessor leakage into marker code
+
+`jchuff.c` defines a function-like macro:
+
+```text
+in/deps/libjpeg-turbo/src/jchuff.c:325
+#define emit_byte(state, val, action) ...
+```
+
+and `jclhuff.c` independently defines a similarly named macro at line 214.
+
+Later in the Unity translation unit, `jcmarker.c` declares a real private function:
+
+```text
+in/deps/libjpeg-turbo/src/jcmarker.c:115
+LOCAL(void)
+emit_byte(j_compress_ptr cinfo, int val)
+```
+
+Because the earlier macro is still active, the preprocessor interprets this function declaration and its two-argument calls as invocations of the three-argument entropy macro. MSVC reports `C4003` and then a large cascade involving the entropy `working_state` fields instead of `jpeg_destination_mgr`.
+
+This demonstrates that the failure is not merely duplicate C identifiers: source-local macro state is also intentionally scoped by normal translation-unit boundaries.
+
+### Natural partition hypotheses
+
+All core C sources are mostly in the same `src/` directory, so directory grouping is not useful. The implementation architecture suggests semantic families instead:
+
+```text
+compressor baseline Huffman      jchuff.c
+compressor lossless Huffman      jclhuff.c
+compressor progressive Huffman   jcphuff.c
+compressor arithmetic            jcarith.c
+compressor marker/output         jcmarker.c and related compressor core
+
+decoder baseline Huffman         jdhuff.c
+decoder lossless Huffman         jdlhuff.c
+decoder progressive Huffman      jdphuff.c
+decoder arithmetic               jdarith.c
+
+shared/core and color/transform files: independently testable remainder
+SIMD NASM: already separate by source kind
+```
+
+A later grouped-Unity experiment could test compatible remainder sets while keeping the entropy implementations and marker code across macro boundaries separate. This is only a source-architecture hypothesis; no grouping or ignored-file settings are added during the survey.
+
+### Current decision
+
+Leave `libjpeg` non-Unity after this test. Keep the NASM configuration unchanged and do not rename upstream private state/functions or add macro cleanup solely for Unity.
 
 ---
 
