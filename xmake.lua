@@ -2209,3 +2209,33 @@ target("php-win")
         [[INTERNAL_NAME="CLI_WIN32 SAPI"]],
         "WANT_LOGO"
     }})
+
+target("php-cgi")
+    set_enabled(true)
+    set_default(false)
+    set_kind("binary")
+    set_targetdir(get_config("builddir"))
+    set_optimize("fastest")
+    add_cflags(
+        "/Zc:inline",
+        "/Zc:__cplusplus",
+        "/d2FuncCache1",
+        "/Zc:preprocessor",
+        "/Zc:wchar_t",
+        "/GF",
+        "/Ox",
+        "/wd4995",
+        "/wd4996",
+        {force = true}
+    )
+    add_deps("php")
+    add_defines("NDEBUG", "ZEND_DEBUG=0", "ZEND_ENABLE_STATIC_TSRMLS_CACHE=1")
+    add_syslinks("ws2_32", "kernel32", "advapi32")
+    add_ldflags("/stack:67108864", {force = true})
+    add_files("in/php-src/sapi/cgi/cgi_main.c", "in/php-src/main/fastcgi.c")
+    add_files("in/php-src/win32/build/template.rc", {defines = {
+        [[FILE_DESCRIPTION="CGI / FastCGI"]],
+        [[FILE_NAME="php-cgi.exe"]],
+        [[INTERNAL_NAME="CGI SAPI"]],
+        "WANT_LOGO"
+    }})

@@ -30,7 +30,8 @@ Last updated: 2026-08-21
 - [x] Verify a forced zstd build uses `/MD` in every MSVC compile command.
 - [x] Replace the object-only `php` prototype with the first ZTS shared-core checkpoint: `php8ts.dll` + `php-cli`/`php.exe`, mandatory builtin modules, and always-included Opcache/JIT.
 - [x] Add and validate the thin ZTS `php-win`/`php-win.exe` console-less SAPI target.
-- [ ] Add the thin ZTS `php-cgi`/`php-cgi.exe` SAPI target as the next checkpoint.
+- [x] Add and validate the thin ZTS `php-cgi`/`php-cgi.exe` CGI/FastCGI SAPI target.
+- [ ] Add `ctype` as the first optional builtin extension checkpoint, then continue one extension at a time.
 - [x] Convert all former target-level codegen participants to file-owned `add_files`/`depend` materialization; there is no shared codegen adapter or project-owned incremental marker left.
 - [x] Use the patched Xmake bundle's lazy Windows IDL implementation; remove the project's local `platform.windows.idl` shadow now that the bundle itself fixes the premature `target:sourcebatches()` expansion.
 - [x] Validate the patched lazy-source timing: synchronous selected-target `on_prepare` and post-callback `add_files` materialization both work without `memcache.clear()`, `target:_invalidate("files")`, or dynamic target file insertion.
@@ -354,6 +355,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [x] Run CLI, builtin-module, ZTS/TrueAsync, Opcache/JIT, x64, `/MD`, and export-surface validation for the minimal checkpoint.
 
 ## Validation Log
+
+- 2026-08-21 — ZTS CGI/FastCGI checkpoint: `xmake build php-cgi` produced `out/php-cgi.exe` from the exact two-source `sapi/cgi/config.w32` manifest and linked it to the existing `php8ts.dll`. The executable is PE x64 with Windows CUI subsystem, a 64 MiB stack reserve, `VCRUNTIME140`/UCRT imports, `/DEFAULTLIB:MSVCRT`, and the expected direct `ws2_32`, `kernel32`, and `advapi32` dependencies. `php-cgi -n -v` reports PHP 8.6.0-dev, `cgi-fcgi`, ZTS, Microsoft Visual C++ x64, TrueAsync ABI v0.24.0, and Opcache. A real script run under the CGI SAPI completed a typed hot loop, returned the complete mandatory module set, and reported tracing JIT active. An immediate unchanged build performed no compilation or linking and completed in 0.813s.
 
 - 2026-08-21 — console-less ZTS Windows CLI checkpoint: `xmake build php-win` produced `out/php-win.exe` from the exact three-source `sapi/cli/config.w32` manifest and linked it to the existing `php8ts.dll`. The executable is PE x64 with Windows GUI subsystem, a 64 MiB stack reserve, `VCRUNTIME140`/UCRT imports, and `/DEFAULTLIB:MSVCRT`; its only direct non-runtime dependencies are `php8ts.dll`, `SHELL32`, and `KERNEL32`. A no-console file-output smoke test reports the `cli` SAPI, ZTS enabled, PHP 8.6.0-dev, the complete mandatory builtin module set, Opcache loaded, and tracing JIT active. An immediate unchanged build performed no compilation or linking and completed in 0.797s.
 
