@@ -12,6 +12,8 @@ Last updated: 2026-08-21
 
 ## Current State
 
+- [ ] Integrate and validate the separate TrueAsync HTTP server source closure with its upstream-default TLS, HTTP/2, and compression layers.
+- [x] Integrate and validate the priority network/database batch in `php`: TrueAsync, cURL, mysqlnd/MySQLi/PDO MySQL, and SQLite3/PDO SQLite.
 - [ ] Full-target Unity survey in progress. Natural passes so far: `wineditline`, `bzip2`, `libssh2`, `libcurl`. Single-TU/N/A: `sqlite3`. Failures so far: `nghttp3`, `ngtcp2`, `zlib`, `brotli`, `zstd`, `liblzma`, `nghttp2`, `libuv`, `libsodium`, `oniguruma`, `libpng`, `libjpeg`, `libtiff`; exact translation-unit collisions and possible natural partitions are documented in `unitybuild.md`. Failed targets are restored to their validated non-Unity configuration before continuing.
 - [x] Initialize the Git repository and ignore downloaded sources, tools, caches, and outputs.
 - [x] Replace the monolithic `prepare` task with target-owned `before_config` fetch hooks so a selected build materializes only its requested target/dependency closure.
@@ -370,6 +372,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [x] Run CLI, builtin-module, ZTS/TrueAsync, Opcache/JIT, x64, `/MD`, and export-surface validation for the minimal checkpoint.
 
 ## Validation Log
+
+- 2026-08-21 — priority network/database PHP batch: added builtin `true_async`, `curl`, `mysqlnd`, `mysqli`, `pdo_mysql`, `sqlite3`, and `pdo_sqlite` from their upstream Windows manifests. The PDO MySQL and SQLite parsers are independently materialized with RE2C; libuv's Windows include layout is copied declaratively. The first real OpenSSL-consuming PHP link exposed an incomplete VC-WIN64A assembly closure, so the target now includes the required RSaz/AVX512 generators, emits both SHA-2 variants, and removes the C `OPENSSL_cleanse` fallback selected out by assembly. `php-cli` builds, exits normally, and lists all seven modules plus every previous builtin.
 
 - 2026-08-21 — second static-library-backed PHP extension batch: linked builtin `FFI`, `gmp`, `readline`, and `sodium` against the validated `libffi`, `mpir`, `wineditline`, and `libsodium` targets with their upstream Windows feature defines. The full build passed and `out/php.exe -n -m` exited normally with all four new modules and every prior module listed.
 

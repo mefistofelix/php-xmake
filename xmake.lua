@@ -1682,10 +1682,68 @@ target("openssl")
         local root = "in/deps/openssl"
         local perl = "in/perl/perl/bin/perl.exe"
         local relative = path.relative(sourcefile, root):gsub("\\", "/")
+        table.insert(depend.files, perl)
+        table.insert(depend.files, "xmake.lua")
+        for _, file in ipairs(os.files("in/deps/openssl/crypto/perlasm/*.pl")) do table.insert(depend.files, file) end
+        if relative == "crypto/sha/asm/sha512-x86_64.pl" then
+            for _, name in ipairs({"sha256-x86_64.asm", "sha512-x86_64.asm"}) do
+                local output = "in/deps/openssl/crypto/sha/" .. name
+                os.vrunv(perl, {relative, "nasm", path.relative(output, root):gsub("\\", "/")}, {
+                    curdir = root,
+                    addenvs = {PATH = path.absolute("in/perl/c/bin")}
+                })
+                table.insert(sources, output)
+            end
+            table.remove(sources, 1)
+        else
+            local output = "in/deps/openssl/" .. relative:gsub("/asm/", "/"):gsub("%.pl$", ".asm")
+            os.vrunv(perl, {relative, "nasm", path.relative(output, root):gsub("\\", "/")}, {
+                curdir = root,
+                addenvs = {PATH = path.absolute("in/perl/c/bin")}
+            })
+            sources[1] = output
+        end
+    end})
+    add_files("in/deps/openssl/crypto/aes/asm/aesni-xts-avx512.pl|crypto/perlasm/**", {callback = function (sourcefile, sources, depend)
+        local root = "in/deps/openssl"
+        local perl = "in/perl/perl/bin/perl.exe"
+        local relative = path.relative(sourcefile, root):gsub("\\", "/")
         local output = "in/deps/openssl/" .. relative:gsub("/asm/", "/"):gsub("%.pl$", ".asm")
         table.insert(depend.files, perl)
+        table.insert(depend.files, "xmake.lua")
         for _, file in ipairs(os.files("in/deps/openssl/crypto/perlasm/*.pl")) do table.insert(depend.files, file) end
-        os.vrunv(perl, {relative, "nasm", path.relative(output, root):gsub("\\", "/")}, {curdir = root})
+        os.vrunv(perl, {relative, "nasm", path.relative(output, root):gsub("\\", "/")}, {
+            curdir = root,
+            addenvs = {PATH = path.absolute("in/perl/c/bin")}
+        })
+        sources[1] = output
+    end})
+    add_files("in/deps/openssl/crypto/bn/asm/*avx*.pl|crypto/perlasm/**", {callback = function (sourcefile, sources, depend)
+        local root = "in/deps/openssl"
+        local perl = "in/perl/perl/bin/perl.exe"
+        local relative = path.relative(sourcefile, root):gsub("\\", "/")
+        local output = "in/deps/openssl/" .. relative:gsub("/asm/", "/"):gsub("%.pl$", ".asm")
+        table.insert(depend.files, perl)
+        table.insert(depend.files, "xmake.lua")
+        for _, file in ipairs(os.files("in/deps/openssl/crypto/perlasm/*.pl")) do table.insert(depend.files, file) end
+        os.vrunv(perl, {relative, "nasm", path.relative(output, root):gsub("\\", "/")}, {
+            curdir = root,
+            addenvs = {PATH = path.absolute("in/perl/c/bin")}
+        })
+        sources[1] = output
+    end})
+    add_files("in/deps/openssl/crypto/modes/asm/aes-gcm-avx512.pl|crypto/perlasm/**", {callback = function (sourcefile, sources, depend)
+        local root = "in/deps/openssl"
+        local perl = "in/perl/perl/bin/perl.exe"
+        local relative = path.relative(sourcefile, root):gsub("\\", "/")
+        local output = "in/deps/openssl/" .. relative:gsub("/asm/", "/"):gsub("%.pl$", ".asm")
+        table.insert(depend.files, perl)
+        table.insert(depend.files, "xmake.lua")
+        for _, file in ipairs(os.files("in/deps/openssl/crypto/perlasm/*.pl")) do table.insert(depend.files, file) end
+        os.vrunv(perl, {relative, "nasm", path.relative(output, root):gsub("\\", "/")}, {
+            curdir = root,
+            addenvs = {PATH = path.absolute("in/perl/c/bin")}
+        })
         sources[1] = output
     end})
 
@@ -1698,6 +1756,7 @@ target("openssl")
         "in/deps/openssl/**/*acvp*.c",
         "in/deps/openssl/**/*md2*.c",
         "in/deps/openssl/crypto/*cap.c",
+        "in/deps/openssl/crypto/mem_clr.c",
         "in/deps/openssl/crypto/LPdir_*.c", "in/deps/openssl/crypto/aes/aes_core.c", "in/deps/openssl/crypto/aes/aes_cbc.c", "in/deps/openssl/crypto/aes/aes_x86core.c",
         "in/deps/openssl/crypto/ec/ecp_nistp*.c", "in/deps/openssl/crypto/**/*_ppc.c", "in/deps/openssl/crypto/**/*_riscv.c", "in/deps/openssl/crypto/**/*s390x*.c", "in/deps/openssl/crypto/**/*sparc*.c",
         "in/deps/openssl/crypto/ec/ecp_nistz256_table.c", "in/deps/openssl/crypto/bn/asm/x86_64-gcc.c", "in/deps/openssl/crypto/des/ncbc_enc.c",
@@ -1797,7 +1856,19 @@ target("php")
         {force = true}
     )
     add_deps("minilua", "gen_ir_fold_hash", {links = false})
-    add_deps("bzip2", "libffi", "libiconv", "libintl", "libsodium", "mpir", "wineditline")
+    add_deps(
+        "bzip2",
+        "libcurl",
+        "libffi",
+        "libiconv",
+        "libintl",
+        "libsodium",
+        "libuv",
+        "mpir",
+        "sqlite3",
+        "wineditline",
+        "zlib"
+    )
 
     set_configdir("out/php")
     add_configfiles("in/php-src/win32/build/config.w32.h.in", {
@@ -1812,19 +1883,26 @@ target("php")
         pattern = "@([%u%d_]+)@",
         variables = {
             PHP_BUILD_ARCH = get_config("arch"),
-            PHP_LINKER_MAJOR = get_config("vs_toolset"):match("^(%d+)"),
-            PHP_LINKER_MINOR = get_config("vs_toolset"):match("^%d+%.(%d+)")
+            PHP_LINKER_MAJOR = (get_config("vs_toolset") or "14.50.35717"):match("^(%d+)"),
+            PHP_LINKER_MINOR = (get_config("vs_toolset") or "14.50.35717"):match("^%d+%.(%d+)")
         }
+    })
+    add_configfiles("in/deps/libuv/include/uv.h", {
+        filename = "uv.h",
+        prefixdir = "libuv",
+        onlycopy = true
     })
     add_configfiles("in/php-src/main/internal_functions.c.in", {
         filename = "internal_functions.c",
         prefixdir = "main",
         pattern = "@([%u_]+)@",
         variables = {
-            EXT_INCLUDE_CODE = [[#include "ext/bcmath/php_bcmath.h"
+            EXT_INCLUDE_CODE = [[#include "ext/async/php_async.h"
+#include "ext/bcmath/php_bcmath.h"
 #include "ext/bz2/php_bz2.h"
 #include "ext/calendar/php_calendar.h"
 #include "ext/ctype/php_ctype.h"
+#include "ext/curl/php_curl.h"
 #include "ext/date/php_date.h"
 #include "ext/exif/php_exif.h"
 #include "ext/ffi/php_ffi.h"
@@ -1837,6 +1915,8 @@ target("php")
 #include "ext/iconv/php_iconv.h"
 #include "ext/json/php_json.h"
 #include "ext/lexbor/php_lexbor.h"
+#include "ext/mysqlnd/php_mysqlnd.h"
+#include "ext/mysqli/php_mysqli.h"
 #include "ext/pcre/php_pcre.h"
 #include "ext/random/php_random.h"
 #include "ext/readline/php_readline.h"
@@ -1844,15 +1924,20 @@ target("php")
 #include "ext/session/php_session.h"
 #include "ext/spl/php_spl.h"
 #include "ext/pdo/php_pdo.h"
+#include "ext/pdo_mysql/php_pdo_mysql.h"
+#include "ext/pdo_sqlite/php_pdo_sqlite.h"
 #include "ext/sodium/php_libsodium.h"
+#include "ext/sqlite3/php_sqlite3.h"
 #include "ext/standard/php_standard.h"
 #include "ext/tokenizer/php_tokenizer.h"
 #include "ext/opcache/zend_accelerator_module.h"
 #include "ext/uri/php_uri.h"]],
-            EXT_MODULE_PTRS = [[	phpext_bcmath_ptr,
+            EXT_MODULE_PTRS = [[	phpext_async_ptr,
+	phpext_bcmath_ptr,
 	phpext_bz2_ptr,
 	phpext_calendar_ptr,
 	phpext_ctype_ptr,
+	phpext_curl_ptr,
 	phpext_date_ptr,
 	phpext_exif_ptr,
 	phpext_ffi_ptr,
@@ -1863,6 +1948,8 @@ target("php")
 	phpext_iconv_ptr,
 	phpext_json_ptr,
 	phpext_lexbor_ptr,
+	phpext_mysqlnd_ptr,
+	phpext_mysqli_ptr,
 	phpext_pcre_ptr,
 	phpext_random_ptr,
 	phpext_readline_ptr,
@@ -1870,7 +1957,10 @@ target("php")
 	phpext_session_ptr,
 	phpext_spl_ptr,
 	phpext_pdo_ptr,
+	phpext_pdo_mysql_ptr,
+	phpext_pdo_sqlite_ptr,
 	phpext_sodium_ptr,
+	phpext_sqlite3_ptr,
 	phpext_standard_ptr,
 	phpext_tokenizer_ptr,
 	phpext_opcache_ptr,
@@ -1927,7 +2017,9 @@ target("php")
         "WINVER=0x0602",
         "HAVE_TIMELIB_CONFIG_H=1",
         "PCRE2_CODE_UNIT_WIDTH=8",
-        "PCRE2_STATIC"
+        "PCRE2_STATIC",
+        "PHP_ASYNC",
+        "ASYNC_EXPORTS"
     )
     add_syslinks(
         "kernel32",
@@ -2031,10 +2123,16 @@ target("php")
         table.insert(depend.files, "out/php/Zend/zend_language_parser.h")
     end})
 
+    add_files(
+        "in/php-src/ext/async/*.c",
+        "in/php-src/ext/async/internal/allocator.c",
+        "in/php-src/ext/async/internal/circular_buffer.c"
+    )
     add_files("in/php-src/ext/bcmath/*.c", "in/php-src/ext/bcmath/libbcmath/src/*.c")
     add_files("in/php-src/ext/bz2/*.c")
     add_files("in/php-src/ext/calendar/*.c")
     add_files("in/php-src/ext/ctype/*.c")
+    add_files("in/php-src/ext/curl/*.c", {defines = {"PHP_CURL_EXPORTS=1", "CURL_STATICLIB"}})
     add_files("in/php-src/ext/date/*.c", "in/php-src/ext/date/lib/*.c")
     add_files("in/php-src/ext/exif/*.c")
     add_files("in/php-src/ext/ffi/*.c")
@@ -2099,6 +2197,9 @@ target("php")
     remove_files("in/php-src/ext/session/mod_mm.c")
     add_files("in/php-src/ext/spl/*.c")
 
+    add_files("in/php-src/ext/mysqlnd/*.c")
+    add_files("in/php-src/ext/mysqli/*.c")
+
     add_files("in/php-src/ext/pdo/*.c")
     add_files("in/php-src/ext/pdo/pdo_sql_parser.re", {
         includedirs = {"in/php-src/ext/pdo"},
@@ -2110,7 +2211,30 @@ target("php")
         sources[1] = output
         table.insert(depend.files, tool)
     end})
+    add_files("in/php-src/ext/pdo_mysql/*.c")
+    add_files("in/php-src/ext/pdo_mysql/mysql_sql_parser.re", {
+        includedirs = {"in/php-src/ext/pdo_mysql"},
+        callback = function (sourcefile, sources, depend)
+        local output = "out/php/ext/pdo_mysql/mysql_sql_parser.c"
+        local tool = "in/php-sdk/usr/bin/re2c.exe"
+        os.mkdir(path.directory(output))
+        os.vrunv(tool, {"--no-generation-date", "-W", "-b", "-o", output, sourcefile})
+        sources[1] = output
+        table.insert(depend.files, tool)
+    end})
+    add_files("in/php-src/ext/pdo_sqlite/*.c")
+    add_files("in/php-src/ext/pdo_sqlite/sqlite_sql_parser.re", {
+        includedirs = {"in/php-src/ext/pdo_sqlite"},
+        callback = function (sourcefile, sources, depend)
+        local output = "out/php/ext/pdo_sqlite/sqlite_sql_parser.c"
+        local tool = "in/php-sdk/usr/bin/re2c.exe"
+        os.mkdir(path.directory(output))
+        os.vrunv(tool, {"--no-generation-date", "-W", "-b", "-o", output, sourcefile})
+        sources[1] = output
+        table.insert(depend.files, tool)
+    end})
     add_files("in/php-src/ext/sodium/*.c")
+    add_files("in/php-src/ext/sqlite3/*.c")
 
     add_files("in/php-src/ext/standard/*.c", "in/php-src/ext/standard/libavifinfo/*.c")
     add_files("in/php-src/ext/tokenizer/*.c")
