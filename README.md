@@ -1,6 +1,6 @@
 # php-xmake
 
-Windows-only work in progress for building TrueAsync PHP with a compact `xmake.lua`, static third-party libraries, and the dynamic multithreaded MSVC runtime (`/MD`). The current ZTS checkpoint builds all three Windows executables with the mandatory modules, Opcache/JIT, and 29 optional builtins. The latest working batches add `true_async`, `true_async_server`, cURL, MySQL, SQLite, `openssl`, `sockets`, `ftp`, `zip`, `mbstring`, and `intl`; the server includes TLS, HTTP/2, and gzip/Brotli/zstd compression. Extensions are added in small validated batches.
+Windows-only work in progress for building TrueAsync PHP with a compact `xmake.lua`, static third-party libraries, and the dynamic multithreaded MSVC runtime (`/MD`). The current ZTS checkpoint builds all three Windows executables with the mandatory modules, Opcache/JIT, and 36 optional builtins. The latest working batches add TrueAsync, its HTTP server, cURL, MySQL, SQLite, OpenSSL/network/archive support, `mbstring`, `intl`, and the complete libxml/DOM/SimpleXML/XMLReader/XMLWriter/XSL family; the server includes TLS, HTTP/2, and gzip/Brotli/zstd compression. Extensions are added in small validated batches.
 
 The required patched Xmake bundle is included as `xmake.exe` in the repository root. Its source, tests, and detailed patch documentation are maintained in [mefistofelix/xmake-patched](https://github.com/mefistofelix/xmake-patched).
 

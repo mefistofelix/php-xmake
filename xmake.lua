@@ -1864,6 +1864,8 @@ target("php")
         "libffi",
         "libiconv",
         "libintl",
+        "libxml2",
+        "libxslt",
         "libzip",
         "libsodium",
         "libuv",
@@ -1933,8 +1935,10 @@ target("php")
 #include "ext/hash/php_hash.h"
 #include "ext/iconv/php_iconv.h"
 extern zend_module_entry intl_module_entry;
+#include "ext/libxml/php_libxml.h"
 #include "ext/json/php_json.h"
 #include "ext/lexbor/php_lexbor.h"
+#include "ext/dom/php_dom.h"
 #include "ext/mbstring/mbstring.h"
 #include "ext/mysqlnd/php_mysqlnd.h"
 #include "ext/mysqli/php_mysqli.h"
@@ -1945,6 +1949,7 @@ extern zend_module_entry intl_module_entry;
 #include "ext/reflection/php_reflection.h"
 #include "ext/session/php_session.h"
 #include "ext/spl/php_spl.h"
+#include "ext/simplexml/php_simplexml.h"
 #include "ext/pdo/php_pdo.h"
 #include "ext/pdo_mysql/php_pdo_mysql.h"
 #include "ext/pdo_sqlite/php_pdo_sqlite.h"
@@ -1954,6 +1959,10 @@ extern zend_module_entry intl_module_entry;
 #include "ext/standard/php_standard.h"
 #include "ext/tokenizer/php_tokenizer.h"
 #include "ext/opcache/zend_accelerator_module.h"
+#include "ext/xml/php_xml.h"
+#include "ext/xmlreader/php_xmlreader.h"
+#include "ext/xmlwriter/php_xmlwriter.h"
+#include "ext/xsl/php_xsl.h"
 #include "ext/zip/php_zip.h"
 #include "ext/uri/php_uri.h"]],
             EXT_MODULE_PTRS = [[	phpext_async_ptr,
@@ -1973,8 +1982,10 @@ extern zend_module_entry intl_module_entry;
 	phpext_hash_ptr,
 	phpext_iconv_ptr,
 	&intl_module_entry,
+	phpext_libxml_ptr,
 	phpext_json_ptr,
 	phpext_lexbor_ptr,
+	phpext_dom_ptr,
 	phpext_mbstring_ptr,
 	phpext_mysqlnd_ptr,
 	phpext_mysqli_ptr,
@@ -1985,6 +1996,7 @@ extern zend_module_entry intl_module_entry;
 	phpext_reflection_ptr,
 	phpext_session_ptr,
 	phpext_spl_ptr,
+	phpext_simplexml_ptr,
 	phpext_pdo_ptr,
 	phpext_pdo_mysql_ptr,
 	phpext_pdo_sqlite_ptr,
@@ -1994,6 +2006,10 @@ extern zend_module_entry intl_module_entry;
 	phpext_standard_ptr,
 	phpext_tokenizer_ptr,
 	phpext_opcache_ptr,
+	phpext_xml_ptr,
+	phpext_xmlreader_ptr,
+	phpext_xmlwriter_ptr,
+	phpext_xsl_ptr,
 	phpext_zip_ptr,
 	phpext_uri_ptr,]]
         }
@@ -2223,6 +2239,9 @@ extern zend_module_entry intl_module_entry;
         cxflags = {"/std:c++17", "/EHsc"}
     })
 
+    add_files("in/php-src/ext/libxml/*.c", {defines = {"LIBXML_STATIC_FOR_DLL", "HAVE_WIN32_THREADS"}})
+    add_files("in/php-src/ext/libxml/php_libxml2_legacy.def")
+
     add_files("in/php-src/ext/json/json.c", "in/php-src/ext/json/json_encoder.c")
     add_files("in/php-src/ext/json/json_parser.y", {callback = function (sourcefile, sources, depend)
         local output = "out/php/ext/json/json_parser.tab.c"
@@ -2260,6 +2279,13 @@ extern zend_module_entry intl_module_entry;
     )
 
     add_files(
+        "in/php-src/ext/dom/*.c",
+        "in/php-src/ext/dom/parentnode/*.c",
+        "in/php-src/ext/dom/lexbor/selectors-adapted/*.c",
+        {defines = {"LEXBOR_STATIC"}}
+    )
+
+    add_files(
         "in/php-src/ext/mbstring/*.c",
         "in/php-src/ext/mbstring/libmbfl/filters/*.c",
         "in/php-src/ext/mbstring/libmbfl/mbfl/*.c",
@@ -2283,6 +2309,7 @@ extern zend_module_entry intl_module_entry;
     add_files("in/php-src/ext/session/*.c")
     remove_files("in/php-src/ext/session/mod_mm.c")
     add_files("in/php-src/ext/spl/*.c")
+    add_files("in/php-src/ext/simplexml/*.c", {defines = {"PHP_SIMPLEXML_EXPORTS"}})
 
     add_files("in/php-src/ext/mysqlnd/*.c")
     add_files("in/php-src/ext/mysqli/*.c")
@@ -2327,6 +2354,10 @@ extern zend_module_entry intl_module_entry;
 
     add_files("in/php-src/ext/standard/*.c", "in/php-src/ext/standard/libavifinfo/*.c")
     add_files("in/php-src/ext/tokenizer/*.c")
+    add_files("in/php-src/ext/xml/*.c")
+    add_files("in/php-src/ext/xmlreader/*.c")
+    add_files("in/php-src/ext/xmlwriter/*.c")
+    add_files("in/php-src/ext/xsl/*.c", {defines = {"DOM_EXPORTS"}})
     add_files("in/php-src/ext/zip/*.c", {
         defines = {"ZIP_STATIC", "HAVE_ENCRYPTION", "HAVE_LIBZIP_VERSION", "HAVE_PROGRESS_CALLBACK", "HAVE_CANCEL_CALLBACK", "HAVE_METHOD_SUPPORTED", "LZMA_API_STATIC"}
     })
