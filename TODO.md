@@ -29,7 +29,8 @@ Last updated: 2026-08-21
 - [x] Follow upstream Windows PHP and select the dynamic multithreaded MSVC CRT globally with `set_runtimes("MD")` for loadable-extension compatibility.
 - [x] Verify a forced zstd build uses `/MD` in every MSVC compile command.
 - [x] Replace the object-only `php` prototype with the first ZTS shared-core checkpoint: `php8ts.dll` + `php-cli`/`php.exe`, mandatory builtin modules, and always-included Opcache/JIT.
-- [ ] Add the thin ZTS `php-win`/`php-win.exe` and `php-cgi`/`php-cgi.exe` SAPI targets as separate validated checkpoints.
+- [x] Add and validate the thin ZTS `php-win`/`php-win.exe` console-less SAPI target.
+- [ ] Add the thin ZTS `php-cgi`/`php-cgi.exe` SAPI target as the next checkpoint.
 - [x] Convert all former target-level codegen participants to file-owned `add_files`/`depend` materialization; there is no shared codegen adapter or project-owned incremental marker left.
 - [x] Use the patched Xmake bundle's lazy Windows IDL implementation; remove the project's local `platform.windows.idl` shadow now that the bundle itself fixes the premature `target:sourcebatches()` expansion.
 - [x] Validate the patched lazy-source timing: synchronous selected-target `on_prepare` and post-callback `add_files` materialization both work without `memcache.clear()`, `target:_invalidate("files")`, or dynamic target file insertion.
@@ -353,6 +354,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [x] Run CLI, builtin-module, ZTS/TrueAsync, Opcache/JIT, x64, `/MD`, and export-surface validation for the minimal checkpoint.
 
 ## Validation Log
+
+- 2026-08-21 — console-less ZTS Windows CLI checkpoint: `xmake build php-win` produced `out/php-win.exe` from the exact three-source `sapi/cli/config.w32` manifest and linked it to the existing `php8ts.dll`. The executable is PE x64 with Windows GUI subsystem, a 64 MiB stack reserve, `VCRUNTIME140`/UCRT imports, and `/DEFAULTLIB:MSVCRT`; its only direct non-runtime dependencies are `php8ts.dll`, `SHELL32`, and `KERNEL32`. A no-console file-output smoke test reports the `cli` SAPI, ZTS enabled, PHP 8.6.0-dev, the complete mandatory builtin module set, Opcache loaded, and tracing JIT active. An immediate unchanged build performed no compilation or linking and completed in 0.797s.
 
 - 2026-08-21 — minimal ZTS TrueAsync PHP CLI checkpoint: `xmake build php-cli` produced `out/php8ts.dll`, its import library, and `out/php.exe`; an unchanged fresh-bundle repeat completed in 0.578s with stable generated-header timestamps and no compile or link work. The CLI reports PHP 8.6.0-dev, ZTS, x64, TrueAsync ABI v0.24.0, and builtin Core/date/hash/json/lexbor/pcre/random/Reflection/SPL/standard/uri/Opcache modules. Opcache enables successfully and upstream `ext/opcache/tests/jit/add_001.phpt` passes with tracing JIT. Comparison against the equivalent native Windows build found identical functional `config.w32.h` macros and all 4,493/4,493 DLL exports, including all 68 bundled-PCRE definitions. The DLL and representative objects are x64, select `VCRUNTIME140`/UCRT and `MSVCRT`, and contain no static-CRT directive. Two low-level mismatches independently reproduced JIT-startup heap corruption: omitting PHP's upstream MSVC flag set, and losing `IR_TARGET_X64`/`IR_PHP` when the narrow `ir.c`/`ir_emit.c` callback declarations replaced their broad file configuration. The final build keeps the native compiler flags and repeats both IR defines on those two declarations. Header-absence regeneration was validated using the bundled `xmake.exe` from a fresh `TEMP`/`TMP`, avoiding its shared-version stale extraction cache.
 
