@@ -1859,6 +1859,7 @@ target("php")
     add_deps(
         "brotli",
         "bzip2",
+        "icu",
         "libcurl",
         "libffi",
         "libiconv",
@@ -1868,6 +1869,7 @@ target("php")
         "libuv",
         "mpir",
         "nghttp2",
+        "oniguruma",
         "openssl",
         "sqlite3",
         "wineditline",
@@ -1902,6 +1904,11 @@ target("php")
         prefixdir = "openssl",
         onlycopy = true
     })
+    add_configfiles("in/php-src/ext/mbstring/libmbfl/config.h.w32", {
+        filename = "config.h",
+        prefixdir = "ext/mbstring/libmbfl",
+        onlycopy = true
+    })
     add_configfiles("in/php-src/main/internal_functions.c.in", {
         filename = "internal_functions.c",
         prefixdir = "main",
@@ -1925,8 +1932,10 @@ target("php")
 #include "ext/gmp/php_gmp.h"
 #include "ext/hash/php_hash.h"
 #include "ext/iconv/php_iconv.h"
+extern zend_module_entry intl_module_entry;
 #include "ext/json/php_json.h"
 #include "ext/lexbor/php_lexbor.h"
+#include "ext/mbstring/mbstring.h"
 #include "ext/mysqlnd/php_mysqlnd.h"
 #include "ext/mysqli/php_mysqli.h"
 #include "ext/openssl/php_openssl.h"
@@ -1963,8 +1972,10 @@ target("php")
 	phpext_gmp_ptr,
 	phpext_hash_ptr,
 	phpext_iconv_ptr,
+	&intl_module_entry,
 	phpext_json_ptr,
 	phpext_lexbor_ptr,
+	phpext_mbstring_ptr,
 	phpext_mysqlnd_ptr,
 	phpext_mysqli_ptr,
 	phpext_openssl_ptr,
@@ -2011,6 +2022,11 @@ target("php")
         "in/php-src/ext/http_server/src/core",
         "in/php-src/ext/http_server/deps/llhttp/include",
         "in/php-src/ext/http_server/deps/concurrentqueue",
+        "in/php-src/ext/intl",
+        "out/php/ext/mbstring",
+        "in/php-src/ext/mbstring",
+        "in/php-src/ext/mbstring/libmbfl",
+        "in/php-src/ext/mbstring/libmbfl/mbfl",
         "in/php-src/ext/json",
         "in/php-src/ext/lexbor",
         "in/php-src/ext/opcache",
@@ -2201,6 +2217,12 @@ target("php")
     add_files("in/php-src/ext/iconv/*.c", {defines = {"PHP_ICONV_EXPORTS"}})
     add_files("in/php-src/ext/iconv/php_iconv.def")
 
+    add_files("in/php-src/ext/intl/*.c")
+    add_files("in/php-src/ext/intl/*.cpp", "in/php-src/ext/intl/**/*.cpp|tests/**", {
+        defines = {"UNISTR_FROM_CHAR_EXPLICIT=explicit", "UNISTR_FROM_STRING_EXPLICIT=explicit", "U_NO_DEFAULT_INCLUDE_UTF_HEADERS=1", "U_HIDE_OBSOLETE_UTF_OLD_H=1", "U_SHOW_CPLUSPLUS_HEADER_API=0"},
+        cxflags = {"/std:c++17", "/EHsc"}
+    })
+
     add_files("in/php-src/ext/json/json.c", "in/php-src/ext/json/json_encoder.c")
     add_files("in/php-src/ext/json/json_parser.y", {callback = function (sourcefile, sources, depend)
         local output = "out/php/ext/json/json_parser.tab.c"
@@ -2235,6 +2257,17 @@ target("php")
         "in/php-src/ext/lexbor/lexbor/html/node.c",
         "in/php-src/ext/lexbor/lexbor/html/tree/template_insertion.c",
         "in/php-src/ext/lexbor/lexbor/ports/posix/lexbor/core/memory.c"
+    )
+
+    add_files(
+        "in/php-src/ext/mbstring/*.c",
+        "in/php-src/ext/mbstring/libmbfl/filters/*.c",
+        "in/php-src/ext/mbstring/libmbfl/mbfl/*.c",
+        "in/php-src/ext/mbstring/libmbfl/nls/*.c",
+        {
+            defines = {"HAVE_STRICMP", "MBFL_DLL_EXPORT=1", "ONIG_EXTERN=extern", "PHP_ONIG_BAD_KOI8_ENTRY=1"},
+            cxflags = {"/utf-8"}
+        }
     )
 
     add_files("in/php-src/ext/pcre/*.c", "in/php-src/ext/pcre/pcre2lib/*.c", {defines = {"HAVE_CONFIG_H", "HAVE_MEMMOVE"}})

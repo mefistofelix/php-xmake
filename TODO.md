@@ -12,7 +12,8 @@ Last updated: 2026-08-21
 
 ## Current State
 
-- [ ] Integrate the next international-text batch: `mbstring` against oniguruma and `intl` against ICU, following their Windows manifests and generated-source requirements.
+- [ ] Integrate the next XML batch: `libxml`, `dom`, `simplexml`, `xml`, `xmlreader`, `xmlwriter`, and `xsl` against the validated libxml2/libxslt targets.
+- [x] Integrate the international-text batch: `mbstring` against Oniguruma and `intl` against ICU.
 - [x] Integrate the security/network/archive builtin batch: OpenSSL, sockets, SSL-enabled FTP, and ZIP.
 - [x] Integrate and validate the separate TrueAsync HTTP server source closure with its upstream-default TLS, HTTP/2, and compression layers.
 - [x] Integrate and validate the priority network/database batch in `php`: TrueAsync, cURL, mysqlnd/MySQLi/PDO MySQL, and SQLite3/PDO SQLite.
@@ -43,7 +44,7 @@ Last updated: 2026-08-21
 - [x] Add the dependency-light builtin batch: `bcmath`, `PDO`, and `exif`.
 - [x] Add the first static-library-backed extension batch: `bz2`, `gettext`, and `iconv`.
 - [x] Add the second static-library-backed batch: `FFI`, `gmp`, `readline`, and `sodium`.
-- [ ] Prepare the next database/archive extension batch.
+- [x] Complete the initial database/archive extension batches.
 - [x] Convert all former target-level codegen participants to file-owned `add_files`/`depend` materialization; there is no shared codegen adapter or project-owned incremental marker left.
 - [x] Use the patched Xmake bundle's lazy Windows IDL implementation; remove the project's local `platform.windows.idl` shadow now that the bundle itself fixes the premature `target:sourcebatches()` expansion.
 - [x] Validate the patched lazy-source timing: synchronous selected-target `on_prepare` and post-callback `add_files` materialization both work without `memcache.clear()`, `target:_invalidate("files")`, or dynamic target file insertion.
@@ -374,6 +375,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [x] Run CLI, builtin-module, ZTS/TrueAsync, Opcache/JIT, x64, `/MD`, and export-surface validation for the minimal checkpoint.
 
 ## Validation Log
+
+- 2026-08-21 — international-text PHP batch: added builtin `mbstring` and `intl` from 40 C and 73 mixed C/C++ translation units against the validated static Oniguruma and ICU targets. Libmbfl's Windows configuration is copied declaratively. ICU 77's new header-only visibility macro initially exposed C++ standard-library templates inside PHP's deliberate `extern "C"` header blocks; disabling that header-only surface for the extension translation units restored the intended C-only includes without changing upstream source. The complete ZTS CLI build and link passed, both modules appeared in `php.exe -n -m`, and UTF-8 length, mbregex, NFC normalization, supplementary-plane code-point, and ICU 77.1 smoke checks passed.
 
 - 2026-08-21 — security/network/archive PHP batch: added builtin `openssl`, `sockets`, SSL-enabled `ftp`, and `zip` from 16 total extension sources. OpenSSL's required Windows SAPI `applink.c` is copied declaratively into the generated include tree. The first final consumer link exposed a stale libzip probe that incorrectly declared nonexistent `snprintf_s`; its generated configuration now retains the valid MSVC `_snprintf_s` probe only and tracks the Xmake recipe. The complete build passed, all four modules appeared in `php.exe -n -m`, a socket object was created and closed, `ZipArchive` instantiated, FTP functions were present, and the module reported OpenSSL 3.5.7.
 
