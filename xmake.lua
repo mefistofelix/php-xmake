@@ -1820,9 +1820,11 @@ target("php")
         prefixdir = "main",
         pattern = "@([%u_]+)@",
         variables = {
-            EXT_INCLUDE_CODE = [[#include "ext/calendar/php_calendar.h"
+            EXT_INCLUDE_CODE = [[#include "ext/bcmath/php_bcmath.h"
+#include "ext/calendar/php_calendar.h"
 #include "ext/ctype/php_ctype.h"
 #include "ext/date/php_date.h"
+#include "ext/exif/php_exif.h"
 #include "ext/filter/php_filter.h"
 #include "ext/hash/php_hash.h"
 #include "ext/json/php_json.h"
@@ -1830,14 +1832,18 @@ target("php")
 #include "ext/pcre/php_pcre.h"
 #include "ext/random/php_random.h"
 #include "ext/reflection/php_reflection.h"
+#include "ext/session/php_session.h"
 #include "ext/spl/php_spl.h"
+#include "ext/pdo/php_pdo.h"
 #include "ext/standard/php_standard.h"
 #include "ext/tokenizer/php_tokenizer.h"
 #include "ext/opcache/zend_accelerator_module.h"
 #include "ext/uri/php_uri.h"]],
-            EXT_MODULE_PTRS = [[	phpext_calendar_ptr,
+            EXT_MODULE_PTRS = [[	phpext_bcmath_ptr,
+	phpext_calendar_ptr,
 	phpext_ctype_ptr,
 	phpext_date_ptr,
+	phpext_exif_ptr,
 	phpext_filter_ptr,
 	phpext_hash_ptr,
 	phpext_json_ptr,
@@ -1845,7 +1851,9 @@ target("php")
 	phpext_pcre_ptr,
 	phpext_random_ptr,
 	phpext_reflection_ptr,
+	phpext_session_ptr,
 	phpext_spl_ptr,
+	phpext_pdo_ptr,
 	phpext_standard_ptr,
 	phpext_tokenizer_ptr,
 	phpext_opcache_ptr,
@@ -2006,9 +2014,11 @@ target("php")
         table.insert(depend.files, "out/php/Zend/zend_language_parser.h")
     end})
 
+    add_files("in/php-src/ext/bcmath/*.c", "in/php-src/ext/bcmath/libbcmath/src/*.c")
     add_files("in/php-src/ext/calendar/*.c")
     add_files("in/php-src/ext/ctype/*.c")
     add_files("in/php-src/ext/date/*.c", "in/php-src/ext/date/lib/*.c")
+    add_files("in/php-src/ext/exif/*.c")
     add_files("in/php-src/ext/filter/*.c")
     add_files("in/php-src/ext/hash/*.c", "in/php-src/ext/hash/murmur/*.c", "in/php-src/ext/hash/sha3/generic64lc/*.c", {
         defines = {"KeccakP200_excluded", "KeccakP400_excluded", "KeccakP800_excluded"}
@@ -2059,7 +2069,21 @@ target("php")
     )
     add_files("in/php-src/ext/random/*.c")
     add_files("in/php-src/ext/reflection/*.c")
+    add_files("in/php-src/ext/session/*.c")
+    remove_files("in/php-src/ext/session/mod_mm.c")
     add_files("in/php-src/ext/spl/*.c")
+
+    add_files("in/php-src/ext/pdo/*.c")
+    add_files("in/php-src/ext/pdo/pdo_sql_parser.re", {
+        includedirs = {"in/php-src/ext/pdo"},
+        callback = function (sourcefile, sources, depend)
+        local output = "out/php/ext/pdo/pdo_sql_parser.c"
+        local tool = "in/php-sdk/usr/bin/re2c.exe"
+        os.mkdir(path.directory(output))
+        os.vrunv(tool, {"--no-generation-date", "-W", "-b", "-o", output, sourcefile})
+        sources[1] = output
+        table.insert(depend.files, tool)
+    end})
 
     add_files("in/php-src/ext/standard/*.c", "in/php-src/ext/standard/libavifinfo/*.c")
     add_files("in/php-src/ext/tokenizer/*.c")

@@ -1,6 +1,6 @@
 # php-xmake
 
-Windows-only work in progress for building TrueAsync PHP with a compact `xmake.lua`, static third-party libraries, and the dynamic multithreaded MSVC runtime (`/MD`). The current PHP checkpoint builds a ZTS `php8ts.dll` plus all three Windows executables—console `php.exe`, console-less `php-win.exe`, and `php-cgi.exe`—with the mandatory builtin modules, Opcache/JIT, and builtin `ctype`, `calendar`, `tokenizer`, and `filter`. Optional extensions will be added incrementally.
+Windows-only work in progress for building TrueAsync PHP with a compact `xmake.lua`, static third-party libraries, and the dynamic multithreaded MSVC runtime (`/MD`). The current ZTS checkpoint builds all three Windows executables with the mandatory modules, Opcache/JIT, and builtin `ctype`, `calendar`, `tokenizer`, `filter`, `session`, `bcmath`, `PDO`, and `exif`. Optional extensions are added in small validated batches.
 
 The required patched Xmake bundle is included as `xmake.exe` in the repository root. Its source, tests, and detailed patch documentation are maintained in [mefistofelix/xmake-patched](https://github.com/mefistofelix/xmake-patched).
 
