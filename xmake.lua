@@ -137,10 +137,10 @@ target("nghttp2")
     set_kind("static")
     set_targetdir("out")
     set_optimize("fastest")
-    set_configdir("out/nghttp2/include/nghttp2")
+    set_configdir("in/deps/nghttp2/lib/includes/nghttp2")
     add_configfiles("in/deps/nghttp2/lib/includes/nghttp2/nghttp2ver.h.in",
         {pattern = "@([%u%d_]+)@", variables = {PACKAGE_VERSION = "1.69.0", PACKAGE_VERSION_NUM = "0x014500"}})
-    add_includedirs("out/nghttp2/include", "in/deps/nghttp2/lib/includes", {public = true})
+    add_includedirs("in/deps/nghttp2/lib/includes", {public = true})
     add_defines("NGHTTP2_STATICLIB", {public = true})
     add_defines(
         "BUILDING_NGHTTP2",
@@ -157,10 +157,10 @@ target("nghttp3")
     set_targetdir("out")
     set_optimize("fastest")
     set_languages("c11")
-    set_configdir("out/nghttp3/include/nghttp3")
+    set_configdir("in/deps/nghttp3/lib/includes/nghttp3")
     add_configfiles("in/deps/nghttp3/lib/includes/nghttp3/version.h.in",
         {pattern = "@([%u%d_]+)@", variables = {PACKAGE_VERSION = "1.18.0", PACKAGE_VERSION_NUM = "0x011200"}})
-    add_includedirs("out/nghttp3/include", "in/deps/nghttp3/lib/includes", {public = true})
+    add_includedirs("in/deps/nghttp3/lib/includes", {public = true})
     add_defines("NGHTTP3_STATICLIB", {public = true})
     add_defines("BUILDING_NGHTTP3")
     add_files(
@@ -176,11 +176,10 @@ target("ngtcp2")
     set_optimize("fastest")
     set_languages("c11")
     add_deps("openssl")
-    set_configdir("out/ngtcp2/include/ngtcp2")
+    set_configdir("in/deps/ngtcp2/lib/includes/ngtcp2")
     add_configfiles("in/deps/ngtcp2/lib/includes/ngtcp2/version.h.in",
         {pattern = "@([%u%d_]+)@", variables = {PACKAGE_VERSION = "1.25.0", PACKAGE_VERSION_NUM = "0x011900"}})
     add_includedirs(
-        "out/ngtcp2/include",
         "in/deps/ngtcp2/lib/includes",
         "in/deps/ngtcp2/crypto/includes",
         "in/deps/openssl/include",
@@ -263,9 +262,9 @@ target("libsodium")
     set_kind("static")
     set_targetdir("out")
     set_optimize("fastest")
-    set_configdir("out/libsodium/include/sodium")
+    set_configdir("in/deps/libsodium/src/libsodium/include/sodium")
     add_configfiles("in/deps/libsodium/builds/msvc/version.h", {onlycopy = true})
-    add_includedirs("out/libsodium/include", "in/deps/libsodium/src/libsodium/include", {public = true})
+    add_includedirs("in/deps/libsodium/src/libsodium/include", {public = true})
     add_includedirs("in/deps/libsodium/src/libsodium/include/sodium")
     add_defines("SODIUM_STATIC", {public = true})
     add_defines(
@@ -380,13 +379,13 @@ target("libiconv")
         table.insert(depend.files, output)
         table.remove(sources, 1)
     end})
-    set_configdir("out/libiconv")
+    set_configdir("in/deps/libiconv")
     add_configfiles("in/deps/libiconv/include/iconv.h.build.in", {filename = "iconv.h", prefixdir = "include",
         pattern = "@([%u%d_]+)@", variables = {HAVE_VISIBILITY = "0", DLL_VARIABLE = "", EILSEQ = "", ICONV_CONST = "", USE_MBSTATE_T = "1", BROKEN_WCHAR_H = "0"}})
     add_configfiles("in/deps/libiconv/libcharset/include/localcharset.h.build.in", {filename = "localcharset.h", prefixdir = "libcharset/include",
         pattern = "@([%u%d_]+)@", variables = {HAVE_VISIBILITY = "0"}})
-    add_includedirs("out/libiconv/include", "in/deps/libiconv/include", {public = true})
-    add_includedirs("in/deps/libiconv/lib", "out/libiconv/libcharset/include", "in/deps/libiconv/libcharset/include")
+    add_includedirs("in/deps/libiconv/include", {public = true})
+    add_includedirs("in/deps/libiconv/lib", "in/deps/libiconv/libcharset/include")
     add_defines(
         "BUILDING_LIBCHARSET",
         "BUILDING_LIBICONV"
@@ -528,7 +527,7 @@ target("libxml2")
     set_kind("static")
     set_targetdir("out")
     set_optimize("fastest")
-    set_configdir("out/libxml2")
+    set_configdir("in/deps/libxml2")
     add_configfiles("in/deps/libxml2/include/win32config.h", {filename = "config.h", onlycopy = true})
     add_configfiles("in/deps/libxml2/include/libxml/xmlversion.h.in", {prefixdir = "include/libxml", pattern = "@([%u%d_]+)@", variables = {
         VERSION = "2.11.9", LIBXML_VERSION_NUMBER = "21109", LIBXML_VERSION_EXTRA = "", MODULE_EXTENSION = ".dll",
@@ -537,8 +536,8 @@ target("libxml2")
         WITH_FTP = 1, WITH_HTTP = 1, WITH_VALID = 1, WITH_HTML = 1, WITH_LEGACY = 1, WITH_C14N = 1, WITH_CATALOG = 1, WITH_XPATH = 1,
         WITH_XPTR = 1, WITH_XINCLUDE = 1, WITH_ICONV = 1, WITH_DEBUG = 1, WITH_REGEXPS = 1, WITH_SCHEMAS = 1, WITH_SCHEMATRON = 1, WITH_MODULES = 1}})
     add_deps("libiconv")
-    add_includedirs("out/libxml2/include", "in/deps/libxml2/include", {public = true})
-    add_includedirs("out/libxml2", "in/deps/libxml2")
+    add_includedirs("in/deps/libxml2/include", {public = true})
+    add_includedirs("in/deps/libxml2")
     add_defines("LIBXML_STATIC", {public = true})
     add_defines(
         "LIBXML_STATIC_FOR_DLL",
@@ -571,14 +570,14 @@ target("libxslt")
     set_kind("static")
     set_targetdir("out")
     set_optimize("fastest")
-    set_configdir("out/libxslt")
+    set_configdir("in/deps/libxslt")
     add_configfiles("in/deps/libxslt/libxslt/xsltconfig.h.in", {prefixdir = "libxslt", pattern = "@([%u%d_]+)@", variables = {
         VERSION = "1.1.43", LIBXSLT_VERSION_NUMBER = "10143", LIBXSLT_VERSION_EXTRA = "", WITH_TRIO = "0",
         WITH_XSLT_DEBUG = "1", WITH_DEBUGGER = "1", WITH_MODULES = "1", WITH_PROFILER = "1", LIBXSLT_DEFAULT_PLUGINS_PATH = "NULL"}})
     add_configfiles("in/deps/libxslt/libexslt/exsltconfig.h.in", {prefixdir = "libexslt", pattern = "@([%u%d_]+)@", variables = {
         LIBEXSLT_VERSION = "0.8.24", LIBEXSLT_VERSION_NUMBER = "824", LIBEXSLT_VERSION_EXTRA = "", WITH_CRYPTO = "0"}})
     add_deps("libxml2")
-    add_includedirs("out/libxslt", "in/deps/libxslt", {public = true})
+    add_includedirs("in/deps/libxslt", {public = true})
     add_includedirs(
         "in/deps/libxslt/libexslt",
         "in/deps/libxslt/libxslt"
@@ -608,9 +607,9 @@ target("oniguruma")
     set_kind("static")
     set_targetdir("out")
     set_optimize("fastest")
-    set_configdir("out/oniguruma")
+    set_configdir("in/deps/libonig/src")
     add_configfiles("in/deps/libonig/src/config.h.win64", {filename = "config.h", onlycopy = true})
-    add_includedirs("out/oniguruma", "in/deps/libonig/src", {public = true})
+    add_includedirs("in/deps/libonig/src", {public = true})
     add_defines("ONIG_STATIC", {public = true})
     add_defines(
         "HAVE_CONFIG_H",
@@ -654,16 +653,15 @@ target("libpng")
     add_deps("zlib")
     add_files("in/deps/libpng/scripts/pnglibconf.h.prebuilt", {callback = function (sourcefile, sources, depend)
         local zlib = "in/deps/zlib/zlib.h"
-        local output = "out/libpng/pnglibconf.h"
+        local output = "in/deps/libpng/pnglibconf.h"
         table.insert(depend.files, zlib)
         local zlib_vernum = io.readfile(zlib):match("#define ZLIB_VERNUM (0x%x+)")
         local config = io.readfile(sourcefile):gsub("#define PNG_ZLIB_VERNUM 0 /%* unknown %*/", "#define PNG_ZLIB_VERNUM " .. zlib_vernum)
-        os.mkdir("out/libpng")
         io.writefile(output, config)
         table.insert(depend.files, output)
         table.remove(sources, 1)
     end})
-    add_includedirs("in/deps/libpng", "out/libpng", {public = true})
+    add_includedirs("in/deps/libpng", {public = true})
     add_defines("PNG_INTEL_SSE_OPT=1", "_CRT_NONSTDC_NO_DEPRECATE", "_CRT_SECURE_NO_DEPRECATE")
     add_files("in/deps/libpng/png*.c", "in/deps/libpng/intel/*.c")
     remove_files("in/deps/libpng/pngtest.c")
@@ -680,8 +678,7 @@ target("libjpeg")
     set_optimize("fastest")
     set_toolset("as", "nasm@$(projectdir)/in/perl/c/bin/nasm.exe")
     add_files("in/deps/libjpeg-turbo/src/jconfig.h.in", {callback = function (sourcefile, sources, depend)
-        local output = "out/libjpeg/jconfig.h"
-        os.mkdir("out/libjpeg")
+        local output = "in/deps/libjpeg-turbo/src/jconfig.h"
         io.writefile(output, (io.readfile(sourcefile)
             :gsub("@JPEG_LIB_VERSION@", "80")
             :gsub("@VERSION@", "3.1.4.1")
@@ -694,8 +691,7 @@ target("libjpeg")
         table.remove(sources, 1)
     end})
     add_files("in/deps/libjpeg-turbo/src/jconfigint.h.in", {callback = function (sourcefile, sources, depend)
-        local output = "out/libjpeg/jconfigint.h"
-        os.mkdir("out/libjpeg")
+        local output = "in/deps/libjpeg-turbo/src/jconfigint.h"
         io.writefile(output, (io.readfile(sourcefile)
             :gsub("@BUILD@", "20260804")
             :gsub("@HIDDEN@", "")
@@ -713,13 +709,12 @@ target("libjpeg")
         table.remove(sources, 1)
     end})
     add_files("in/deps/libjpeg-turbo/src/jversion.h.in", {callback = function (sourcefile, sources, depend)
-        local output = "out/libjpeg/jversion.h"
-        os.mkdir("out/libjpeg")
+        local output = "in/deps/libjpeg-turbo/src/jversion.h"
         io.writefile(output, (io.readfile(sourcefile):gsub("@COPYRIGHT_YEAR@", "1991-2026")))
         table.insert(depend.files, output)
         table.remove(sources, 1)
     end})
-    add_includedirs("out/libjpeg", "in/deps/libjpeg-turbo/src", {public = true})
+    add_includedirs("in/deps/libjpeg-turbo/src", {public = true})
     add_includedirs("in/deps/libjpeg-turbo/simd", "in/deps/libjpeg-turbo/simd/x86_64")
     add_defines("_CRT_NONSTDC_NO_WARNINGS")
     add_asflags(
@@ -777,12 +772,12 @@ target("freetype")
     set_kind("static")
     set_targetdir("out")
     set_optimize("fastest")
-    set_configdir("out/freetype/include/freetype/config")
+    set_configdir("in/deps/freetype/builds/windows/include/freetype/config")
     add_configfiles("in/deps/freetype/include/freetype/config/ftoption.h", {
         pattern = "/%* #define (FT_CONFIG_OPTION_USE_HARFBUZZ[A-Z_]*) %*/",
         variables = {FT_CONFIG_OPTION_USE_HARFBUZZ = "#define FT_CONFIG_OPTION_USE_HARFBUZZ",
             FT_CONFIG_OPTION_USE_HARFBUZZ_DYNAMIC = "#define FT_CONFIG_OPTION_USE_HARFBUZZ_DYNAMIC"}})
-    add_includedirs("out/freetype/include", "in/deps/freetype/include", {public = true})
+    add_includedirs("in/deps/freetype/builds/windows/include", "in/deps/freetype/include", {public = true})
     add_defines("FT2_BUILD_LIBRARY", "NDEBUG", "_CRT_SECURE_NO_WARNINGS", "_CRT_NONSTDC_NO_WARNINGS")
     add_files(
         "in/deps/freetype/src/autofit/autofit.c",
@@ -859,8 +854,7 @@ target("libtiff")
     set_optimize("fastest")
     add_deps("zlib", "libjpeg", "liblzma", "zstd", "libwebp")
     add_files("in/deps/libtiff/tiff-4.7.2/libtiff/tiffconf.h.cmake.in", {callback = function (sourcefile, sources, depend)
-        local output = "out/libtiff/tiffconf.h"
-        os.mkdir("out/libtiff")
+        local output = "in/deps/libtiff/tiff-4.7.2/libtiff/tiffconf.h"
         local conf = io.readfile(sourcefile)
             :gsub("@TIFF_INT16_T@", "int16_t")
             :gsub("@TIFF_INT32_T@", "int32_t")
@@ -895,8 +889,7 @@ target("libtiff")
         table.remove(sources, 1)
     end})
     add_files("in/deps/libtiff/tiff-4.7.2/libtiff/tif_config.h.cmake.in", {callback = function (sourcefile, sources, depend)
-        local output = "out/libtiff/tif_config.h"
-        os.mkdir("out/libtiff")
+        local output = "in/deps/libtiff/tiff-4.7.2/libtiff/tif_config.h"
         local config = io.readfile(sourcefile)
             :gsub("@LIBJPEG_12_PATH@", "")
             :gsub("@PACKAGE_NAME@", "LibTIFF Software")
@@ -927,14 +920,7 @@ target("libtiff")
         table.insert(depend.files, output)
         table.remove(sources, 1)
     end})
-    add_files("in/deps/libtiff/tiff-4.7.2/libtiff/tiffvers.h", {callback = function (sourcefile, sources, depend)
-        local output = "out/libtiff/tiffvers.h"
-        os.mkdir("out/libtiff")
-        io.writefile(output, io.readfile(sourcefile))
-        table.insert(depend.files, output)
-        table.remove(sources, 1)
-    end})
-    add_includedirs("out/libtiff", "in/deps/libtiff/tiff-4.7.2/libtiff", {public = true})
+    add_includedirs("in/deps/libtiff/tiff-4.7.2/libtiff", {public = true})
     add_defines("NDEBUG", "TIFF_DO_NOT_USE_NON_EXT_ALLOC_FUNCTIONS", "_CRT_SECURE_NO_DEPRECATE", "_CRT_NONSTDC_NO_DEPRECATE", "_CRT_SECURE_NO_WARNINGS", "_CRT_NONSTDC_NO_WARNINGS")
     add_files("in/deps/libtiff/tiff-4.7.2/libtiff/tif_*.c")
     remove_files("in/deps/libtiff/tiff-4.7.2/libtiff/tif_unix.c")
@@ -954,13 +940,13 @@ target("libjxl")
     set_languages("cxx17")
     set_optimize("fastest")
     add_deps("brotli")
-    set_configdir("out/libjxl/include/jxl")
+    set_configdir("in/deps/libjxl/lib/include/jxl")
     add_configfiles("in/deps/libjxl/lib/jxl/version.h.in", {pattern = "@([%u%d_]+)@", variables = {
         JPEGXL_MAJOR_VERSION = "0", JPEGXL_MINOR_VERSION = "11", JPEGXL_PATCH_VERSION = "2"}})
     add_files("in/deps/libjxl/lib/jxl/version.h.in", {callback = function (_, sources, depend)
-        local export = "out/libjxl/include/jxl/jxl_export.h"
-        local cms_export = "out/libjxl/include/jxl/jxl_cms_export.h"
-        os.mkdir("out/libjxl/include/jxl")
+        local export = "in/deps/libjxl/lib/include/jxl/jxl_export.h"
+        local cms_export = "in/deps/libjxl/lib/include/jxl/jxl_cms_export.h"
+        os.mkdir("in/deps/libjxl/lib/include/jxl")
         io.writefile(export, [[#ifndef JXL_EXPORT_H
             #define JXL_EXPORT_H
             #define JXL_EXPORT
@@ -983,7 +969,7 @@ target("libjxl")
         table.insert(depend.files, cms_export)
         table.remove(sources, 1)
     end})
-    add_includedirs("out/libjxl/include", "in/deps/libjxl/lib/include", "in/deps/libjxl", "in/deps/libjxl/third_party/highway", {public = true})
+    add_includedirs("in/deps/libjxl/lib/include", "in/deps/libjxl", "in/deps/libjxl/third_party/highway", {public = true})
     add_includedirs("in/deps/libjxl/third_party/skcms")
     add_defines("JXL_STATIC_DEFINE", "JXL_CMS_STATIC_DEFINE", "HWY_STATIC_DEFINE", {public = true})
     add_defines("JXL_INTERNAL_LIBRARY_BUILD", "JPEGXL_ENABLE_SKCMS=1", "JPEGXL_ENABLE_TRANSCODE_JPEG=1", "JPEGXL_ENABLE_BOXES=1", "FJXL_ENABLE_AVX512=0", "SKCMS_DISABLE_HSW", "SKCMS_DISABLE_SKX", "TOOLCHAIN_MISS_SYS_AUXV_H", "TOOLCHAIN_MISS_ASM_HWCAP_H", "_CRT_SECURE_NO_WARNINGS")
@@ -1009,11 +995,11 @@ target("avif")
     set_optimize("fastest")
     set_toolset("as", "nasm@$(projectdir)/in/perl/c/bin/nasm.exe")
     add_deps("libjpeg")
-    set_configdir("out/avif")
-    add_configfiles("in/deps/libheif/libheif/api/libheif/heif_version.h.in", {prefixdir = "include/libheif", pattern = "@([%u%d_]+)@", variables = {
+    set_configdir("in/deps/libheif/libheif/api")
+    add_configfiles("in/deps/libheif/libheif/api/libheif/heif_version.h.in", {prefixdir = "libheif", pattern = "@([%u%d_]+)@", variables = {
         PROJECT_VERSION_MAJOR = "1", PROJECT_VERSION_MINOR = "23", PROJECT_VERSION_PATCH = "1", PLUGIN_DIRECTORY = ""}})
     add_files("in/deps/aom/cmake/aom_config_defaults.cmake", {callback = function (sourcefile, sources, depend)
-        local out = "out/avif/config"
+        local out = "in/deps/aom/config"
         local rtcd_config = out .. "/aom_config_rtcd.h"
         local assembly_config = out .. "/aom_config.asm"
         os.mkdir(out)
@@ -1032,7 +1018,10 @@ target("avif")
             table.insert(assembly, name .. " equ " .. values[name])
         end
         table.insert(header, "#endif  // AOM_CONFIG_H_")
-        io.writefile(rtcd_config, table.concat(header, "\n") .. "\n")
+        local rtcd_header = table.concat(header, "\n") .. "\n"
+        local config = out .. "/aom_config.h"
+        io.writefile(rtcd_config, rtcd_header)
+        io.writefile(config, (rtcd_header:gsub("#define CONFIG_LIBYUV 0", "#define CONFIG_LIBYUV 1")))
         io.writefile(assembly_config, table.concat(assembly, "\n") .. "\n")
         io.writefile(out .. "/aom_config.c", [[#include "aom/aom_codec.h"
             static const char* const cfg = "cmake ../ -G \"Visual Studio 18 2026\" -DAOM_TARGET_CPU=x86_64 -DENABLE_DOCS=0 -DENABLE_EXAMPLES=0 -DENABLE_NASM=1 -DENABLE_TESTDATA=0 -DENABLE_TESTS=0 -DENABLE_TOOLS=0 -DENABLE_SSE2=1 -DENABLE_SSE3=1 -DENABLE_SSSE3=1 -DENABLE_SSE4_1=1 -DENABLE_SSE4_2=1 -DENABLE_AVX=1 -DENABLE_AVX2=1";
@@ -1041,6 +1030,7 @@ target("avif")
         io.writefile(out .. "/aom_av1_no_op.c", "// Generated no-op source.\n")
         io.writefile(out .. "/aom_dsp_no_op.c", "// Generated no-op source.\n")
         table.insert(depend.files, rtcd_config)
+        table.insert(depend.files, config)
         table.insert(depend.files, assembly_config)
         sources[1] = out .. "/aom_config.c"
         table.insert(sources, out .. "/aom_av1_no_op.c")
@@ -1049,7 +1039,7 @@ target("avif")
     add_files("in/deps/aom/CHANGELOG", {callback = function (sourcefile, sources, depend)
         local perl = "in/perl/perl/bin/perl.exe"
         local script = "in/deps/aom/cmake/version.pl"
-        local output = "out/avif/config/aom_version.h"
+        local output = "in/deps/aom/config/aom_version.h"
         table.insert(depend.files, perl)
         table.insert(depend.files, script)
         os.vrunv(perl, {script, "--version_data=" .. sourcefile, "--version_filename=" .. output})
@@ -1059,11 +1049,11 @@ target("avif")
     add_files("in/deps/aom/aom_dsp/aom_dsp_rtcd_defs.pl", "in/deps/aom/aom_scale/aom_scale_rtcd.pl", "in/deps/aom/av1/common/av1_rtcd_defs.pl", {callback = function (sourcefile, sources, depend)
         local perl = "in/perl/perl/bin/perl.exe"
         local script = "in/deps/aom/cmake/rtcd.pl"
-        local config = "out/avif/config/aom_config_rtcd.h"
+        local config = "in/deps/aom/config/aom_config_rtcd.h"
         local sym, output
-        if sourcefile:find("aom_dsp_rtcd_defs", 1, true) then sym, output = "aom_dsp_rtcd", "out/avif/config/aom_dsp_rtcd.h"
-        elseif sourcefile:find("aom_scale_rtcd", 1, true) then sym, output = "aom_scale_rtcd", "out/avif/config/aom_scale_rtcd.h"
-        else sym, output = "av1_rtcd", "out/avif/config/av1_rtcd.h" end
+        if sourcefile:find("aom_dsp_rtcd_defs", 1, true) then sym, output = "aom_dsp_rtcd", "in/deps/aom/config/aom_dsp_rtcd.h"
+        elseif sourcefile:find("aom_scale_rtcd", 1, true) then sym, output = "aom_scale_rtcd", "in/deps/aom/config/aom_scale_rtcd.h"
+        else sym, output = "av1_rtcd", "in/deps/aom/config/av1_rtcd.h" end
         table.insert(depend.files, perl)
         table.insert(depend.files, script)
         table.insert(depend.files, config)
@@ -1071,14 +1061,8 @@ target("avif")
         table.insert(depend.files, output)
         table.remove(sources, 1)
     end})
-    add_files("out/avif/config/aom_config_rtcd.h", {callback = function (sourcefile, sources, depend)
-        local output = "out/avif/config/aom_config.h"
-        io.writefile(output, (io.readfile(sourcefile):gsub("#define CONFIG_LIBYUV 0", "#define CONFIG_LIBYUV 1")))
-        table.insert(depend.files, output)
-        table.remove(sources, 1)
-    end})
     add_files("in/deps/dav1d/dav1d-1.5.3/meson.build", {callback = function (_, sources, depend)
-        local out = "out/avif/dav1d"
+        local out = "in/deps/dav1d/dav1d-1.5.3"
         os.mkdir(out)
         io.writefile(out .. "/config.h", [[#define ARCH_AARCH64 0
             #define ARCH_ARM 0
@@ -1138,19 +1122,18 @@ target("avif")
     end})
     add_files("in/deps/dav1d/dav1d-1.5.3/src/*_tmpl.c", {callback = function (sourcefile, sources)
         local name = path.filename(sourcefile)
-        local out8 = "out/avif/dav1d/dav1d_8_" .. name
-        local out16 = "out/avif/dav1d/dav1d_16_" .. name
-        os.mkdir("out/avif/dav1d")
+        local out8 = "in/deps/dav1d/dav1d-1.5.3/dav1d_8_" .. name
+        local out16 = "in/deps/dav1d/dav1d-1.5.3/dav1d_16_" .. name
         io.writefile(out8, "#define BITDEPTH 8\n#include \"" .. sourcefile .. "\"\n")
         io.writefile(out16, "#define BITDEPTH 16\n#include \"" .. sourcefile .. "\"\n")
         sources[1] = out8
         table.insert(sources, out16)
     end})
-    add_includedirs("in/deps/libavif/include", "in/deps/libheif/libheif/api", "out/avif/include", {public = true})
-    add_includedirs("out/avif", "out/avif/dav1d", "in/deps/aom", "in/deps/libyuv/include", "in/deps/libheif/libheif", "in/deps/dav1d/dav1d-1.5.3/include", "in/deps/dav1d/dav1d-1.5.3/include/compat/msvc", "in/deps/dav1d/dav1d-1.5.3", "$(projectdir)", "out/libjpeg", "in/deps/libjpeg-turbo/src")
+    add_includedirs("in/deps/libavif/include", "in/deps/libheif/libheif/api", {public = true})
+    add_includedirs("in/deps/aom", "in/deps/libyuv/include", "in/deps/libheif/libheif", "in/deps/dav1d/dav1d-1.5.3/include", "in/deps/dav1d/dav1d-1.5.3/include/compat/msvc", "in/deps/dav1d/dav1d-1.5.3", "$(projectdir)", "in/deps/libjpeg-turbo/src")
     add_defines("LIBHEIF_STATIC_BUILD", "WITH_UNCOMPRESSED_CODEC=1", {public = true})
     add_defines("AVIF_CODEC_AOM=1", "AVIF_CODEC_AOM_ENCODE=1", "AVIF_CODEC_AOM_DECODE=1", "AVIF_CODEC_DAV1D=1", "AVIF_LIBYUV_ENABLED=1", "LIBHEIF_EXPORTS", "HAVE_VISIBILITY=1", "HAVE_BIT=1", "IS_BIG_ENDIAN=0", "ENABLE_MULTITHREADING_SUPPORT=1", "ENABLE_PARALLEL_TILE_DECODING=1", "HAVE_AOM_DECODER=1", "HAVE_AOM_ENCODER=1", "HAVE_DAV1D=1", "HAVE_JPEG_DECODER=1", "HAVE_JPEG_ENCODER=1", "_WIN32_WINNT=0x0601", "_CRT_SECURE_NO_WARNINGS", "_CRT_NONSTDC_NO_WARNINGS")
-    add_asflags("-fwin64", "-I$(projectdir)/in/deps/aom/", "-I$(projectdir)/out/avif/", "-I$(projectdir)/in/deps/dav1d/dav1d-1.5.3/src/", "-I$(projectdir)/out/avif/dav1d/", {force = true})
+    add_asflags("-fwin64", "-I$(projectdir)/in/deps/aom/", "-I$(projectdir)/in/deps/dav1d/dav1d-1.5.3/src/", "-I$(projectdir)/in/deps/dav1d/dav1d-1.5.3/", {force = true})
     add_files(
         "in/deps/libavif/src/*.c",
         "in/deps/aom/aom/src/*.c",
@@ -1212,9 +1195,9 @@ target("libsasl")
     set_optimize("fastest")
     add_files("in/deps/libsasl/include/*.h", {callback = function (sourcefile, sources, depend)
         local name = path.filename(sourcefile)
-        local output = "out/libsasl/include/" .. name
-        local nested = "out/libsasl/include/sasl/" .. name
-        os.mkdir("out/libsasl/include/sasl")
+        local output = "in/deps/libsasl/win32/include/" .. name
+        local nested = "in/deps/libsasl/win32/include/sasl/" .. name
+        os.mkdir("in/deps/libsasl/win32/include/sasl")
         local content = io.readfile(sourcefile)
         if name == "prop.h" then
                 content = content:gsub("#ifdef WIN32\n# ifdef LIBSASL_EXPORTS", "#if defined(WIN32) && !defined(LIBSASL_STATIC)\n# ifdef LIBSASL_EXPORTS")
@@ -1226,25 +1209,21 @@ target("libsasl")
         table.remove(sources, 1)
     end})
     add_files("in/deps/libsasl/win32/include/md5global.h", {callback = function (sourcefile, sources, depend)
-        local output = "out/libsasl/include/md5global.h"
-        local nested = "out/libsasl/include/sasl/md5global.h"
-        os.mkdir("out/libsasl/include/sasl")
+        local nested = "in/deps/libsasl/win32/include/sasl/md5global.h"
+        os.mkdir("in/deps/libsasl/win32/include/sasl")
         local content = io.readfile(sourcefile)
-        io.writefile(output, content)
         io.writefile(nested, content)
-        table.insert(depend.files, output)
         table.insert(depend.files, nested)
         table.remove(sources, 1)
     end})
-    add_includedirs("out/libsasl/include", {public = true})
-    add_includedirs("in/deps/libsasl/win32/include", "in/deps/libsasl/include", "in/deps/libsasl/lib", "in/deps/libsasl/common")
+    add_includedirs("in/deps/libsasl/win32/include", {public = true})
+    add_includedirs("in/deps/libsasl/include", "in/deps/libsasl/lib", "in/deps/libsasl/common")
     add_defines("LIBSASL_STATIC", {public = true})
     add_defines("NO_STATIC_PLUGINS", "WIN32", "UNICODE", "_UNICODE", "_CRT_SECURE_NO_WARNINGS", "GCC_FALLTHROUGH=")
     add_syslinks("ws2_32", "advapi32", {public = true})
     add_files("in/deps/libsasl/lib/*.c", "in/deps/libsasl/common/plugin_common.c")
     add_files("in/deps/libsasl/lib/saslutil.c", {callback = function (sourcefile, sources)
-        local output = "out/libsasl/saslutil.c"
-        os.mkdir("out/libsasl")
+        local output = "in/deps/libsasl/win32/saslutil.c"
         io.writefile(output, (io.readfile(sourcefile):gsub("__declspec%(dllexport%) ", "")))
         sources[1] = output
     end})
@@ -1293,8 +1272,8 @@ target("openldap")
             uid_t=int
         ]=]
         for line in values:gmatch("[^\r\n]+") do local n, v = line:match("^%s*([^=]+)=(.*)$"); if n then defs[n] = v end end
-        local output = "out/openldap/include/" .. path.filename(sourcefile):gsub("%.hin$", ".h")
-        os.mkdir("out/openldap/include")
+        local output = "in/deps/openldap/build/include/" .. path.filename(sourcefile):gsub("%.hin$", ".h")
+        os.mkdir("in/deps/openldap/build/include")
         io.writefile(output, (io.readfile(sourcefile):gsub("#undef%s+([%w_]+)", function (name)
             return defs[name] and ("#define " .. name .. " " .. defs[name]) or ("/* #undef " .. name .. " */")
         end)))
@@ -1302,17 +1281,17 @@ target("openldap")
         table.remove(sources, 1)
     end})
     add_files("in/deps/openldap/include/ldap_config.hin", {callback = function (sourcefile, sources, depend)
-        local output = "out/openldap/include/ldap_config.h"
-        os.mkdir("out/openldap/include")
+        local output = "in/deps/openldap/build/include/ldap_config.h"
+        os.mkdir("in/deps/openldap/build/include")
         io.writefile(output, (io.readfile(sourcefile):gsub("%%[A-Z]+DIR%%", ".")))
         table.insert(depend.files, output)
         table.remove(sources, 1)
     end})
     add_files("in/deps/openldap/include/ac/socket.h", "in/deps/openldap/include/ac/time.h", {callback = function (sourcefile, sources, depend)
         local name = path.filename(sourcefile)
-        local output = "out/openldap/include/ac/" .. name
+        local output = "in/deps/openldap/build/include/ac/" .. name
         local content = io.readfile(sourcefile)
-        os.mkdir("out/openldap/include/ac")
+        os.mkdir("in/deps/openldap/build/include/ac")
         if name == "socket.h" then
             content = content:gsub("#define EWOULDBLOCK WSAEWOULDBLOCK", "#undef EWOULDBLOCK\n#undef EINPROGRESS\n#undef ETIMEDOUT\n#undef ENOTCONN\n#define EWOULDBLOCK WSAEWOULDBLOCK")
         else
@@ -1322,7 +1301,7 @@ target("openldap")
         table.insert(depend.files, output)
         table.remove(sources, 1)
     end})
-    add_includedirs("out/openldap/include", "in/deps/openldap/include", {public = true})
+    add_includedirs("in/deps/openldap/build/include", "in/deps/openldap/include", {public = true})
     add_includedirs("in/deps/openldap/libraries/libldap", "in/deps/openldap/libraries/liblber", "in/deps/rxspencer", "in/deps/openssl/include")
     add_defines("strcasecmp=_stricmp", "strncasecmp=_strnicmp")
     add_syslinks("ws2_32", "advapi32", "crypt32", "secur32", "bcrypt", {public = true})
@@ -1331,10 +1310,10 @@ target("openldap")
     add_files("in/deps/openldap/libraries/liblber/*.c", {defines = {"LBER_LIBRARY"}})
     remove_files("in/deps/openldap/libraries/liblber/dtest.c", "in/deps/openldap/libraries/liblber/etest.c", "in/deps/openldap/libraries/liblber/idtest.c", "in/deps/openldap/libraries/liblber/stdio.c")
     add_files("in/deps/rxspencer/regcomp.c", "in/deps/rxspencer/regerror.c", "in/deps/rxspencer/regexec.c", "in/deps/rxspencer/regfree.c", {defines = {"POSIX_MISTAKE", "REDEBUG"}})
-    add_files("in/deps/openldap/build/version.h", {callback = function (sourcefile, sources)
-        local output = "out/openldap/version.c"
-        os.mkdir("out/openldap")
+    add_files("in/deps/openldap/build/version.h", {callback = function (sourcefile, sources, depend)
+        local output = "in/deps/openldap/build/version.c"
         io.writefile(output, io.readfile(sourcefile) .. '\n#include "portable.h"\nconst char __Version[] = "OpenLDAP 2.6.13";\n')
+        table.insert(depend.files, output)
         sources[1] = output
     end})
 
@@ -1358,8 +1337,7 @@ target("libpq")
             RELSEG_SIZE=131072;SIZEOF_BOOL=1;SIZEOF_LONG=4;SIZEOF_SIZE_T=8;SIZEOF_VOID_P=8;XLOG_BLCKSZ=8192;inline=__inline;pg_restrict=__restrict
         ]=]
         for item in values:gmatch("[^;\r\n]+") do local name, value = item:match("^%s*([^=]+)=(.*)$"); if name then defs[name] = value end end
-        local output = "out/libpq/include/" .. path.filename(sourcefile):gsub("%.in$", "")
-        os.mkdir("out/libpq/include")
+        local output = "in/deps/libpq/src/include/" .. path.filename(sourcefile):gsub("%.in$", "")
         io.writefile(output, (io.readfile(sourcefile):gsub("#(%s*)undef%s+([%w_]+)", function (_, name)
             return defs[name] and ("#define " .. name .. " " .. defs[name]) or ("/* #undef " .. name .. " */")
         end)))
@@ -1367,23 +1345,21 @@ target("libpq")
         table.remove(sources, 1)
     end})
     add_files("in/deps/libpq/src/include/port/win32.h", {callback = function (sourcefile, sources, depend)
-        local output = "out/libpq/include/pg_config_os.h"
-        os.mkdir("out/libpq/include")
+        local output = "in/deps/libpq/src/include/pg_config_os.h"
         io.writefile(output, io.readfile(sourcefile))
         table.insert(depend.files, output)
         table.remove(sources, 1)
     end})
     add_files("in/deps/libpq/src/tools/msvc/Solution.pm", {callback = function (_, sources, depend)
-        local output = "out/libpq/port/pg_config_paths.h"
+        local output = "in/deps/libpq/src/port/pg_config_paths.h"
         local paths = "PGBINDIR=/bin PGSHAREDIR=/share SYSCONFDIR=/etc INCLUDEDIR=/include PKGINCLUDEDIR=/include INCLUDEDIRSERVER=/include/server LIBDIR=/lib PKGLIBDIR=/lib LOCALEDIR=/share/locale DOCDIR=/doc HTMLDIR=/doc MANDIR=/man"
-        os.mkdir("out/libpq/port")
         paths = paths:gsub(" ?(%S+)=([^%s]+)", '#define %1 "%2"\n')
         io.writefile(output, paths)
         table.insert(depend.files, output)
         table.remove(sources, 1)
     end})
-    add_includedirs("out/libpq/include", "in/deps/libpq/src/interfaces/libpq", "in/deps/libpq/src/include", {public = true})
-    add_includedirs("out/libpq/port", "in/deps/libpq/src/port", "in/deps/libpq/src/include/port/win32", "in/deps/libpq/src/include/port/win32_msvc", "in/deps/openssl/include")
+    add_includedirs("in/deps/libpq/src/interfaces/libpq", "in/deps/libpq/src/include", {public = true})
+    add_includedirs("in/deps/libpq/src/port", "in/deps/libpq/src/include/port/win32", "in/deps/libpq/src/include/port/win32_msvc", "in/deps/openssl/include")
     add_defines("FRONTEND", "WIN32", "WINDOWS", "__WINDOWS__", "__WIN32__", "_CRT_SECURE_NO_DEPRECATE", "_CRT_NONSTDC_NO_DEPRECATE", "SO_MAJOR_VERSION=5")
     add_syslinks("ws2_32", "secur32", "shell32", "advapi32", {public = true})
     add_files("in/deps/libpq/src/interfaces/libpq/*.c")
@@ -1408,11 +1384,10 @@ target("libffi")
     set_targetdir("out")
     set_optimize("fastest")
     add_files("in/deps/libffi/src/x86/win64_intel.S", {callback = function (sourcefile, sources, depend)
-        local output = "out/libffi/win64.asm"
+        local output = "in/deps/libffi/src/x86/win64.asm"
         local target = import("core.project.project").target("libffi")
-        local cc = import("core.tool.compiler").compargv("in/deps/libffi/src/types.c", "out/libffi/probe.obj", {target = target})
+        local cc = import("core.tool.compiler").compargv("in/deps/libffi/src/types.c", "build/libffi/probe.obj", {target = target})
         if type(cc) == "string" then table.insert(depend.files, cc) end
-        os.mkdir("out/libffi")
         io.writefile(output, os.iorunv(cc, {"/EP", "/DFFI_BUILDING", "/DFFI_STATIC_BUILD", "/Iin/deps/libffi", "/Iin/deps/libffi/include", "/Iin/deps/libffi/src/x86", sourcefile}))
         sources[1] = output
     end})
@@ -1442,9 +1417,8 @@ target("libzip")
     set_optimize("fastest")
     add_deps("zlib", "bzip2", "liblzma")
     add_files("in/deps/libzip/CMakeLists.txt", {callback = function (_, sources, depend)
-        local zipconf = "out/libzip/zipconf.h"
-        local config = "out/libzip/config.h"
-        os.mkdir("out/libzip")
+        local zipconf = "in/deps/libzip/lib/zipconf.h"
+        local config = "in/deps/libzip/lib/config.h"
         io.writefile(zipconf, [[#ifndef _HAD_ZIPCONF_H
             #define _HAD_ZIPCONF_H
             #define LIBZIP_VERSION "1.11.4"
@@ -1520,13 +1494,13 @@ target("libzip")
         table.insert(depend.files, "xmake.lua")
         table.remove(sources, 1)
     end})
-    add_includedirs("out/libzip", "in/deps/libzip/lib", {public = true})
+    add_includedirs("in/deps/libzip/lib", {public = true})
     add_defines("ZIP_STATIC", {public = true})
     add_defines("WIN32_LEAN_AND_MEAN", "_CRT_SECURE_NO_WARNINGS", "_CRT_NONSTDC_NO_DEPRECATE")
     add_syslinks("bcrypt", {public = true})
-    add_files("in/deps/libzip/lib/*.c")
+    add_files("in/deps/libzip/lib/*.c|zip_err_str.c")
     add_files("in/deps/libzip/lib/zip.h", {callback = function (sourcefile, sources, depend)
-        local output = "out/libzip/zip_err_str.c"
+        local output = "in/deps/libzip/lib/zip_err_str.c"
         local zipint = "in/deps/libzip/lib/zipint.h"
         table.insert(depend.files, zipint)
         local data = [[#include "zipint.h"
@@ -1551,6 +1525,7 @@ target("libzip")
         io.writefile(output, data .. [[};
             const int _zip_err_details_count = sizeof(_zip_err_details) / sizeof(_zip_err_details[0]);
         ]])
+        table.insert(depend.files, output)
         sources[1] = output
     end})
     remove_files("in/deps/libzip/lib/zip_algorithm_zstd.c", "in/deps/libzip/lib/zip_crypto_commoncrypto.c", "in/deps/libzip/lib/zip_crypto_gnutls.c", "in/deps/libzip/lib/zip_crypto_mbedtls.c", "in/deps/libzip/lib/zip_crypto_openssl.c", "in/deps/libzip/lib/zip_random_unix.c", "in/deps/libzip/lib/zip_random_uwp.c", "in/deps/libzip/lib/zip_source_file_stdio_named.c")
@@ -1563,15 +1538,15 @@ target("mpir")
     set_targetdir("out")
     set_optimize("fastest")
     add_files("in/deps/mpir/build.vc/cfg.h", {callback = function (sourcefile, sources, depend)
-        local output = "out/mpir/include/mpir/config.h"
-        os.mkdir("out/mpir/include/mpir")
+        local output = "in/deps/mpir/build.vc/include/mpir/config.h"
+        os.mkdir("in/deps/mpir/build.vc/include/mpir")
         io.writefile(output, "/* generated by gen_config_h.bat */\n" .. io.readfile(sourcefile))
         table.insert(depend.files, output)
         table.remove(sources, 1)
     end})
     add_files("in/deps/mpir/mpn/generic/gmp-mparam.h", {callback = function (sourcefile, sources, depend)
-        local output = "out/mpir/include/mpir/gmp-mparam.h"
-        os.mkdir("out/mpir/include/mpir")
+        local output = "in/deps/mpir/build.vc/include/mpir/gmp-mparam.h"
+        os.mkdir("in/deps/mpir/build.vc/include/mpir")
         io.writefile(output, io.readfile(sourcefile))
         table.insert(depend.files, output)
         table.remove(sources, 1)
@@ -1579,18 +1554,18 @@ target("mpir")
     add_files("in/deps/mpir/longlong_pre.h", {callback = function (sourcefile, sources, depend)
         local inc = "in/deps/mpir/mpn/x86_64w/longlong_inc.h"
         local post = "in/deps/mpir/longlong_post.h"
-        local output = "out/mpir/include/mpir/longlong.h"
+        local output = "in/deps/mpir/build.vc/include/mpir/longlong.h"
         table.insert(depend.files, inc)
         table.insert(depend.files, post)
-        os.mkdir("out/mpir/include/mpir")
+        os.mkdir("in/deps/mpir/build.vc/include/mpir")
         io.writefile(output, io.readfile(sourcefile) .. io.readfile(inc) .. io.readfile(post))
         table.insert(depend.files, output)
         table.remove(sources, 1)
     end})
     add_files("in/deps/mpir/gmp-h.in", {callback = function (sourcefile, sources, depend)
-        local mpir = "out/mpir/include/mpir/mpir.h"
-        local gmp = "out/mpir/include/mpir/gmp.h"
-        os.mkdir("out/mpir/include/mpir")
+        local mpir = "in/deps/mpir/build.vc/include/mpir/mpir.h"
+        local gmp = "in/deps/mpir/build.vc/include/mpir/gmp.h"
+        os.mkdir("in/deps/mpir/build.vc/include/mpir")
         local header = "/* generated from gmp-h.in by gen_mpir_h.bat */\n"
         local source = io.readfile(sourcefile):gsub("\r\n", "\n") .. "\n"
         for line in source:gmatch("([^\n]*)\n") do
@@ -1617,7 +1592,7 @@ target("mpir")
         table.insert(depend.files, gmp)
         table.remove(sources, 1)
     end})
-    add_includedirs("out/mpir/include/mpir", "in/deps/mpir", {public = true})
+    add_includedirs("in/deps/mpir/build.vc/include/mpir", "in/deps/mpir", {public = true})
     add_defines("NDEBUG", "WIN32", "_LIB", "HAVE_CONFIG_H", "_WIN64")
     add_files("in/deps/mpir/*.c", "in/deps/mpir/fft/*.c", "in/deps/mpir/mpf/*.c", "in/deps/mpir/mpq/*.c", "in/deps/mpir/mpz/*.c", "in/deps/mpir/printf/*.c", "in/deps/mpir/scanf/*.c", "in/deps/mpir/mpn/generic/*.c")
     remove_files("in/deps/mpir/compat.c", "in/deps/mpir/cpuid.c", "in/deps/mpir/tal-debug.c", "in/deps/mpir/tal-notreent.c", "in/deps/mpir/mpn/generic/udiv_w_sdiv.c")

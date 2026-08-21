@@ -36,7 +36,7 @@ Keep this file and `TODO.md` clear, organized, written in English, and synchroni
 ## Target Model
 
 - Before converting a dependency, inspect its original non-Xmake build system (`CMakeLists.txt`, configure scripts, Makefiles, Visual Studio projects, or equivalent). Treat it as the primary source for the exact source list and exclusions, generated files, platform defines, include paths, output names, runtime flags, optional assembly, and dependency edges. Record the relevant findings in this file before the first build attempt so Xmake conversion is guided by upstream intent instead of trial and error.
-- Do not hand-edit materialized upstream sources to make a target build. Express every required generated or transformed input in `xmake.lua` through configuration or materialization callbacks so the build remains autonomous from an empty filesystem state. Callbacks may write the generated files required by an upstream in-tree workflow; the prohibition is on manual source patching outside the reproducible Xmake graph.
+- Do not hand-edit materialized upstream sources to make a target build. Express every required generated or transformed input in `xmake.lua` through configuration or materialization callbacks so the build remains autonomous from freshly fetched pristine upstream trees under `in/`. Callbacks may write the generated files required by an upstream in-tree workflow; the prohibition is on manual source patching outside the reproducible Xmake graph.
 - Before accepting verbose declarations, custom Lua, or a workaround, investigate whether Xmake already provides a cleaner declarative API, built-in rule, policy, placeholder, or file-level setting. Prefer the simplest Xmake-native form and document non-obvious semantics that affect future targets.
 - Keep `xmake.lua` primarily declarative: it should consist of Xmake configuration, target declarations, and only the smallest target-native hooks required for real configuration or code generation. Keep the long-lived `php` target especially compact; prefer broad declarative source/dependency declarations over accumulating helper Lua.
 - Do not add arbitrary Lua helper functions, tables, aliases, or variables. Introduce Lua state only when an Xmake API requires it and no direct declarative expression is practical; keep such state local to the owning target hook.
@@ -258,14 +258,14 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 - Use the already pinned official `nghttp2/nghttp2` repository at `v1.69.0`.
 - Upstream `lib/CMakeLists.txt` and `lib/Makefile.am` agree on all 26 direct C children of `lib`; the older standalone MSVC makefile omits five newer sources, so use the current CMake/Automake manifest. The broad `lib/*.c` pattern matches it exactly.
 - The library has no external link dependency. Its Windows configuration needs `ssize_t=int`, `HAVE_WINDOWS_H`, and `HAVE_GETTICKCOUNT64`; define `BUILDING_NGHTTP2` privately. Propagate `NGHTTP2_STATICLIB` because consumers must suppress `dllimport` in the public header.
-- Generate `out/nghttp2/include/nghttp2/nghttp2ver.h` from the committed `.in` template with `add_configfiles`, substituting version `1.69.0` and hexadecimal version `0x014500`. No target callback is required.
+- Generate `in/deps/nghttp2/lib/includes/nghttp2/nghttp2ver.h` beside its committed `.in` template with `add_configfiles`, substituting version `1.69.0` and hexadecimal version `0x014500`. No target callback is required.
 - Compile all 26 sources independently without unity. Compare the archive with the 181 exports from `dll_compare/nghttp2.dll`, and verify x64 `/MD`, no `/EXPORT:` directives, and no `__imp_nghttp2*` thunks.
 
 ### nghttp2 code-generation inventory
 
 | Owner | Tool | Input | Output | Handling | Status |
 | --- | --- | --- | --- | --- | --- |
-| `nghttp2` | Xmake `add_configfiles` | `lib/includes/nghttp2/nghttp2ver.h.in` | `out/nghttp2/include/nghttp2/nghttp2ver.h` | Substitute the pinned version variables declaratively with the uppercase `@VAR@` pattern | Build validated |
+| `nghttp2` | Xmake `add_configfiles` | `lib/includes/nghttp2/nghttp2ver.h.in` | `lib/includes/nghttp2/nghttp2ver.h` | Substitute the pinned version variables declaratively with the uppercase `@VAR@` pattern | Build validated |
 
 ### libcurl upstream build analysis
 
@@ -283,7 +283,7 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 - Clean-absence and unchanged-repeat preparation both pass and retain the correct official-source hx marker.
 - The upstream VS2026 project lists all 141 C files under `src/libsodium` and no other C input; the recursive Xmake glob reproduces this manifest exactly. The autotools manifest agrees on the full non-minimal feature set and the architecture-specific C implementations.
 - The MSVC AMD64 assembly option defaults to off. Keep it off and compile the reference, SSE2, SSSE3, SSE4.1, AVX2, AVX512F, AES-NI, and platform C files that the official project includes; their guards and runtime CPU dispatch select usable implementations.
-- The official MSVC pre-build step copies committed `builds/msvc/version.h`. Reproduce that idempotently with `add_configfiles(..., {onlycopy = true})` into `out/libsodium/include/sodium/version.h`; there is no target callback or other generation.
+- The official MSVC pre-build step copies committed `builds/msvc/version.h`. Reproduce that idempotently with `add_configfiles(..., {onlycopy = true})` into `src/libsodium/include/sodium/version.h`; there is no target callback or other generation.
 - Propagate `SODIUM_STATIC` so public headers suppress `dllimport`. Keep `NATIVE_LITTLE_ENDIAN`, `NDEBUG`, `UNICODE`, `WIN32`, `WIN64`, `_CRT_SECURE_NO_WARNINGS`, `_LIB`, `_UNICODE`, and `inline=__inline` private, matching the MSVC property sheets. Retain the toolset's `/UndefIntOverflow-` behavior.
 - Upstream's standalone static ReleaseLIB configuration selects `/MT`, but this project deliberately overrides it with the global `/MD` policy required for PHP DLL compatibility. The only system dependency is `advapi32`, used for Windows random generation.
 - Compile every source independently without unity. Validate against the exports of `dll_compare/libsodium.dll`, plus archive architecture, `/MD`, static decoration, and absence of embedded export directives.
@@ -292,7 +292,7 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 
 | Owner | Tool | Input | Output | Handling | Status |
 | --- | --- | --- | --- | --- | --- |
-| `libsodium` | Xmake `add_configfiles` | `builds/msvc/version.h` | `out/libsodium/include/sodium/version.h` | Declarative `onlycopy`, matching the official MSVC pre-build event without a target callback | Build validated |
+| `libsodium` | Xmake `add_configfiles` | `builds/msvc/version.h` | `src/libsodium/include/sodium/version.h` | Declarative `onlycopy`, matching the official MSVC pre-build event without a target callback | Build validated |
 
 ### libuv upstream build analysis
 
@@ -310,13 +310,13 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 - Upstream `lib/CMakeLists.txt` and `lib/Makefile.am` agree on 31 direct `lib/nghttp3_*.c` sources plus `lib/sfparse/sfparse.c`. The root CMake configuration requires C11, and internal min/max macros use C11 `_Generic`; select `c11` at target scope so MSVC receives `/std:c11`. Compile the 32 inputs independently without unity.
 - Define `BUILDING_NGHTTP3` privately and propagate `NGHTTP3_STATICLIB`, which suppresses DLL decoration in the public header. The library has no external link dependency.
 - The generated CMake configuration only supplies Unix feature probes and a fallback `ssize_t` typedef. The selected Windows implementation does not use `ssize_t`, and its endian conversion takes the explicit `_byteswap_*` path, so the target does not need `HAVE_CONFIG_H` or a generated `config.h`.
-- Generate `out/nghttp3/include/nghttp3/version.h` from its committed `.in` template with `add_configfiles`, substituting version `1.18.0` and hexadecimal version `0x011200`. No target callback is required.
+- Generate `in/deps/nghttp3/lib/includes/nghttp3/version.h` beside its committed `.in` template with `add_configfiles`, substituting version `1.18.0` and hexadecimal version `0x011200`. No target callback is required.
 
 ### nghttp3 code-generation inventory
 
 | Owner | Tool | Input | Output | Handling | Status |
 | --- | --- | --- | --- | --- | --- |
-| `nghttp3` | Xmake `add_configfiles` | `lib/includes/nghttp3/version.h.in` | `out/nghttp3/include/nghttp3/version.h` | Substitute the pinned version variables declaratively with the uppercase `@VAR@` pattern | Build validated |
+| `nghttp3` | Xmake `add_configfiles` | `lib/includes/nghttp3/version.h.in` | `lib/includes/nghttp3/version.h` | Substitute the pinned version variables declaratively with the uppercase `@VAR@` pattern | Build validated |
 
 ### ngtcp2 upstream build analysis
 
@@ -324,13 +324,13 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 - Upstream CMake and Automake define the core as all 46 direct C children of `lib` and the OpenSSL 3.5 QUIC adapter as the two sources `crypto/ossl/ossl.c` and `crypto/shared.c`. The project intentionally consolidates both upstream libraries into the single `ngtcp2` target and `out/ngtcp2.lib`; PHP will consume that project target directly rather than reproducing the upstream archive split.
 - The complete 48-source target requires C11. Define `BUILDING_NGTCP2` privately and propagate `NGTCP2_STATICLIB` so all public core and crypto declarations suppress DLL decoration. The Windows paths infer `WIN32` from `_WIN32`; the selected sources do not use the configuration header's `ssize_t` fallback or Unix probes, so the target needs neither `HAVE_CONFIG_H` nor a generated `config.h`.
 - The merged target publishes both `lib/includes` and `crypto/includes`, depends directly on the validated OpenSSL target, and carries the Windows system-library closure used by the adapter plus PHP's required `bcrypt` edge. Compile every source independently without unity.
-- Generate `out/ngtcp2/include/ngtcp2/version.h` from its committed `.in` template with `add_configfiles`, substituting version `1.25.0` and hexadecimal version `0x011900`. No target callback is required for ngtcp2.
+- Generate `in/deps/ngtcp2/lib/includes/ngtcp2/version.h` beside its committed `.in` template with `add_configfiles`, substituting version `1.25.0` and hexadecimal version `0x011900`. No target callback is required for ngtcp2.
 
 ### ngtcp2 code-generation inventory
 
 | Owner | Tool | Input | Output | Handling | Status |
 | --- | --- | --- | --- | --- | --- |
-| `ngtcp2` | Xmake `add_configfiles` | `lib/includes/ngtcp2/version.h.in` | `out/ngtcp2/include/ngtcp2/version.h` | Substitute the pinned version variables declaratively with the uppercase `@VAR@` pattern | Build validated |
+| `ngtcp2` | Xmake `add_configfiles` | `lib/includes/ngtcp2/version.h.in` | `lib/includes/ngtcp2/version.h` | Substitute the pinned version variables declaratively with the uppercase `@VAR@` pattern | Build validated |
 
 ### ICU upstream build analysis
 
@@ -362,7 +362,7 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 
 | Owner | Tool | Input | Output | Handling | Status |
 | --- | --- | --- | --- | --- | --- |
-| `libiconv` | Xmake `add_configfiles` + patched `add_files` | `include/iconv.h.build.in`, `libcharset/include/localcharset.h.build.in`, `lib/config.h.in`, MSVC/platform configuration | `out/libiconv/include/iconv.h`, `out/libiconv/libcharset/include/localcharset.h`, `lib/config.h` | Public template substitution is declarative; the implementation `config.h` is an incremental file-owned materialization | Build validated |
+| `libiconv` | Xmake `add_configfiles` + patched `add_files` | `include/iconv.h.build.in`, `libcharset/include/localcharset.h.build.in`, `lib/config.h.in`, MSVC/platform configuration | `include/iconv.h`, `libcharset/include/localcharset.h`, `lib/config.h` | Public template substitution is declarative; the implementation `config.h` is an incremental file-owned materialization | Build validated |
 
 ### libintl source identity
 
@@ -379,7 +379,7 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 - Define the upstream Windows library mode directly, use the validated `libiconv` target, and link `advapi32`, which is the only extra Windows library selected by the upstream `intl` build. The direct MSVC configuration does not need explicit `HAVE_LONG_LONG_INT`, `HAVE_UNSIGNED_LONG_LONG_INT`, `HAVE_MBSTATE_T`, `HAVE_C_STATIC_ASSERT`, `HAVE_MBSINIT`, `HAVE_WCHAR_H`, `PACKAGE`, `PACKAGE_NAME`, `PACKAGE_VERSION`, or `VERSION` substitutions; all ten were removed and the full build/runtime/symbol validation still passes. Do not invoke Cygwin, `configure`, Make, NMake, MSBuild, a solution, or a project file.
 - The complete exact-manifest source build now succeeds with Xmake driving MSVC directly: all 25 core and 78 Gnulib C sources compile with `/MD /O2`, including the native Windows threading and locale replacements, and `out/libintl.lib` is archived successfully without MinGW, Cygwin, Autoconf, sed, or other Unix build tooling.
 - Archive validation covers all 79 exports from the SDK `libintl.dll`; all 103 compiled C members are x64 and request `MSVCRT`, with no `LIBCMT` or embedded `/EXPORT:` directives. The five remaining non-export static-reference name deltas (`_snprintf`, `_snwprintf`, `_vsnprintf`, `_vsnwprintf_l`, and `frexpl`) are UCRT/header fallback definitions emitted inside the SDK's `vasnprintf`/`vasnwprintf` objects, not missing libintl API symbols.
-- Match the SDK's final Windows resource member without `windres`: the `libintl.rc` materialization callback substitutes version string `1.0` and numeric version `1,0,0,0`, compiles it to a native `.res` with the configured Windows SDK `rc.exe`, then converts that resource to a real x64 COFF object with the configured MSVC `cvtres.exe` and returns the `.obj` through `sources`. Add the generated `out/libintl.res.obj` directly to the static archive. Xmake's direct `.rc` rule is not sufficient for this static-library case because `rc.exe` emits resource-file format even when the output is named `.obj`; the SDK reference instead contains a true x64 COFF resource object. The Microsoft conversion produces `.rsrc$01` plus `.rsrc$02` with a combined `0x5e0` bytes, matching the SDK resource payload size, while remaining a valid x64 COFF input.
+- Match the SDK's final Windows resource member without `windres`: the `libintl.rc` materialization callback substitutes version string `1.0` and numeric version `1,0,0,0`, compiles it to a native `.res` with the configured Windows SDK `rc.exe`, then converts that resource to a real x64 COFF object with the configured MSVC `cvtres.exe` and returns the `.obj` through `sources`. Add the generated `build/libintl.res.obj` directly to the static archive. Xmake's direct `.rc` rule is not sufficient for this static-library case because `rc.exe` emits resource-file format even when the output is named `.obj`; the SDK reference instead contains a true x64 COFF resource object. The Microsoft conversion produces `.rsrc$01` plus `.rsrc$02` with a combined `0x5e0` bytes, matching the SDK resource payload size, while remaining a valid x64 COFF input.
 - Upstream `gettext-runtime/install-tests/test-api.c` linked directly against the Xmake-built `libintl` and `libiconv` archives and consumed the committed `en_US/LC_MESSAGES/itest.mo` catalog. It exited 0 without the test's explicit skip message, proving actual catalog lookup and UTF-8 translation. The executable imports only Advapi32, Kernel32, VCRuntime, and UCRT API-set DLLs; it has no `libintl.dll`, `libiconv.dll`, MinGW, Cygwin, or other third-party runtime DLL dependency.
 - The validated target was subsequently reduced from 130 to 93 lines. The two near-identical wrapper-header helpers were unified, repeated configuration/header declarations were compacted, and four exact-match wildcard exclusions (`frexp*.c`, `isw*.c`, `signbit*.c`, `wmem*.c`) replace equivalent enumerations. All 19 generated configuration/public wrapper headers remain byte-for-byte identical, the final archive still covers 79/79 SDK DLL exports with 104 members (103 C `/MD` members plus the resource), and the upstream catalog runtime test still exits 0 with the same system-only PE dependency set.
 
@@ -388,14 +388,14 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 | Owner | Tool | Input | Output | Handling | Status |
 | --- | --- | --- | --- | --- | --- |
 | `libintl` | Patched `add_files` + Xmake Lua I/O | `config.h.in`, `libgnuintl.in.h`, Gnulib `*.in.h` configuration templates | `config.h`, static `libgnuintl.h`/`libintl.h`, and required Gnulib compatibility headers | Independent file-owned native-Windows/MSVC substitutions; no Autoconf, sed, shell, or target-wide marker | Build and runtime validated |
-| `libintl` | Windows SDK `rc.exe` + MSVC `cvtres.exe` | committed `libintl.rc` | `out/libintl.res.obj` | Substitute Gettext 1.0 version fields, compile to `.res`, convert to x64 read-only COFF, then merge the generated object directly into `libintl.lib` | Build and COFF-format validation passed |
+| `libintl` | Windows SDK `rc.exe` + MSVC `cvtres.exe` | committed `libintl.rc` | `build/libintl.res.obj` | Substitute Gettext 1.0 version fields, compile to `.res`, convert to x64 read-only COFF, then merge the generated object directly into `libintl.lib` | Build and COFF-format validation passed |
 
 ### libxml2 upstream build analysis
 
 - The PHP SDK 2.11.9-7 SBOM identifies GNOME libxml2 2.11.9 as upstream and the exact package source as `winlibs/libxml2` tag `libxml2-2.11.9-7`, commit `f06d784607050c08a9b28b1fce2faa4236c052cf`. Use that pinned PHP-maintained source rather than the vanilla GNOME tarball: it retains the 2.11.9 ABI while backporting the security fixes declared by the SDK, including CVE-2026-0989 and its `xmlRelaxParserSetIncLImit` API.
 - Upstream `win32/Makefile.msvc` and the preserved PHP SDK `libxml2_a.lib` agree on exactly 43 root C sources. Select them with one broad `*.c` declaration and remove the 17 root programs, tests, optional Trio implementations, and disabled compression wrapper through `run*.c`, `test*.c`, `trio*.c`, `xmlcatalog.c`, `xmllint.c`, and `xzlib.c`. The native Makefile adds `xzlib.c` only for the optional compression configuration; the reference package enables neither zlib nor LZMA.
 - Match the reference feature surface: native Windows threads using the Windows TLS API; XML tree/output/push/reader/pattern/writer/SAX1/FTP/HTTP/validation/HTML/legacy/C14N/catalog/XPath/XPointer/XInclude/debug/Unicode/regexp/automata/schema/Schematron/module support; and libiconv conversion. Keep compiler TLS, XPointer locations, ICU, ISO-8859 fallback, memory debugging, zlib, LZMA, thread-local allocation hooks, and Trio disabled.
-- The Windows configuration step performs no implementation-source generation. Copy committed `include/win32config.h` to `out/libxml2/config.h` and substitute the committed public `include/libxml/xmlversion.h.in` into `out/libxml2/include/libxml/xmlversion.h` with `add_configfiles`; do not execute `configure.js`, CMake, NMake, MSBuild, a solution, or a project file.
+- The Windows configuration step performs no implementation-source generation. Copy committed `include/win32config.h` to `in/deps/libxml2/config.h` and substitute the committed public `include/libxml/xmlversion.h.in` beside it as `include/libxml/xmlversion.h` with `add_configfiles`; do not execute `configure.js`, CMake, NMake, MSBuild, a solution, or a project file.
 - Compile every source independently without unity using `/MD /O2`. Define the static public interface with propagated `LIBXML_STATIC`; keep `LIBXML_STATIC_FOR_DLL`, `_REENTRANT`, `_WINDOWS`, `_MBCS`, `NOLIBTOOL`, and the implementation warning-compatibility macros private. Do not define `HAVE_COMPILER_TLS`: the PHP DLL calls the `xmlDllMain` supplied by libxml2's Windows TLS implementation, and PHP's native configuration explicitly selects `LIBXML_STATIC_FOR_DLL`. This matches the SDK's special static archive intended for inclusion in a DLL.
 - Depend on the direct `libiconv` target and propagate the native Windows networking link edge. The reference archive contains 43 x64 `/MD` objects, standard undecorated libxml APIs, and direct `libiconv*` references; use its DLL export surface and a parser smoke test for final validation.
 
@@ -403,7 +403,7 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 
 | Owner | Tool | Input | Output | Handling | Status |
 | --- | --- | --- | --- | --- | --- |
-| `libxml2` | Xmake `add_configfiles` | `include/win32config.h`, `include/libxml/xmlversion.h.in`, pinned Windows feature selection | `out/libxml2/config.h`, `out/libxml2/include/libxml/xmlversion.h` | Declarative `onlycopy` plus uppercase `@VAR@` substitution; generated include paths precede the source tree | Build and runtime validation passed |
+| `libxml2` | Xmake `add_configfiles` | `include/win32config.h`, `include/libxml/xmlversion.h.in`, pinned Windows feature selection | `config.h`, `include/libxml/xmlversion.h` | Declarative `onlycopy` plus uppercase `@VAR@` substitution inside the owning source tree | Build and runtime validation passed |
 
 ### libxslt upstream build analysis
 
@@ -411,7 +411,7 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 - Upstream `win32/Makefile.msvc`, Automake, CMake, and the preserved SDK archives agree on exactly 19 `libxslt/*.c` and 10 `libexslt/*.c` sources. Both directories contain only library C inputs, so select them with two broad declarations and no exclusions. Do not compile `xsltproc`, tests, examples, Python bindings, or documentation tools.
 - The preserved SDK package splits those sources into `libxslt_a.lib` and `libexslt_a.lib`, but this project combines both native components in one `libxslt` target. Their defined-symbol sets overlap only on five link-once compiler constants and contain no duplicate API or implementation symbol, so separate targets would add structure without solving a technical constraint.
 - Match the SDK public configuration: libxslt 1.1.43, libexslt 0.8.24, XSLT diagnostics, external debugger hooks, profiler, and `.dll` extension modules enabled; Trio and EXSLT crypto disabled. Crypto remains compiled as its upstream disabled stub, so the target needs neither CryptoAPI nor libgcrypt. Module loading uses the Windows loader API and propagates `kernel32`.
-- Generate `out/libxslt/libxslt/xsltconfig.h` and `out/libxslt/libexslt/exsltconfig.h` directly from their committed templates with `add_configfiles`. The selected Windows sources include committed `libxslt/win32config.h` directly, so no target callback, `config.h`, implementation code generation, or configure execution is required. Do not invoke `configure.js`, CMake, NMake, MSBuild, a solution, or a project file.
+- Generate `in/deps/libxslt/libxslt/xsltconfig.h` and `in/deps/libxslt/libexslt/exsltconfig.h` directly beside their committed templates with `add_configfiles`. The selected Windows sources include committed `libxslt/win32config.h` directly, so no target callback, `config.h`, implementation code generation, or configure execution is required. Do not invoke `configure.js`, CMake, NMake, MSBuild, a solution, or a project file.
 - Compile all 29 sources independently without unity using `/MD /O2`. Propagate `LIBXSLT_STATIC` and `LIBEXSLT_STATIC`, which are required by the public headers to suppress `dllimport`; `LIBXML_STATIC` arrives from the direct libxml2 dependency. Keep `_WINDOWS`, `_MBCS`, `_REENTRANT`, `NDEBUG`, and the native implementation warning-compatibility definitions private.
 - The SDK references contain 19 plus 10 x64 objects, all selecting `MSVCRT` and none selecting `LIBCMT` or emitting export directives. Their union defines 334 unique symbols. The SDK DLLs export 252 libxslt and 17 libexslt APIs; the copies in `dll_compare` are a strict subset, differing only by the SDK source's additional `xsltReleaseRVTList`, so final validation must cover both and use the exact SDK 1.1.43-2 package as the authoritative surface.
 
@@ -419,13 +419,13 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 
 | Owner | Tool | Input | Output | Handling | Status |
 | --- | --- | --- | --- | --- | --- |
-| `libxslt` | Xmake `add_configfiles` | `libxslt/xsltconfig.h.in`, `libexslt/exsltconfig.h.in`, pinned SDK feature selection | `out/libxslt/libxslt/xsltconfig.h`, `out/libxslt/libexslt/exsltconfig.h` | Declarative uppercase `@VAR@` version and feature substitution | Build and runtime validation passed |
+| `libxslt` | Xmake `add_configfiles` | `libxslt/xsltconfig.h.in`, `libexslt/exsltconfig.h.in`, pinned SDK feature selection | `libxslt/xsltconfig.h`, `libexslt/exsltconfig.h` | Declarative uppercase `@VAR@` version and feature substitution | Build and runtime validation passed |
 
 ### Oniguruma upstream build analysis
 
 - Use the official `kkos/oniguruma` GitHub repository pinned to tag `v6.9.10`, matching the PHP SDK package. The package SBOM names that tag as upstream and declares no Winlibs security backport or downstream fix, so prefer the authoritative upstream source over the packaging fork.
 - Upstream `CMakeLists.txt`, `src/Makefile.windows`, and the preserved SDK `onig_a.lib` agree on 48 core and encoding C sources plus `regposix.c` and `regposerr.c`. Select those 50 inputs with one broad `src/*.c` declaration and remove `koi8.c`, the `mktable.c` generator, and the five committed `unicode_*_data.c` fragments that `unicode.c` includes directly. No generated implementation source, assembly, or external library is required.
-- Enable both `USE_POSIX_API` and `USE_BINARY_COMPATIBLE_POSIX_API`, matching the native Windows Makefile and SDK archive rather than CMake's platform-neutral defaults. Copy committed `src/config.h.win64` declaratively to `out/oniguruma/config.h` with `add_configfiles(..., {onlycopy = true})`, put that include directory first, and define `HAVE_CONFIG_H`; no target callback or configure/build-system invocation is required.
+- Enable both `USE_POSIX_API` and `USE_BINARY_COMPATIBLE_POSIX_API`, matching the native Windows Makefile and SDK archive rather than CMake's platform-neutral defaults. Copy committed `src/config.h.win64` declaratively to `src/config.h` with `add_configfiles(..., {onlycopy = true})` and define `HAVE_CONFIG_H`; no target callback or configure/build-system invocation is required.
 - Propagate `ONIG_STATIC`, the standard upstream static-consumer interface that makes `ONIG_EXTERN` plain `extern` in both public headers. PHP's native `/DONIG_EXTERN=extern` serves the same import-suppression purpose, so the eventual PHP target receives the cleaner upstream definition through its dependency. Keep the POSIX and configuration definitions private; `PHP_ONIG_BAD_KOI8_ENTRY=1` belongs only to PHP mbstring because the selected library intentionally exposes `KOI8-R` but not the obsolete `KOI8` entry.
 - Compile the 50 sources independently without unity and use the project-wide `/MD`. The preserved SDK archive confirms the exact member list and exposes all 211 APIs of both the SDK and `dll_compare` DLLs, but it selects `LIBCMT` and embeds `/EXPORT` directives. Treat it only as the ABI reference: the direct archive must instead select `MSVCRT`, contain no `LIBCMT`, export directive, or `__imp_onig*` thunk, and cover the same 211 APIs.
 
@@ -433,7 +433,7 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 
 | Owner | Tool | Input | Output | Handling | Status |
 | --- | --- | --- | --- | --- | --- |
-| `oniguruma` | Xmake `add_configfiles` | `src/config.h.win64` | `out/oniguruma/config.h` | Declarative `onlycopy`; the generated include directory precedes the upstream source include | Build and runtime validation passed |
+| `oniguruma` | Xmake `add_configfiles` | `src/config.h.win64` | `src/config.h` | Declarative `onlycopy` inside the owning source directory | Build and runtime validation passed |
 
 ### SQLite upstream build analysis
 
@@ -456,7 +456,7 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 
 | Owner | Tool | Input | Output | Handling | Status |
 | --- | --- | --- | --- | --- | --- |
-| `libpng` | Patched `add_files` + Xmake Lua I/O | `scripts/pnglibconf.h.prebuilt`, zlib `zlib.h` | `out/libpng/pnglibconf.h` | File-owned substitution with `zlib.h` and the output tracked by `depend` | Build and runtime validated |
+| `libpng` | Patched `add_files` + Xmake Lua I/O | `scripts/pnglibconf.h.prebuilt`, zlib `zlib.h` | `in/deps/libpng/pnglibconf.h` | File-owned substitution with `zlib.h` and the output tracked by `depend` | Build and runtime validated |
 
 ### libjpeg-turbo / libjpeg upstream build analysis
 
@@ -472,7 +472,7 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 
 | Owner | Tool | Input | Output | Handling | Status |
 | --- | --- | --- | --- | --- | --- |
-| `libjpeg` | Patched `add_files` + Xmake Lua I/O | `src/jconfig.h.in`, `src/jconfigint.h.in`, `src/jversion.h.in` | `out/libjpeg/jconfig.h`, `out/libjpeg/jconfigint.h`, `out/libjpeg/jversion.h` | Three independent materializations of the verified Windows x64 configuration; committed precision wrappers and `simd/nasm/jsimdcfg.inc` require no regeneration | Build and reference symbol validation passed |
+| `libjpeg` | Patched `add_files` + Xmake Lua I/O | `src/jconfig.h.in`, `src/jconfigint.h.in`, `src/jversion.h.in` | `src/jconfig.h`, `src/jconfigint.h`, `src/jversion.h` | Three independent materializations of the verified Windows x64 configuration; committed precision wrappers and `simd/nasm/jsimdcfg.inc` require no regeneration | Build and reference symbol validation passed |
 
 ### FreeType upstream build analysis
 
@@ -480,7 +480,7 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 - Upstream `CMakeLists.txt` is the primary manifest: 40 library C entries in `BASE_SRCS`, plus Windows `builds/windows/ftsystem.c`, `builds/windows/ftdebug.c`, and `src/base/ftver.rc`. The preserved SDK `freetype_a.lib` contains exactly those 42 object members plus one `ftver.res` resource member. Use this explicit manifest because broad per-directory C globs would incorrectly compile implementation fragments that are textually included by FreeType's module aggregation sources.
 - Match the SDK configuration rather than auto-enabling every dependency that happens to exist in this project. The SDK generated `ftoption.h` differs from the pristine upstream header in exactly two lines: `FT_CONFIG_OPTION_USE_HARFBUZZ` and `FT_CONFIG_OPTION_USE_HARFBUZZ_DYNAMIC` are enabled. `FT_CONFIG_OPTION_SYSTEM_ZLIB`, `FT_CONFIG_OPTION_USE_BZIP2`, `FT_CONFIG_OPTION_USE_PNG`, and `FT_CONFIG_OPTION_USE_BROTLI` remain disabled, so FreeType uses its bundled private zlib implementation and has no static link dependency on this project's zlib/bzip2/libpng/Brotli targets.
 - HarfBuzz is optional runtime enhancement only: on Windows FreeType's dynamic mode uses `LoadLibrary` rather than a link dependency. Do not add a HarfBuzz target solely for FreeType. This preserves the PHP SDK feature surface without adding a mandatory third-party runtime DLL.
-- Generate only `out/freetype/include/freetype/config/ftoption.h` with `add_configfiles`, using a narrow custom pattern that matches only the two HarfBuzz option comments and replaces them with enabled defines. The Windows `ftconfig.h` and committed `ftmodule.h` are already the correct upstream files; the SDK `ftmodule.h` is byte-equivalent apart from line endings.
+- Generate only `in/deps/freetype/builds/windows/include/freetype/config/ftoption.h` with `add_configfiles`, using a narrow custom pattern that matches only the two HarfBuzz option comments and replaces them with enabled defines. The Windows `ftconfig.h` and committed `ftmodule.h` are already the correct upstream files; the SDK `ftmodule.h` is byte-equivalent apart from line endings.
 - Build with private `FT2_BUILD_LIBRARY`, `_CRT_SECURE_NO_WARNINGS`, and `_CRT_NONSTDC_NO_WARNINGS`; do not define `DLL_EXPORT` for the static target. The project-wide runtime supplies `/MD` even though FreeType's standalone static Visual Studio configuration defaults to static CRT.
 - Final validation is archive/symbol based per the current project policy: clean preparation from authoritative `VER-2-14-3` and the unchanged second `xmake prepare` both succeeded. `out/freetype.lib` has the same 43-member manifest as the SDK reference (42 C objects plus `ftver.res`) and the same 671/671 relevant public/internal linker-member names after excluding compiler-generated constants/section markers. The generated `ftoption.h` matches the SDK reference exactly; all 42 C objects request `MSVCRT`, with zero `LIBCMT`, zero `/EXPORT:` directives, zero FreeType import thunks, and zero HarfBuzz import thunks. Runtime font rendering is intentionally not tested at this stage.
 
@@ -488,7 +488,7 @@ The zlib target uses the default unity group for `adler32.c`, `compress.c`, `crc
 
 | Owner | Tool | Input | Output | Handling | Status |
 | --- | --- | --- | --- | --- | --- |
-| `freetype` | Xmake `add_configfiles` | `include/freetype/config/ftoption.h` | `out/freetype/include/freetype/config/ftoption.h` | Custom-pattern substitution enables only the two HarfBuzz macros present in the PHP SDK reference | Build and reference symbol validation passed |
+| `freetype` | Xmake `add_configfiles` | `include/freetype/config/ftoption.h` | `builds/windows/include/freetype/config/ftoption.h` | Custom-pattern substitution enables only the two HarfBuzz macros present in the PHP SDK reference | Build and reference symbol validation passed |
 
 ### libwebp upstream build analysis
 
@@ -520,9 +520,8 @@ No generated source or configuration file is required for the selected native Wi
 
 | Owner | Tool | Input | Output | Handling | Status |
 | --- | --- | --- | --- | --- | --- |
-| `libtiff` | Xmake Lua I/O | `libtiff/tif_config.h.cmake.in` | `out/libtiff/tif_config.h` | Substitute verified Windows x64 feature/probe values; enable zlib/JPEG/LZMA/Zstd/WebP and disable JBIG/LERC/libdeflate | Build and SDK surface validation passed |
-| `libtiff` | Xmake Lua I/O | `libtiff/tiffconf.h.cmake.in` | `out/libtiff/tiffconf.h` | Generate public compatibility configuration matching the selected codec/features | Build and SDK surface validation passed |
-| `libtiff` | Xmake Lua I/O | release `libtiff/tiffvers.h` | `out/libtiff/tiffvers.h` | Copy authoritative 4.7.2 release version header | Build and SDK surface validation passed |
+| `libtiff` | Xmake Lua I/O | `libtiff/tif_config.h.cmake.in` | `libtiff/tif_config.h` | Substitute verified Windows x64 feature/probe values; enable zlib/JPEG/LZMA/Zstd/WebP and disable JBIG/LERC/libdeflate | Build and SDK surface validation passed |
+| `libtiff` | Xmake Lua I/O | `libtiff/tiffconf.h.cmake.in` | `libtiff/tiffconf.h` | Generate public compatibility configuration matching the selected codec/features | Build and SDK surface validation passed |
 
 ### libjxl upstream build analysis
 
@@ -531,14 +530,14 @@ No generated source or configuration file is required for the selected native Wi
 - The preserved PHP SDK references provide an exact target oracle: `jxl_a.lib` has 129 members, `jxl_cms_a.lib` has 3 (`jxl_cms`, `skcms`, `skcms_TransformBaseline`), and `hwy_a.lib` has 7, for 139 members total in the unified project archive. `jxl_threads_a.lib` has three separate runner objects and is intentionally omitted.
 - Xmake's `lib/jxl/**.cc` pattern includes both direct children and recursive subdirectories (verified: 190 total source files), unlike `**/*.cc`, which matches only recursive subdirectories here. Removing `**_test.cc`, `**_gbench.cc`, `**testonly.cc`, and `**test_*.cc` leaves exactly the required 129 JXL implementation sources plus `jxl_cms.cc`. Add the two baseline skcms sources and the seven normal Highway library sources. On MSVC, skcms does not compile its Clang-only HSW/SkX specializations, so define `SKCMS_DISABLE_HSW` and `SKCMS_DISABLE_SKX`.
 - Match the upstream Windows feature surface: C++17, `_CRT_SECURE_NO_WARNINGS`, boxes enabled, JPEG reconstruction/transcoding enabled, skcms enabled, AVX-512 disabled by default, and static public decoration via `JXL_STATIC_DEFINE` and `JXL_CMS_STATIC_DEFINE`. Highway is built statically with its seven normal sources, no contrib/tests/examples, and native runtime dispatch.
-- Generate only the three public build outputs needed by the source/API under `out/libjxl/include/jxl`: `version.h` uses `add_configfiles`, while one file-owned materialization emits the two static export headers because upstream provides no reusable generated-header template. Do not invoke CMake.
+- Generate only the three public build outputs needed by the source/API under `in/deps/libjxl/lib/include/jxl`: `version.h` uses `add_configfiles`, while one file-owned materialization emits the two static export headers because upstream provides no reusable generated-header template. Do not invoke CMake.
 
 ### libjxl code-generation inventory
 
 | Owner | Tool | Input | Output | Handling | Status |
 | --- | --- | --- | --- | --- | --- |
-| `libjxl` | Xmake `add_configfiles` | `lib/jxl/version.h.in` | `out/libjxl/include/jxl/version.h` | Declarative uppercase `@VAR@` substitution for version 0.11.2 | Build and SDK surface validation passed |
-| `libjxl` | Xmake Lua I/O | static Windows public-interface configuration | `out/libjxl/include/jxl/jxl_export.h`, `jxl_cms_export.h` | Emit static-safe export/deprecation macros equivalent to upstream GenerateExportHeader output | Build and SDK surface validation passed |
+| `libjxl` | Xmake `add_configfiles` | `lib/jxl/version.h.in` | `lib/include/jxl/version.h` | Declarative uppercase `@VAR@` substitution for version 0.11.2 | Build and SDK surface validation passed |
+| `libjxl` | Xmake Lua I/O | static Windows public-interface configuration | `lib/include/jxl/jxl_export.h`, `jxl_cms_export.h` | Emit static-safe export/deprecation macros equivalent to upstream GenerateExportHeader output | Build and SDK surface validation passed |
 
 ### UltraHDR omission
 
@@ -546,7 +545,7 @@ No generated source or configuration file is required for the selected native Wi
 
 ### libavif / AOM / libyuv upstream build analysis
 
-- Replace the PHP SDK `libavif-1.4.2-vs18-x64.zip` binary input with authoritative libavif `v1.4.2`, AOM `v3.14.1`, and the exact libyuv commit `644251f252a84bf8ce91ff0aca86a9b16b069ab8` pinned by libavif. Preserve the former package under `out/libavif-sdk-reference` for comparison.
+- Replace the PHP SDK `libavif-1.4.2-vs18-x64.zip` binary input with authoritative libavif `v1.4.2`, AOM `v3.14.1`, and the exact libyuv commit `644251f252a84bf8ce91ff0aca86a9b16b069ab8` pinned by libavif. Keep any former binary package used for comparison outside `out/`.
 - Do not create separate `aom`, `libyuv`, or dav1d Xmake targets for this PHP image closure. The initial SDK `avif_a.lib` is already a merged static archive containing 392 members: 22 libavif objects, all 330 AOM objects, and all 40 selected libyuv objects. The project-level target is named `avif`; it later also folds in libheif and dav1d while all upstream source trees remain physically separate.
 - libavif's native manifest is its 21 fixed `AVIF_SRCS` plus `src/codec_aom.c`; define `AVIF_CODEC_AOM`, `AVIF_CODEC_AOM_ENCODE`, `AVIF_CODEC_AOM_DECODE`, and `AVIF_LIBYUV_ENABLED`. SharpYUV and all other AV1 codecs are disabled in the SDK reference.
 - The pinned libyuv Windows manifest is exactly the 40 `ly_common_source_files` from upstream `CMakeLists.txt`. A broad `source/*.cc` is safe when removing the 12 Arm/SVE/SME implementation files (`*neon*.cc`, `*sme*.cc`, and `row_sve.cc`). Local libavif explicitly disables libyuv's optional JPEG discovery, so do not define `HAVE_JPEG` for these sources.
@@ -564,24 +563,24 @@ No generated source or configuration file is required for the selected native Wi
 - Match dav1d's release Windows x64 configuration: both 8- and 16-bit paths, assembly enabled, release DSP trimming, logging enabled, Win32 thread compatibility, x86-64 runtime CPU dispatch, and NASM `win64`. Reuse the already prepared Strawberry-Perl NASM executable. A configuration input owns `config.h`/`config.asm`/`vcs_version.h`, while each of the 13 `*_tmpl.c` inputs independently expands to its two 8/16-bit wrapper C sources through `sources`; do not invoke Meson.
 - Keep plugin loading disabled: the SDK archive has neither `plugins_windows.cc` nor `plugins_unix.cc`. Keep experimental API disabled and enable the internal uncompressed codec, matching the installed SDK interface definition `WITH_UNCOMPRESSED_CODEC=1`.
 - The SDK archive has no unresolved zlib, Brotli, or SharpYUV calls, so do not enable those optional libheif compression/color backends. Enable normal multithreading and parallel tile decoding, use dav1d as the preferred AV1 decoder, retain AOM encode/decode, and use the already prepared classic libjpeg headers.
-- Generate only `libheif/heif_version.h` with `add_configfiles` into `out/avif/include/libheif`; AOM/dav1d generation is handled by the fine-grained materialization records described above. Public consumers receive `LIBHEIF_STATIC_BUILD` so Windows headers do not emit `dllimport` decoration.
+- Generate only `libheif/heif_version.h` with `add_configfiles` beside its upstream template under `in/deps/libheif/libheif/api/libheif`; AOM/dav1d generation is handled by the fine-grained materialization records described above. Public consumers receive `LIBHEIF_STATIC_BUILD` so Windows headers do not emit `dllimport` decoration.
 - Raise the unified target to C++20, as required by libheif 1.23.1. The existing C libavif/AOM sources and C++ libyuv sources remain in their original trees and compile in the same archive.
 
 ### `avif` code-generation inventory
 
 | Owner | Tool | Input | Output | Handling | Status |
 | --- | --- | --- | --- | --- | --- |
-| `avif` | Patched `add_files` + Xmake Lua I/O | AOM defaults + verified SDK Windows x64 configuration | `out/avif/config/aom_config_rtcd.h`, `aom_config.asm`, `aom_config.c`, two no-op C sources, final `aom_config.h` | File-owned config materialization; generated C sources are returned through `sources`, final public config is a dependent record | Build and SDK surface validation passed |
-| `avif` | AOM `version.pl` via prepared Perl | AOM `CHANGELOG` | `out/avif/config/aom_version.h` | Preserve upstream version-generation semantics | Build and SDK surface validation passed |
-| `avif` | AOM `rtcd.pl` via prepared Perl | three upstream RTCD definition files + generated AOM config | `out/avif/config/aom_dsp_rtcd.h`, `aom_scale_rtcd.h`, `av1_rtcd.h` | Generate x86-64 runtime-dispatch headers | Build and SDK surface validation passed |
-| `avif` | Xmake Lua I/O | upstream AOM no-op target requirements | `out/avif/config/aom_av1_no_op.c`, `aom_dsp_no_op.c` | Create the two empty translation units present in the SDK member manifest; add them dynamically after creation | Build and SDK surface validation passed |
-| `avif` | Xmake Lua I/O | dav1d Windows/x64 release configuration | `out/avif/dav1d/config.h`, `config.asm`, `vcs_version.h` | Generate native MSVC/NASM configuration directly; no Meson invocation | Build and 2,131/2,131 dav1d symbol validation passed |
-| `avif` | Patched `add_files` + Xmake Lua I/O | 13 dav1d `*_tmpl.c` sources | 26 wrapper C files under `out/avif/dav1d` | Each concrete template independently expands to its 8- and 16-bit source pair through `sources`; no duplicate output declarations | Exact 99-member dav1d manifest validation passed |
-| `avif` | Xmake `add_configfiles` | `libheif/api/libheif/heif_version.h.in` | `out/avif/include/libheif/heif_version.h` | Declarative uppercase `@VAR@` substitution for libheif 1.23.1 version metadata | Build and 466/466 HEIF SDK export coverage passed |
+| `avif` | Patched `add_files` + Xmake Lua I/O | AOM defaults + verified SDK Windows x64 configuration | `in/deps/aom/config/aom_config_rtcd.h`, `aom_config.asm`, `aom_config.c`, two no-op C sources, final `aom_config.h` | File-owned config materialization; generated C sources are returned through `sources`, final public config is a dependent record | Build and SDK surface validation passed |
+| `avif` | AOM `version.pl` via prepared Perl | AOM `CHANGELOG` | `in/deps/aom/config/aom_version.h` | Preserve upstream version-generation semantics | Build and SDK surface validation passed |
+| `avif` | AOM `rtcd.pl` via prepared Perl | three upstream RTCD definition files + generated AOM config | `in/deps/aom/config/aom_dsp_rtcd.h`, `aom_scale_rtcd.h`, `av1_rtcd.h` | Generate x86-64 runtime-dispatch headers | Build and SDK surface validation passed |
+| `avif` | Xmake Lua I/O | upstream AOM no-op target requirements | `in/deps/aom/config/aom_av1_no_op.c`, `aom_dsp_no_op.c` | Create the two empty translation units present in the SDK member manifest and contribute them through `sources` | Build and SDK surface validation passed |
+| `avif` | Xmake Lua I/O | dav1d Windows/x64 release configuration | `in/deps/dav1d/dav1d-1.5.3/config.h`, `config.asm`, `vcs_version.h` | Generate native MSVC/NASM configuration directly; no Meson invocation | Build and 2,131/2,131 dav1d symbol validation passed |
+| `avif` | Patched `add_files` + Xmake Lua I/O | 13 dav1d `*_tmpl.c` sources | 26 wrapper C files under `in/deps/dav1d/dav1d-1.5.3` | Each concrete template independently expands to its 8- and 16-bit source pair through `sources`; no duplicate output declarations | Exact 99-member dav1d manifest validation passed |
+| `avif` | Xmake `add_configfiles` | `libheif/api/libheif/heif_version.h.in` | `in/deps/libheif/libheif/api/libheif/heif_version.h` | Declarative uppercase `@VAR@` substitution for libheif 1.23.1 version metadata | Build and 466/466 HEIF SDK export coverage passed |
 
 ### PostgreSQL / libpq upstream build analysis
 
-- Build directly from the authoritative PostgreSQL source, `postgres/postgres` tag `REL_16_14`. The PHP SDK 16.14 SBOM points through `winlibs/postgresql` tag `libpq-16.14`, but the libpq, `src/common`, `src/port`, and `src/include` trees were verified byte-for-byte identical to PostgreSQL `REL_16_14`, so no Winlibs source patch is required. Keep the former SDK package only under `out/libpq-sdk-reference` for comparison.
+- Build directly from the authoritative PostgreSQL source, `postgres/postgres` tag `REL_16_14`. The PHP SDK 16.14 SBOM points through `winlibs/postgresql` tag `libpq-16.14`, but the libpq, `src/common`, `src/port`, and `src/include` trees were verified byte-for-byte identical to PostgreSQL `REL_16_14`, so no Winlibs source patch is required. Keep any former SDK package used for comparison outside `out/`.
 - The upstream libpq manifest contains 13 unconditional C files, Windows `pthread-win32.c` and `win32.c`, and with the SDK feature selection `fe-secure-common.c` plus `fe-secure-openssl.c`: 17 libpq C translation units total. GSS sources are disabled. The preserved SDK `libpq_a.lib` confirms the same 17 libpq objects plus a resource member.
 - Static libpq also needs part of PostgreSQL's frontend `pgcommon`/`pgport` support. Preserve the project rule of one target per external dependency by folding the actual static link closure directly into `libpq`: 13 `src/common` sources and 24 `src/port` sources, for 54 archive members total together with the 17 libpq sources. Do not compile the complete server-oriented common/port manifests or create separate Xmake subtargets.
 - Match the SDK Windows configuration except for libpq's optional LDAP service-file lookup: thread safety and OpenSSL are enabled; LDAP, GSS, NLS, and zlib are disabled. The SDK can use WinLDAP from its separate `libpq.dll`, but a single static PHP image cannot combine that import library with static OpenLDAP because both define the same undecorated LDAP entry points. The builtin PHP LDAP extension retains the complete OpenLDAP feature set; only libpq LDAP service discovery is omitted. Keep `openssl` as a normal Xmake target dependency. The final Windows system-library closure is `ws2_32`, `secur32`, `shell32`, and `advapi32`; compile PostgreSQL sources as `FRONTEND` with the upstream MSVC Windows compatibility defines.
@@ -599,7 +598,7 @@ No generated source or configuration file is required for the selected native Wi
 - The upstream Windows public `prop.h` assumes DLL linkage whenever `WIN32` is defined, and `saslutil.c` hard-codes `dllexport` on its getopt globals. For this real static archive, generate a static-consumer header copy guarded by `LIBSASL_STATIC` and an otherwise identical `saslutil.c` with those four variable decorations removed. Propagate `LIBSASL_STATIC`; do not modify or depend on the SDK headers.
 - Use authoritative `garyhouston/rxspencer` 3.9.0 as embedded regex support. Its CMake library contains exactly `regcomp.c`, `regerror.c`, `regexec.c`, and `regfree.c`, matching the four rxspencer members in the SDK LBER archive. Fold them into the single `openldap` target.
 - Combine the upstream `libldap` object manifest, Windows `liblber` manifest, and rxspencer support in one `openldap` archive. The PHP SDK's `oldap32_a.lib`/`olber32_a.lib` split is packaging structure, not a reason for multiple Xmake targets.
-- Materialize `portable.h`, `lber_types.h`, `ldap_features.h`, `ldap_config.h`, the adapted `ac/socket.h`/`ac/time.h`, and `build/version.h -> out/openldap/version.c` as independent patched `add_files` records. Match the SDK client configuration: x64 64-bit BER tag/length types, NT threads, Winsock2/IPv6, OpenSSL TLS, Cyrus SASL, thread safety, and OpenLDAP 2.6.13.
+- Materialize `portable.h`, `lber_types.h`, `ldap_features.h`, `ldap_config.h`, and the adapted `ac/socket.h`/`ac/time.h` under `in/deps/openldap/build/include`, plus `build/version.h -> build/version.c`, as independent patched `add_files` records. Match the SDK client configuration: x64 64-bit BER tag/length types, NT threads, Winsock2/IPv6, OpenSSL TLS, Cyrus SASL, thread safety, and OpenLDAP 2.6.13.
 - Final `out/libsasl.lib` covers all 72/72 exports of the preserved SDK `libsasl.dll`, has 14 x64 members selecting `MSVCRT`, zero `LIBCMT`, zero embedded `/EXPORT:` directives, and zero SASL/prop import thunks. A direct static consumer queried `sasl_version_info()` and verified 2.1.28 with exit code 0; its PE imports contain only Windows/VCRuntime/UCRT libraries.
 - Final `out/openldap.lib` covers all 695/695 public LDAP/LBER names present in the SDK Windows `oldap32_a.lib` + `olber32_a.lib` references. The authoritative OpenLDAP map-file union contains 704 APIs; the remaining nine are absent from the SDK Windows reference itself. The direct archive has 92 x64 members selecting `MSVCRT`, zero `LIBCMT`, zero embedded `/EXPORT:` directives, and zero LDAP/LBER/SASL-family import thunks. Its extra internal symbols are expected for a combined static archive.
 - A direct LBER consumer allocated a DER element, encoded `{is}`, and exited 0 using `openldap.lib` plus only `ws2_32`; its PE imports contain no OpenLDAP, SASL, or OpenSSL DLL. A separate full static consumer now exercises `ldap_initialize`/unbind, Cyrus SASL version lookup, and OpenSSL SSL-context creation against `openldap.lib`, `libsasl.lib`, and `openssl.lib`; it links and exits 0 with only Windows/VCRuntime/UCRT DLL dependencies. The two retained `tls2.c` C4133 diagnostics are the pinned Windows fallback passing Winsock's `long tv_sec` to `time(time_t *)`; they are investigated source/configuration warnings, not missing LDAP APIs.
@@ -608,22 +607,22 @@ No generated source or configuration file is required for the selected native Wi
 
 | Owner | Tool | Input | Output | Handling | Status |
 | --- | --- | --- | --- | --- | --- |
-| `libsasl` | Patched `add_files` + Xmake Lua I/O | upstream public headers, `win32/include/md5global.h`, `lib/saslutil.c` | `out/libsasl/include/**`, `out/libsasl/saslutil.c` | Each header input owns its copies/adaptation; `saslutil.c` owns the generated static-safe `.c` source | Build, symbol, and runtime validated |
-| `openldap` | Patched `add_files` + Xmake Lua I/O | `portable.hin`, `lber_types.hin`, `ldap_features.hin`, `ldap_config.hin`, `ac/socket.h`, `ac/time.h`, `build/version.h` | configured headers under `out/openldap/include`, `out/openldap/version.c` | Independent per-input render/adaptation records; `build/version.h` materializes directly as a compilable `.c` | Build, symbol, and runtime validated |
+| `libsasl` | Patched `add_files` + Xmake Lua I/O | upstream public headers, `win32/include/md5global.h`, `lib/saslutil.c` | `in/deps/libsasl/win32/include/**`, `in/deps/libsasl/win32/saslutil.c` | Each header input owns its copies/adaptation; `saslutil.c` owns the generated static-safe `.c` source | Build, symbol, and runtime validated |
+| `openldap` | Patched `add_files` + Xmake Lua I/O | `portable.hin`, `lber_types.hin`, `ldap_features.hin`, `ldap_config.hin`, `ac/socket.h`, `ac/time.h`, `build/version.h` | configured headers under `in/deps/openldap/build/include`, `in/deps/openldap/build/version.c` | Independent per-input render/adaptation records; `build/version.h` materializes directly as a compilable `.c` | Build, symbol, and runtime validated |
 
 ### libpq code-generation inventory
 
 | Owner | Tool | Input | Output | Handling | Status |
 | --- | --- | --- | --- | --- | --- |
-| `libpq` | Patched `add_files` + Xmake Lua I/O | `src/include/pg_config.h.in`, `pg_config_ext.h.in`, `src/include/port/win32.h`, project recipe | `out/libpq/include/pg_config.h`, `pg_config_ext.h`, `pg_config_os.h`, `out/libpq/port/pg_config_paths.h` | Independent file-owned frontend configuration records; no external generator is needed | Build validated |
+| `libpq` | Patched `add_files` + Xmake Lua I/O | `src/include/pg_config.h.in`, `pg_config_ext.h.in`, `src/include/port/win32.h`, project recipe | `src/include/pg_config.h`, `pg_config_ext.h`, `pg_config_os.h`, `src/port/pg_config_paths.h` | Independent file-owned frontend configuration records; no external generator is needed | Build validated |
 
 ### libzip upstream build analysis
 
 - PHP Windows enables `ext/zip` by default (`ARG_ENABLE("zip", ..., "yes,shared")`). Its static path requires libzip plus zlib, bzip2, and liblzma and defines `ZIP_STATIC` for the consumer, so libzip is a real selected dependency rather than an optional SDK-only package.
-- Use authoritative `nih-at/libzip` tag `v1.11.4`, matching the PHP SDK package. Preserve the former SDK package only under `out/libzip-sdk-reference` for validation.
+- Use authoritative `nih-at/libzip` tag `v1.11.4`, matching the PHP SDK package. Keep any former SDK package used for validation outside `out/`.
 - Upstream `lib/CMakeLists.txt` and the preserved SDK `libzip_a.lib` define an exact Windows static manifest of 124 members: 123 ordinary C sources plus generated `zip_err_str.c`. A broad `lib/*.c` declaration reproduces the implementation when removing exactly eight non-selected inputs: `zip_algorithm_zstd.c`, the four non-Windows crypto backends (`commoncrypto`, `gnutls`, `mbedtls`, `openssl`), `zip_random_unix.c`, `zip_random_uwp.c`, and Unix-only `zip_source_file_stdio_named.c`.
 - Match the SDK feature surface rather than enabling every optional codec present elsewhere in this project: zlib, bzip2, and LZMA/XZ are enabled; Zstd is disabled. Windows CNG is the selected crypto backend, so include `zip_crypto_win.c`, WinZip AES encode/decode, and the normal Win32 random/file sources. The reference archive has direct unresolved `BCrypt*` calls and no legacy CryptoAPI random calls, so propagate `bcrypt` as the Windows system link edge.
-- Materialize `zipconf.h` and the Windows `config.h` from the target's configuration input, and materialize `zip.h` separately to `out/libzip/zip_err_str.c`, reading `zipint.h` as an explicit dependency and matching upstream `GenerateZipErrorStrings.cmake`. No `always_added` generated-source declaration is needed. Do not invoke CMake.
+- Materialize `zipconf.h` and the Windows `config.h` inside `in/deps/libzip/lib`, and materialize `zip.h` separately to `lib/zip_err_str.c`, reading `zipint.h` as an explicit dependency and matching upstream `GenerateZipErrorStrings.cmake`. No `always_added` generated-source declaration is needed. Do not invoke CMake.
 - Propagate only `ZIP_STATIC` to consumers so `zip.h` suppresses `dllimport`. Keep Windows feature/probe definitions, `WIN32_LEAN_AND_MEAN`, and CRT warning compatibility private. Use the project-wide `/MD` runtime.
 - Final validation passed without a runtime smoke test: `out/libzip.lib` matches the SDK reference's exact 124/124 member basename set and all 298/298 `zip*` linker-member names. All 124 objects request `MSVCRT`; none requests `LIBCMT`, emits `/EXPORT:`, or contains a `__imp_zip*` thunk.
 
@@ -631,12 +630,12 @@ No generated source or configuration file is required for the selected native Wi
 
 | Owner | Tool | Input | Output | Handling | Status |
 | --- | --- | --- | --- | --- | --- |
-| `libzip` | Patched `add_files` + Xmake Lua I/O | verified Windows/x64 configuration + upstream CMake input | `out/libzip/config.h`, `out/libzip/zipconf.h` | File-owned selected Windows static configuration, tracked by Xmake `depend` | Build validated |
-| `libzip` | Patched `add_files` materialization | `lib/zip.h`, `lib/zipint.h` error definitions | `out/libzip/zip_err_str.c` | Reproduce upstream error-string generation and replace the input with the generated `.c` through `sources` | Build validated |
+| `libzip` | Patched `add_files` + Xmake Lua I/O | verified Windows/x64 configuration + upstream CMake input | `lib/config.h`, `lib/zipconf.h` | File-owned selected Windows static configuration, tracked by Xmake `depend` | Build validated |
+| `libzip` | Patched `add_files` materialization | `lib/zip.h`, `lib/zipint.h` error definitions | `lib/zip_err_str.c` | Reproduce upstream error-string generation and replace the input with the generated `.c` through `sources` | Build validated |
 
 ### MPIR upstream build analysis
 
-- Include GMP support in this distribution. PHP Windows keeps `ext/gmp` opt-in but its native configuration explicitly targets MPIR by probing `mpir_a.lib` and `gmp.h`; the extension exposes the broadly useful GMP-compatible arbitrary-precision integer API. Use the exact `winlibs/mpir` tag `mpir-3.0.0-2` named by the PHP SDK SBOM, based on upstream MPIR 3.0.0, and preserve the former binary package only under `out/mpir-sdk-reference` for validation.
+- Include GMP support in this distribution. PHP Windows keeps `ext/gmp` opt-in but its native configuration explicitly targets MPIR by probing `mpir_a.lib` and `gmp.h`; the extension exposes the broadly useful GMP-compatible arbitrary-precision integer API. Use the exact `winlibs/mpir` tag `mpir-3.0.0-2` named by the PHP SDK SBOM, based on upstream MPIR 3.0.0, and keep any former binary package used for validation outside `out/`.
 - The authoritative VS18 x64 static project for the SDK-compatible build is `build.vc18/lib_mpir_gc/lib_mpir_gc.vcxproj`. Its Release x64 output name is `mpir_a`, its pre-build selects `gc x64`, and it contains exactly 516 `ClCompile` entries. The preserved SDK `mpir_a.lib` also contains exactly 516 members, confirming that the package uses MPIR's generic-C build rather than an x86-64 assembly-specialized target.
 - The 516-source manifest is 27 direct-root C files, all 26 `fft/*.c`, all 69 `mpf/*.c`, all 32 `mpq/*.c`, all 169 `mpz/*.c`, all 21 `printf/*.c`, all 9 `scanf/*.c`, and 163 of the 164 `mpn/generic/*.c` files. Use broad patterns for those directories. At the root remove only `compat.c`, `cpuid.c`, `tal-debug.c`, and `tal-notreent.c`; under `mpn/generic` remove only `udiv_w_sdiv.c`. No assembly input or per-source compile override is present in this target.
 - Match the native Release x64 definitions `NDEBUG`, `WIN32`, `_LIB`, `HAVE_CONFIG_H`, and `_WIN64`. The upstream property sheet selects the static CRT, but this project intentionally overrides that standalone choice with global `/MD` for PHP DLL compatibility. The generic-C archive has no external third-party or Windows system-library dependency.
@@ -648,17 +647,17 @@ No generated source or configuration file is required for the selected native Wi
 
 | Owner | Tool | Input | Output | Handling | Status |
 | --- | --- | --- | --- | --- | --- |
-| `mpir` | Xmake Lua I/O | `build.vc/cfg.h` | `out/mpir/include/mpir/config.h` | Reproduce generic-C `gen_config_h.bat` result without invoking the batch build | Build validated |
-| `mpir` | Xmake Lua I/O | `gmp-h.in` | `out/mpir/include/mpir/mpir.h`, `gmp.h` | Reproduce `gen_mpir_h.bat` Windows limb substitution and placeholder filtering | Build validated |
-| `mpir` | Xmake Lua I/O | `mpn/generic/gmp-mparam.h` | `out/mpir/include/mpir/gmp-mparam.h` | Copy the exact generic-C tuning header selected by native `prebuild gc x64` | Build validated |
-| `mpir` | Xmake Lua I/O | `longlong_pre.h`, `mpn/x86_64w/longlong_inc.h`, `longlong_post.h` | `out/mpir/include/mpir/longlong.h` | Concatenate the same three native pre-build fragments for Win64 | Build validated |
+| `mpir` | Xmake Lua I/O | `build.vc/cfg.h` | `build.vc/include/mpir/config.h` | Reproduce generic-C `gen_config_h.bat` result without invoking the batch build | Build validated |
+| `mpir` | Xmake Lua I/O | `gmp-h.in` | `build.vc/include/mpir/mpir.h`, `gmp.h` | Reproduce `gen_mpir_h.bat` Windows limb substitution and placeholder filtering | Build validated |
+| `mpir` | Xmake Lua I/O | `mpn/generic/gmp-mparam.h` | `build.vc/include/mpir/gmp-mparam.h` | Copy the exact generic-C tuning header selected by native `prebuild gc x64` | Build validated |
+| `mpir` | Xmake Lua I/O | `longlong_pre.h`, `mpn/x86_64w/longlong_inc.h`, `longlong_post.h` | `build.vc/include/mpir/longlong.h` | Concatenate the same three native pre-build fragments for Win64 | Build validated |
 
 ### libffi upstream build analysis
 
 - PHP `ext/ffi` is opt-in on Windows (`ARG_WITH('ffi', ..., 'no')`) but is a real user-facing extension when selected: it requires `ffi.h` and `libffi.lib`. Keep libffi in the dependency roadmap rather than treating it as an SDK-only package.
 - Use the PHP SDK's pinned `winlibs/libffi` ref `libffi-3.6.0`, based on upstream libffi 3.6.0. PHP's Windows configuration explicitly probes the fork's `FFI_VECTORCALL_PARTIAL` addition in `ffitarget.h`, so the Winlibs source is intentional here rather than an interchangeable packaging mirror.
 - The authoritative VS18 x64 static project contains exactly eight C objects (`closures.c`, `java_raw_api.c`, `tramp.c`, `prep_cif.c`, `raw_api.c`, `types.c`, `x86/ffi.c`, `x86/ffiw64.c`) plus one Win64 assembly object. The preserved SDK `libffi.lib` confirms the same nine-member layout.
-- `win64_intel.S` is MASM syntax with C-preprocessor includes/macros. Reproduce the upstream Visual Studio custom step only through preprocessing: obtain the configured C compiler invocation from Xmake, run it with `/EP` and the libffi include paths, and materialize `out/libffi/win64.asm` directly through `sources`. The patched core discovers the ASM language from that resulting path and Xmake's normal MSVC assembly rule owns MASM invocation; do not call `ml64.exe` directly or invoke MSBuild.
+- `win64_intel.S` is MASM syntax with C-preprocessor includes/macros. Reproduce the upstream Visual Studio custom step only through preprocessing: obtain the configured C compiler invocation from Xmake, run it with `/EP` and the libffi include paths, and materialize `in/deps/libffi/src/x86/win64.asm` directly through `sources`. The patched core discovers the ASM language from that resulting path and Xmake's normal MSVC assembly rule owns MASM invocation; do not call `ml64.exe` directly or invoke MSBuild.
 - Match the static public interface by propagating only `FFI_STATIC_BUILD`, which suppresses MSVC DLL decoration in `ffi.h`. Keep `FFI_BUILDING`, `WIN32`, `_LIB`, and release configuration defines private. Use the committed fork `ffi.h`, `fficonfig.h`, and x86 `ffitarget.h`; no configure/CMake generation is required for the selected Windows source tree.
 - libffi has no external third-party dependency in this Windows x64 configuration. Use the project-wide `/MD` runtime instead of changing CRT policy to match any standalone project default.
 - Final validation passed: Xmake detected the configured `ml64.exe` automatically for the generated `.asm`; `out/libffi.lib` has the same nine implementation members as the SDK reference and all 52/52 `ffi*` linker-member names with zero differences. The eight C objects request `MSVCRT`; there are zero `LIBCMT`, `/EXPORT:`, or `__imp_ffi` entries. Raw symbol deltas outside the `ffi*` surface are only current-toolset UCRT/compiler artifacts and section names.
@@ -667,7 +666,7 @@ No generated source or configuration file is required for the selected native Wi
 
 | Owner | Tool | Input | Output | Handling | Status |
 | --- | --- | --- | --- | --- | --- |
-| `libffi` | Configured MSVC C preprocessor via Xmake `core.tool.compiler` | `src/x86/win64_intel.S` plus committed libffi headers | `out/libffi/win64.asm` | Run only preprocessing with `/EP`; add the generated `.asm` to the target and let Xmake's MSVC assembly rule invoke MASM | Build and SDK surface validation passed |
+| `libffi` | Configured MSVC C preprocessor via Xmake `core.tool.compiler` | `src/x86/win64_intel.S` plus committed libffi headers | `src/x86/win64.asm` | Run only preprocessing with `/EP`; add the generated `.asm` to the target and let Xmake's MSVC assembly rule invoke MASM | Build and SDK surface validation passed |
 
 ### WinEditLine upstream build analysis
 
