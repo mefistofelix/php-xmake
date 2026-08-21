@@ -1,5 +1,7 @@
 /*
 !/.gitignore
+!/README.md
+!/xmake.exe
 !/xmake.lua
 !/AGENTS.md
 !/TODO.md

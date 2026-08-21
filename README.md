@@ -1,0 +1,26 @@
+# php-xmake
+
+Windows-only work in progress for building PHP with a compact `xmake.lua`, static third-party libraries, and the dynamic multithreaded MSVC runtime (`/MD`). The complete default dependency stack currently builds 34 static archives; PHP source integration is still in progress.
+
+The required patched Xmake bundle is included as `xmake.exe` in the repository root. Its source, tests, and detailed patch documentation are maintained in [mefistofelix/xmake-patched](https://github.com/mefistofelix/xmake-patched).
+
+The patches provide:
+
+- lazy Windows IDL and generated-source discovery;
+- lazy toolchain setup and selected-target configuration pruning;
+- incremental `add_files` source materialization and dependency-aware `build_callback` jobs;
+- faster no-change dependency checks.
+
+Build the default dependency stack from PowerShell:
+
+```powershell
+.\xmake.exe
+```
+
+The non-default PHP prototype can be selected with:
+
+```powershell
+.\xmake.exe build php
+```
+
+See [AGENTS.md](AGENTS.md) for build policy and target details, [TODO.md](TODO.md) for current progress, and [unitybuild.md](unitybuild.md) for Unity Build validation results.

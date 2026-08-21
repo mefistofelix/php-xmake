@@ -25,7 +25,7 @@ Do not alter a target's real source list, rename upstream symbols, add Unity exc
 | `libssh2` | Enabled | PASS | 26 C sources compile as one `unity_1.c` / one object. |
 | `nghttp2` | Disabled after test | FAIL | Duplicate file-local `VALID_AUTHORITY_CHARS` tables in `nghttp2_helper.c` and `nghttp2_http.c`. |
 | `nghttp3` | Disabled after test | FAIL | Duplicate file-local `static int is_ws(uint8_t)` between the main library and bundled `sfparse`. Normal non-Unity build remains valid. |
-| `ngtcp2` | Enabled | PASS | 48 C sources across the core and crypto directories compile as one `unity_1.c` / one object. |
+| `ngtcp2` | Disabled after test | FAIL | The core-private and public crypto headers both use `NGTCP2_CRYPTO_H`; the core-first Unity order suppresses the public API declarations needed by the OpenSSL adapter. |
 | `libcurl` | Enabled | PASS | 192 C sources across libcurl's core and protocol subdirectories compile as one `unity_1.c` / one object. |
 | `libuv` | Disabled after test | FAIL | Duplicate file-local Windows backend buffers: `uv_zero_` in pipe/tcp/udp and `uv_null_buf_` in pipe/tty. |
 | `libsodium` | Disabled after test | FAIL | Alternative AEGIS-128L AES-NI and software backends reuse `aes_block_t`, AES macros, and shared static helper bodies inside the same algorithm directory. |
@@ -33,6 +33,7 @@ Do not alter a target's real source list, rename upstream symbols, add Unity exc
 | `sqlite3` | N/A | SINGLE TU | The target is already the single upstream amalgamation source `sqlite3.c`; Unity would be a no-op. |
 | `libpng` | Disabled after test | FAIL | Upstream `pngpriv.h` explicitly errors on duplicate inclusion; all 15 main library sources and both Intel C sources include it once per normal translation unit. |
 | `libjpeg` | Disabled after test | FAIL | Baseline/lossless/progressive Huffman implementations reuse private state/helper names; `jchuff.c` also leaks the `emit_byte` macro into `jcmarker.c`. NASM remains correctly separate. |
+| `libtiff` | Disabled after test | FAIL | `tif_jpeg_12.c` textually reincludes `tif_jpeg.c`; codec files also reuse private helpers/macros, and the shared header-guard state suppresses allocator declarations needed by later Windows sources. |
 
 ---
 
@@ -820,6 +821,42 @@ Leave `nghttp2` non-Unity after the test. Preserve the normal source list unchan
 
 ---
 
+## `ngtcp2`
+
+### Result
+
+FAIL under a forced full rebuild. The target contains 46 core sources followed by the OpenSSL adapter and shared crypto implementation in one generated `unity_1.c`.
+
+The core has a private header:
+
+```text
+in/deps/ngtcp2/lib/ngtcp2_crypto.h:25
+    #ifndef NGTCP2_CRYPTO_H
+    #define NGTCP2_CRYPTO_H
+```
+
+The public crypto API independently uses the same guard:
+
+```text
+in/deps/ngtcp2/crypto/includes/ngtcp2/ngtcp2_crypto.h:25
+    #ifndef NGTCP2_CRYPTO_H
+    #define NGTCP2_CRYPTO_H
+```
+
+The generated Unity file includes every `lib/ngtcp2_*.c` before `crypto/ossl/ossl.c` and `crypto/shared.c`. A core source therefore includes the private header first and leaves `NGTCP2_CRYPTO_H` defined. When the OpenSSL adapter later requests `<ngtcp2/ngtcp2_crypto.h>`, the public header body is skipped. MSVC then reports the missing `ngtcp2_crypto_conn_ref` type throughout `ossl.c` and missing `NGTCP2_CRYPTO_*` constants throughout `shared.c`.
+
+The earlier PASS entry was not reproducible under the forced project rebuild and was an incremental false positive. This header-guard collision is deterministic in the generated source order.
+
+### Natural partition hypothesis
+
+The upstream build already supplies the correct component boundary: compile the core library sources separately from the two crypto-adapter sources. A grouped experiment could test one core Unity unit and one adapter Unity unit, but project policy does not introduce grouping solely to make the survey pass. The baseline target continues to consolidate both components into one archive while compiling all 48 sources independently.
+
+### Current decision
+
+Remove `c.unity_build` from `ngtcp2`, retain its real source list, and use the independently compiled baseline. Do not patch either upstream header guard or add a file exception.
+
+---
+
 ## `libcurl`
 
 ### Result
@@ -1260,6 +1297,99 @@ A later grouped-Unity experiment could test compatible remainder sets while keep
 ### Current decision
 
 Leave `libjpeg` non-Unity after this test. Keep the NASM configuration unchanged and do not rename upstream private state/functions or add macro cleanup solely for Unity.
+
+---
+
+## `libtiff`
+
+### Result
+
+FAIL.
+
+The test added only the default rule to the already validated 43-C-source target:
+
+```lua
+add_rules("c.unity_build")
+```
+
+Xmake generated one `out/.gens/libtiff/windows/unity_build/unity_1.c` containing all 43 selected `tif_*.c` files. The native Windows resource remained separate. MSVC compiled the Unity source with `/MD /O2` and the target's normal includes/defines, then stopped on multiple independent translation-unit conflicts. The rule was removed after diagnosis and the normal non-Unity source declaration was restored.
+
+### Embedded JPEG-12 implementation
+
+The generated Unity order contains the normal implementation and its 12-bit wrapper consecutively:
+
+```text
+tif_jpeg.c
+tif_jpeg_12.c
+```
+
+The wrapper deliberately compiles the same implementation a second time under a different macro environment:
+
+```text
+in/deps/libtiff/tiff-4.7.2/libtiff/tif_jpeg_12.c:28
+#include "tif_jpeg.c"
+```
+
+This is valid when `tif_jpeg.c` and `tif_jpeg_12.c` are separate translation units. Full Unity first compiles the ordinary implementation directly, then the wrapper textually includes it again. The first fatal conflicts are:
+
+```text
+JPEGOtherSettings  tif_jpeg.c:65   C2371 redefinition
+JPEGState          tif_jpeg.c:203  C2371 redefinition
+jpegFields         tif_jpeg.c:219  C2374 multiple initialization
+```
+
+The remaining private `TIFFjpeg_*`, setup/decode/encode, table, and cleanup bodies are consequently reported as repeated definitions throughout `tif_jpeg.c`. `tif_jpeg.c` and `tif_jpeg_12.c` must therefore remain in distinct translation units regardless of any compatibility among the other codecs.
+
+### Reused private helper and codec macros
+
+Two otherwise independent codecs define the same file-local helper:
+
+```text
+in/deps/libtiff/tiff-4.7.2/libtiff/tif_luv.c:1349
+static tmsize_t multiply_ms(...)
+
+in/deps/libtiff/tiff-4.7.2/libtiff/tif_pixarlog.c:723
+static tmsize_t multiply_ms(...)
+```
+
+MSVC reports `C2084` for the second body. Several codec-local macros also deliberately reuse generic names without needing cross-file cleanup in the normal build:
+
+```text
+DecoderState / EncoderState
+    tif_fax3.c:108-109
+    tif_luv.c:175-176
+    tif_webp.c:73-74
+
+PACK
+    tif_getimage.c:1611
+    tif_luv.c:1329
+
+REPEAT4
+    tif_getimage.c:1511
+    tif_predict.c:326
+
+SETPIXEL
+    tif_next.c:33
+    tif_thunder.c:57
+```
+
+The compiler reports the expected `C4005` macro redefinitions. Even where the replacement text happens to remain usable, that contamination shows the codec implementations assume normal translation-unit isolation and cannot be treated as one natural component batch.
+
+### Allocator declaration boundary
+
+The target defines `TIFF_DO_NOT_USE_NON_EXT_ALLOC_FUNCTIONS`. In their normal individual translation units, `tif_open.c:29-30` and `tif_win32.c:31-32` undefine it before including `tiffiop.h`, allowing `tiffio.h:325-329` to declare `_TIFFmalloc`, `_TIFFcalloc`, `_TIFFrealloc`, and `_TIFFfree` for those implementation files.
+
+In the Unity source, many earlier files have already included the guarded TIFF headers while the macro is still defined. Undefining it later cannot reopen those include guards, so `tif_open.c` sees implicit allocator declarations and `tif_win32.c:379-397` later conflicts with the inferred types (`C2040`, `C2371`). This is a source-order/header-state conflict, not a missing target-wide define.
+
+### Natural partition hypotheses
+
+At minimum, `tif_jpeg.c` and `tif_jpeg_12.c` need separate units; `tif_luv.c` and `tif_pixarlog.c` also need separation; the three `DecoderState`/`EncoderState` codec implementations cannot share one unit without macro cleanup; and `tif_open.c`/`tif_win32.c` need a translation-unit start where their allocator declaration setup precedes the guarded headers.
+
+Those constraints already cross the broad codec/core/platform categories, while additional private-symbol collisions may be hidden behind the initial JPEG error cascade. A later grouped experiment could test a carefully derived conflict partition, but no partition has been tested and no Unity-specific source grouping is added now.
+
+### Current decision
+
+Leave `libtiff` non-Unity. Preserve its validated 43-C-source plus resource build and do not alter upstream include order, macro cleanup, or file-local configuration solely to accommodate full Unity.
 
 ---
 

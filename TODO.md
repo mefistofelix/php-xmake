@@ -1,17 +1,18 @@
 # Build Roadmap
 
-Last updated: 2026-08-17
+Last updated: 2026-08-20
 
 ## Unity Validation
 
 - `wineditline`: full-target default `c.unity_build` passes; all 3 C sources are emitted into one `unity_1.c`.
 - `bzip2`: full-target default `c.unity_build` passes; all 7 selected C sources are emitted into one `unity_1.c`.
 - `nghttp3`: full-target default `c.unity_build` fails without any Xmake-side grouping/ignoring. `lib/nghttp3_http.c` and `lib/sfparse/sfparse.c` both define file-local `static int is_ws(uint8_t)`. They are legal in separate translation units but become duplicate definitions in one Unity translation unit (`MSVC C2084`). Do not work around this in the target with `unity_group`, `unity_ignored`, or source-list changes; keep the normal non-Unity build unless a general solution or upstream source change is deliberately chosen.
+- `ngtcp2`: a forced full rebuild disproved the earlier incremental PASS. The core-private `lib/ngtcp2_crypto.h` and public `crypto/includes/ngtcp2/ngtcp2_crypto.h` share `NGTCP2_CRYPTO_H`; the core-first Unity order suppresses the public API needed by the OpenSSL adapter. Keep the validated independent compilation.
 
 
 ## Current State
 
-- [ ] Full-target Unity survey in progress. Natural passes so far: `wineditline`, `bzip2`, `libssh2`, `ngtcp2`, `libcurl`. Single-TU/N/A: `sqlite3`. Failures so far: `nghttp3`, `zlib`, `brotli`, `zstd`, `liblzma`, `nghttp2`, `libuv`, `libsodium`, `oniguruma`, `libpng`, `libjpeg`; exact translation-unit collisions and possible natural partitions are documented in `unitybuild.md`. Failed targets are restored to their validated non-Unity configuration before continuing.
+- [ ] Full-target Unity survey in progress. Natural passes so far: `wineditline`, `bzip2`, `libssh2`, `libcurl`. Single-TU/N/A: `sqlite3`. Failures so far: `nghttp3`, `ngtcp2`, `zlib`, `brotli`, `zstd`, `liblzma`, `nghttp2`, `libuv`, `libsodium`, `oniguruma`, `libpng`, `libjpeg`, `libtiff`; exact translation-unit collisions and possible natural partitions are documented in `unitybuild.md`. Failed targets are restored to their validated non-Unity configuration before continuing.
 - [x] Initialize the Git repository and ignore downloaded sources, tools, caches, and outputs.
 - [x] Replace the monolithic `prepare` task with target-owned `before_config` fetch hooks so a selected build materializes only its requested target/dependency closure.
 - [x] Bootstrap `hx.exe` lazily from the shared `fetch(os, argv)` helper and keep every target fetch idempotent through hx provenance/options matching.
@@ -23,11 +24,11 @@ Last updated: 2026-08-17
 - [x] Keep all integrated dependency targets enabled for the PHP integration; helper/prototype targets may remain non-default while still enabled.
 - [x] Build and archive `out/zlib.lib` successfully with MSVC x64.
 - [x] Build and archive the complete single-target `out/brotli.lib` successfully with MSVC x64.
-- [x] Validate `minilua` and `gen_ir_fold_hash` with MSVC x64 `/MD` and correct `IR_TARGET_X64`; PHP now materializes the helper executables incrementally through Xmake compiler/linker APIs before the JIT callbacks consume them, so no manual helper prebuild is required.
+- [x] Validate `minilua` and `gen_ir_fold_hash` with MSVC x64 `/MD` and correct `IR_TARGET_X64`; PHP now declares both as normal non-linking target dependencies and patched `build_callback` jobs consume them only after the jobgraph finishes both helpers.
 - [x] Remove empty and placeholder callbacks; only targets with real codegen/configuration work attach the shared `codegen` rule.
 - [x] Follow upstream Windows PHP and select the dynamic multithreaded MSVC CRT globally with `set_runtimes("MD")` for loadable-extension compatibility.
 - [x] Verify a forced zstd build uses `/MD` in every MSVC compile command.
-- [ ] Replace the object-only `php` prototype incrementally; JIT helper/tool materialization is now automatic and incremental, while PHP configuration/Bison/RE2C/resource generation remains. A direct `xmake build php` reaches normal compilation and currently stops at the pre-existing missing `zend_config.h` work.
+- [ ] Replace the object-only `php` prototype incrementally; JIT helper builds and header generation are now automatic and incremental through dependency targets plus file-owned `build_callback` jobs, while PHP configuration/Bison/RE2C/resource generation remains. A direct `xmake build php` reaches normal compilation and currently stops at the pre-existing missing `zend_config.h` work.
 - [x] Convert all former target-level codegen participants to file-owned `add_files`/`depend` materialization; there is no shared codegen adapter or project-owned incremental marker left.
 - [x] Use the patched Xmake bundle's lazy Windows IDL implementation; remove the project's local `platform.windows.idl` shadow now that the bundle itself fixes the premature `target:sourcebatches()` expansion.
 - [x] Validate the patched lazy-source timing: synchronous selected-target `on_prepare` and post-callback `add_files` materialization both work without `memcache.clear()`, `target:_invalidate("files")`, or dynamic target file insertion.
@@ -50,7 +51,10 @@ Last updated: 2026-08-17
 - [x] Serialize `toolchain:check()` with Xmake's coroutine lock so parallel first-use consumers cannot race through `on_toolchain_prepare` and launch the same MSVC installer repeatedly.
 - [x] Validate a full OpenSSL build through the final materialization path, then validate no-change reuse and single-output invalidation: deleting only generated `crypto/params_idx.c` reruns only its owning `.c.in` generator and recompiles that source.
 - [x] Smoke-test the three other critical materialization shapes with the patched bundle: libffi `.S -> .asm`, libintl `.rc -> .obj` plus generated headers, and dav1d one-template-to-two-generated-C expansion inside `avif`; all focused builds complete successfully.
-- [x] Validate PHP JIT ordering from missing helper executables: `php` materializes both helper tools, then the two JIT headers, before normal compilation. A second unchanged run skips those generators; the current PHP prototype later stops at the pre-existing missing `zend_config.h` work.
+- [x] Update to the four-patch bundle and use its new build-time source callbacks. `php` builds `minilua` and `gen_ir_fold_hash` as `{links = false}` dependencies, then independent `build_callback` jobs generate `ir_emit_x86.h` and `ir_fold_hash.h` before normal file rules. The previous manual compiler/linker materialization callback is removed.
+- [x] Validate PHP JIT jobgraph ordering with a forced build: both helpers link first with `/MD`, both JIT headers are then generated, and only afterward do `ir.c`, `ir_emit.c`, `zend.c`, and the MASM source start. An unchanged follow-up preserves both generated-header timestamps; the prototype still stops at the known missing `zend_config.h` work.
+- [x] Complete a forced parallel rebuild of the entire default dependency stack after the callback simplification and Unity corrections. All 34/34 static archives were produced; Xmake reported 276.375s (281.194s process wall time). Two unchanged builds performed no compilation or archiving and completed in 4.687s/3.125s Xmake time.
+- [x] Ship the validated patched bundle as root `xmake.exe` and document the four patch features with a link to the companion `mefistofelix/xmake-patched` source repository.
 - [x] Defer new unity-build work until all dependencies and the complete PHP target have validated baseline builds.
 
 ## Completed Target: zlib
@@ -331,10 +335,10 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Generate the Zend, PHPDBG, and JSON parsers with Bison in PHP's `codegen` callback.
 - [ ] Generate all inventoried scanners with RE2C in PHP's `codegen` callback.
 - [ ] Generate Windows message resources with the configured SDK `mc` in PHP's `codegen` callback.
-- [x] Build `minilua` explicitly before the main build and invoke DynASM from PHP's target-level `codegen` callback.
-- [x] Build `gen_ir_fold_hash` explicitly before the main build with `IR_TARGET_X64` and invoke it from PHP's target-level `codegen` callback with redirected input/output.
+- [x] Build `minilua` automatically as a non-linking PHP dependency and invoke DynASM from the `ir_emit.c` build callback after that target finishes.
+- [x] Build `gen_ir_fold_hash` automatically as a non-linking PHP dependency with `IR_TARGET_X64` and invoke it from the `ir.c` build callback with redirected input/output.
 - [ ] Generate PHP Windows configuration headers/defines using Xmake detection APIs.
-- [ ] Keep all PHP generation in one compact PHP `codegen` callback; helper executables are explicit pre-build prerequisites and are not PHP target dependencies.
+- [ ] Keep remaining PHP generation in compact, input-owned `add_configfiles`, `callback`, or `build_callback` declarations; do not recreate a target-level `codegen` hook or manual helper build barrier.
 
 ## PHP Target and Final Link
 
@@ -348,6 +352,14 @@ Every library must receive its own static target. Integrate and validate them on
 - [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
 
 ## Validation Log
+
+- 2026-08-20 — full default-stack rebuild after simplification: a forced `-r -j8` run using the replaced bundle from a fresh `TEMP` completed with exit code 0, produced all 34/34 expected static archives, and reported 276.375s Xmake / 281.194s measured wall time. `ngtcp2` compiled all 48 sources independently and archived successfully after removing its invalid Unity rule. Two immediate unchanged builds with one shared fresh extraction performed no compile/archive actions: 4.687s Xmake / 9.567s wall including first extraction/configuration, then 3.125s Xmake / 4.478s wall. The remaining messages were established upstream baseline warnings, not build failures.
+
+- 2026-08-20 — patched build-time callback integration: replaced the stale `xmake-patched/xmake-bundle-patched-dev.exe` with the current four-patch bundle (`SHA256 53803D610AA515DB702F35BC363AECF0D23744891BDB04B116F4CFAF49882496`) and validated it from a fresh `TEMP`. The PHP target no longer compiles/links its two host tools through imported core APIs. `minilua` and `gen_ir_fold_hash` are direct `{links = false}` dependencies; the jobgraph linked both `/MD` binaries, ran the independent DynASM and FoldHash `build_callback` jobs, and only then started normal PHP C/MASM compilation. The next stable run left both header timestamps unchanged. The expected prototype blocker remains `Zend/zend_portability.h:42`, missing `zend_config.h`.
+
+- 2026-08-20 — libtiff full-target Unity survey: the minimal one-line `c.unity_build` test generated one 43-source `unity_1.c` and failed. `tif_jpeg_12.c:28` textually includes `tif_jpeg.c` after the normal source was already included, immediately redefining `JPEGOtherSettings` (`tif_jpeg.c:65`), `JPEGState` (`:203`), and the complete private JPEG implementation. Independent later collisions include `multiply_ms` in `tif_luv.c:1349` versus `tif_pixarlog.c:723`, `DecoderState`/`EncoderState` macro reuse among `tif_fax3.c:108-109`, `tif_luv.c:175-176`, and `tif_webp.c:73-74`, plus `PACK`, `REPEAT4`, and `SETPIXEL` macro leakage. Unity also collapses the special per-file allocator declaration boundary needed by `tif_open.c`/`tif_win32.c`, producing `_TIFFmalloc` family type errors. The rule was removed and the validated non-Unity target restored.
+
+- 2026-08-20 — forced full rebuild correction for `ngtcp2`: the build reached the generated 48-source Unity unit and deterministically failed because the core-private and public crypto headers share `NGTCP2_CRYPTO_H`. The core sources appear first, suppressing all public `ngtcp2_crypto_conn_ref` and `NGTCP2_CRYPTO_*` declarations required by the later OpenSSL/shared sources. The prior Unity PASS was an incremental false positive. The rule was removed; target sources and one-archive consolidation remain unchanged.
 
 - 2026-08-15 — cold/hot dependency benchmark after lazy codegen and ngtcp2 consolidation: with prepared source/tool trees retained, `xmake clean` removed compiled outputs, then all 23 root `out/.<target>.codegen` markers were made absent before a plain parallel `xmake`. The build regenerated the selected codegen outputs and rebuilt all 34 default dependency archives successfully: Xmake reported 323.797s and measured process wall time was 325.313s. Two immediate unchanged builds were complete no-ops with zero compile/archive actions: 5.640s Xmake / 6.842s wall, then 5.172s Xmake / 6.348s wall (mean 5.406s Xmake / 6.595s wall). All 23 root codegen markers were recreated by the cold run; a representative `out/.openssl.codegen` timestamp remained at 12:11:35.974 through both hot builds, confirming marker skip rather than regeneration. The only final warning was the already-known unmatched OpenSSL `*avx*.asm` declaration.
 

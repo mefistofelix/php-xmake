@@ -201,7 +201,6 @@ target("ngtcp2")
         "bcrypt",
         {public = true}
     )
-    add_rules("c.unity_build")
     add_files(
         "in/deps/ngtcp2/lib/*.c",
         "in/deps/ngtcp2/crypto/ossl/ossl.c",
@@ -1785,40 +1784,26 @@ target("php")
     set_default(false)
     set_kind("object")
     set_targetdir(get_config("builddir"))
-    add_files("in/php-src/ext/opcache/jit/ir/dynasm/minilua.c", "in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c", {callback = function (sourcefile, sources, depend)
-        local name = sourcefile:endswith("minilua.c") and "minilua" or "gen_ir_fold_hash"
-        local tool = assert(import("core.project.project").target(name))
-        local object = tool:objectfile(sourcefile)
-        local output = tool:targetfile()
-        local compiler = tool:compiler("cc")
-        local linker = tool:linker()
-        local program = tool:tool("cc")
-        if program then table.insert(depend.files, program) end
-        os.mkdir(path.directory(object))
-        os.mkdir(path.directory(output))
-        compiler:compile(sourcefile, object, {target = tool})
-        linker:link({object}, output, {target = tool})
-        table.insert(depend.files, object)
-        table.insert(depend.files, output)
-        table.remove(sources, 1)
-    end})
-    add_files("in/php-src/ext/opcache/jit/ir/ir_x86.dasc", {callback = function (sourcefile, sources, depend)
+    add_deps("minilua", "gen_ir_fold_hash", {links = false})
+    add_includedirs("in/php-src/ext/opcache/jit/ir")
+    add_files("in/php-src/ext/opcache/jit/ir/ir_emit.c", {build_callback = function (target, _, _, depend)
         local ir = "in/php-src/ext/opcache/jit/ir"
-        local minilua = path.join(get_config("builddir"), "minilua.exe")
+        local source = path.join(ir, "ir_x86.dasc")
         local output = path.join(ir, "ir_emit_x86.h")
-        table.insert(depend.files, minilua)
+        table.insert(depend.files, source)
         for _, file in ipairs(os.files(path.join(ir, "dynasm/**/*.lua"))) do table.insert(depend.files, file) end
-        os.vrunv(minilua, {path.join(ir, "dynasm/dynasm.lua"), "-D", "X64=1", "-D", "X64WIN=1", "-D", "WIN=1", "-o", output, sourcefile})
+        os.vrunv(assert(target:dep("minilua")):targetfile(),
+            {path.join(ir, "dynasm/dynasm.lua"), "-D", "X64=1", "-D", "X64WIN=1", "-D", "WIN=1", "-o", output, source})
         table.insert(depend.files, output)
-        table.remove(sources, 1)
     end})
-    add_files("in/php-src/ext/opcache/jit/ir/ir_fold.h", {callback = function (sourcefile, sources, depend)
-        local foldhash = path.join(get_config("builddir"), "gen_ir_fold_hash.exe")
-        local output = "in/php-src/ext/opcache/jit/ir/ir_fold_hash.h"
-        table.insert(depend.files, foldhash)
-        os.vrunv(foldhash, {}, {stdin = sourcefile, stdout = output})
+    add_files("in/php-src/ext/opcache/jit/ir/ir.c", {build_callback = function (target, _, _, depend)
+        local ir = "in/php-src/ext/opcache/jit/ir"
+        local source = path.join(ir, "ir_fold.h")
+        local output = path.join(ir, "ir_fold_hash.h")
+        table.insert(depend.files, source)
+        table.insert(depend.files, path.join(ir, "ir.h"))
+        os.vrunv(assert(target:dep("gen_ir_fold_hash")):targetfile(), {}, {stdin = source, stdout = output})
         table.insert(depend.files, output)
-        table.remove(sources, 1)
     end})
     add_files("in/php-src/Zend/zend.c")
 
