@@ -229,6 +229,8 @@ target("libcurl")
     add_defines("CURL_STATICLIB", {public = true})
     add_defines(
         "BUILDING_LIBCURL",
+        "CURL_DISABLE_LDAP",
+        "CURL_DISABLE_LDAPS",
         "HAVE_BROTLI",
         "HAVE_LIBZ",
         "HAVE_ZSTD",
@@ -245,7 +247,6 @@ target("libcurl")
         "iphlpapi",
         "normaliz",
         "winmm",
-        "wldap32",
         "ws2_32",
         {public = true}
     )
@@ -1347,11 +1348,11 @@ target("libpq")
     add_deps("openssl")
     add_files("in/deps/libpq/src/include/pg_config.h.in", "in/deps/libpq/src/include/pg_config_ext.h.in", {callback = function (sourcefile, sources, depend)
         local defs = {}
-        for name in ([=[ENABLE_THREAD_SAFETY HAVE_ASN1_STRING_GET0_DATA HAVE_ATOMICS HAVE_BIO_METH_NEW HAVE_DECL_STRNLEN HAVE_FSEEKO HAVE_HMAC_CTX_FREE HAVE_HMAC_CTX_NEW HAVE_INET_PTON HAVE_INT_TIMEZONE HAVE_LOCALE_T HAVE_LONG_LONG_INT_64 HAVE_MBSTOWCS_L HAVE_MEMORY_H HAVE_OPENSSL_INIT_SSL HAVE_SOCKLEN_T HAVE_SPINLOCKS HAVE_SSL_CTX_SET_CERT_CB HAVE_SSL_CTX_SET_NUM_TICKETS HAVE_STDINT_H HAVE_STDLIB_H HAVE_STRING_H HAVE_STRNLEN HAVE_SYS_STAT_H HAVE_SYS_TYPES_H HAVE_UNISTD_H HAVE_WCSTOMBS_L HAVE_X509_GET_SIGNATURE_INFO HAVE_X509_GET_SIGNATURE_NID HAVE__CONFIGTHREADLOCALE HAVE__CPUID PG_USE_STDBOOL STDC_HEADERS USE_LDAP USE_OPENSSL USE_SSE42_CRC32C_WITH_RUNTIME_CHECK USE_WIN32_SEMAPHORES USE_WIN32_SHARED_MEMORY]=]):gmatch("%S+") do defs[name] = "1" end
+        for name in ([=[ENABLE_THREAD_SAFETY HAVE_ASN1_STRING_GET0_DATA HAVE_ATOMICS HAVE_BIO_METH_NEW HAVE_DECL_STRNLEN HAVE_FSEEKO HAVE_HMAC_CTX_FREE HAVE_HMAC_CTX_NEW HAVE_INET_PTON HAVE_INT_TIMEZONE HAVE_LOCALE_T HAVE_LONG_LONG_INT_64 HAVE_MBSTOWCS_L HAVE_MEMORY_H HAVE_OPENSSL_INIT_SSL HAVE_SOCKLEN_T HAVE_SPINLOCKS HAVE_SSL_CTX_SET_CERT_CB HAVE_SSL_CTX_SET_NUM_TICKETS HAVE_STDINT_H HAVE_STDLIB_H HAVE_STRING_H HAVE_STRNLEN HAVE_SYS_STAT_H HAVE_SYS_TYPES_H HAVE_UNISTD_H HAVE_WCSTOMBS_L HAVE_X509_GET_SIGNATURE_INFO HAVE_X509_GET_SIGNATURE_NID HAVE__CONFIGTHREADLOCALE HAVE__CPUID PG_USE_STDBOOL STDC_HEADERS USE_OPENSSL USE_SSE42_CRC32C_WITH_RUNTIME_CHECK USE_WIN32_SEMAPHORES USE_WIN32_SHARED_MEMORY]=]):gmatch("%S+") do defs[name] = "1" end
         for name in ([=[HAVE_DECL_FDATASYNC HAVE_DECL_F_FULLFSYNC HAVE_DECL_LLVMCREATEGDBREGISTRATIONLISTENER HAVE_DECL_LLVMCREATEPERFJITEVENTLISTENER HAVE_DECL_LLVMGETHOSTCPUFEATURES HAVE_DECL_LLVMGETHOSTCPUNAME HAVE_DECL_LLVMORCGETSYMBOLADDRESSIN HAVE_DECL_MEMSET_S HAVE_DECL_POSIX_FADVISE HAVE_DECL_PREADV HAVE_DECL_PWRITEV HAVE_DECL_STRCHRNUL HAVE_DECL_STRLCAT HAVE_DECL_STRLCPY HAVE_DECL_TIMINGSAFE_BCMP]=]):gmatch("%S+") do defs[name] = "0" end
         local values = [=[
             ALIGNOF_DOUBLE=8;ALIGNOF_INT=4;ALIGNOF_LONG=4;ALIGNOF_LONG_LONG_INT=8;ALIGNOF_SHORT=2;BLCKSZ=8192;DEF_PGPORT=5432;DEF_PGPORT_STR="5432";DLSUFFIX=".dll"
-            CONFIGURE_ARGS="--enable-thread-safety --with-ldap --without-zlib --with-ssl=openssl";INT64_MODIFIER="ll";MAXIMUM_ALIGNOF=8;MEMSET_LOOP_LIMIT=1024;OPENSSL_API_COMPAT=0x10001000L
+            CONFIGURE_ARGS="--enable-thread-safety --without-ldap --without-zlib --with-ssl=openssl";INT64_MODIFIER="ll";MAXIMUM_ALIGNOF=8;MEMSET_LOOP_LIMIT=1024;OPENSSL_API_COMPAT=0x10001000L
             PACKAGE_BUGREPORT="pgsql-bugs@lists.postgresql.org";PACKAGE_NAME="PostgreSQL";PACKAGE_STRING="PostgreSQL 16.14";PACKAGE_TARNAME="postgresql";PACKAGE_URL="https://www.postgresql.org/";PACKAGE_VERSION="16.14"
             PG_INT64_TYPE=long long int;PG_KRB_SRVNAM="postgres";PG_MAJORVERSION="16";PG_MAJORVERSION_NUM=16;PG_MINORVERSION_NUM=14;PG_VERSION="16.14";PG_VERSION_NUM=160014;PG_VERSION_STR="PostgreSQL 16.14, compiled by Visual C++, 64-bit"
             RELSEG_SIZE=131072;SIZEOF_BOOL=1;SIZEOF_LONG=4;SIZEOF_SIZE_T=8;SIZEOF_VOID_P=8;XLOG_BLCKSZ=8192;inline=__inline;pg_restrict=__restrict
@@ -1384,7 +1385,7 @@ target("libpq")
     add_includedirs("out/libpq/include", "in/deps/libpq/src/interfaces/libpq", "in/deps/libpq/src/include", {public = true})
     add_includedirs("out/libpq/port", "in/deps/libpq/src/port", "in/deps/libpq/src/include/port/win32", "in/deps/libpq/src/include/port/win32_msvc", "in/deps/openssl/include")
     add_defines("FRONTEND", "WIN32", "WINDOWS", "__WINDOWS__", "__WIN32__", "_CRT_SECURE_NO_DEPRECATE", "_CRT_NONSTDC_NO_DEPRECATE", "SO_MAJOR_VERSION=5")
-    add_syslinks("ws2_32", "secur32", "wldap32", "shell32", "advapi32", {public = true})
+    add_syslinks("ws2_32", "secur32", "shell32", "advapi32", {public = true})
     add_files("in/deps/libpq/src/interfaces/libpq/*.c")
     remove_files("in/deps/libpq/src/interfaces/libpq/fe-gssapi-common.c", "in/deps/libpq/src/interfaces/libpq/fe-secure-gssapi.c")
     add_files(
@@ -1864,6 +1865,7 @@ target("php")
         "libffi",
         "libiconv",
         "libintl",
+        "libpq",
         "libxml2",
         "libxslt",
         "libzip",
@@ -1872,6 +1874,7 @@ target("php")
         "mpir",
         "nghttp2",
         "oniguruma",
+        "openldap",
         "openssl",
         "sqlite3",
         "wineditline",
@@ -1935,6 +1938,7 @@ target("php")
 #include "ext/hash/php_hash.h"
 #include "ext/iconv/php_iconv.h"
 extern zend_module_entry intl_module_entry;
+#include "ext/ldap/php_ldap.h"
 #include "ext/libxml/php_libxml.h"
 #include "ext/json/php_json.h"
 #include "ext/lexbor/php_lexbor.h"
@@ -1944,6 +1948,7 @@ extern zend_module_entry intl_module_entry;
 #include "ext/mysqli/php_mysqli.h"
 #include "ext/openssl/php_openssl.h"
 #include "ext/pcre/php_pcre.h"
+#include "ext/pgsql/php_pgsql.h"
 #include "ext/random/php_random.h"
 #include "ext/readline/php_readline.h"
 #include "ext/reflection/php_reflection.h"
@@ -1952,6 +1957,7 @@ extern zend_module_entry intl_module_entry;
 #include "ext/simplexml/php_simplexml.h"
 #include "ext/pdo/php_pdo.h"
 #include "ext/pdo_mysql/php_pdo_mysql.h"
+#include "ext/pdo_pgsql/php_pdo_pgsql.h"
 #include "ext/pdo_sqlite/php_pdo_sqlite.h"
 #include "ext/sodium/php_libsodium.h"
 #include "ext/sockets/php_sockets.h"
@@ -1982,6 +1988,7 @@ extern zend_module_entry intl_module_entry;
 	phpext_hash_ptr,
 	phpext_iconv_ptr,
 	&intl_module_entry,
+	phpext_ldap_ptr,
 	phpext_libxml_ptr,
 	phpext_json_ptr,
 	phpext_lexbor_ptr,
@@ -1991,6 +1998,7 @@ extern zend_module_entry intl_module_entry;
 	phpext_mysqli_ptr,
 	phpext_openssl_ptr,
 	phpext_pcre_ptr,
+	phpext_pgsql_ptr,
 	phpext_random_ptr,
 	phpext_readline_ptr,
 	phpext_reflection_ptr,
@@ -1999,6 +2007,7 @@ extern zend_module_entry intl_module_entry;
 	phpext_simplexml_ptr,
 	phpext_pdo_ptr,
 	phpext_pdo_mysql_ptr,
+	phpext_pdo_pgsql_ptr,
 	phpext_pdo_sqlite_ptr,
 	phpext_sodium_ptr,
 	phpext_sockets_ptr,
@@ -2239,6 +2248,8 @@ extern zend_module_entry intl_module_entry;
         cxflags = {"/std:c++17", "/EHsc"}
     })
 
+    add_files("in/php-src/ext/ldap/*.c")
+
     add_files("in/php-src/ext/libxml/*.c", {defines = {"LIBXML_STATIC_FOR_DLL", "HAVE_WIN32_THREADS"}})
     add_files("in/php-src/ext/libxml/php_libxml2_legacy.def")
 
@@ -2303,6 +2314,7 @@ extern zend_module_entry intl_module_entry;
         "in/php-src/ext/pcre/pcre2lib/pcre2_printint.c",
         "in/php-src/ext/pcre/pcre2lib/pcre2_ucptables.c"
     )
+    add_files("in/php-src/ext/pgsql/*.c", {defines = {"PGSQL_EXPORTS"}})
     add_files("in/php-src/ext/random/*.c")
     add_files("in/php-src/ext/readline/*.c")
     add_files("in/php-src/ext/reflection/*.c")
@@ -2331,6 +2343,17 @@ extern zend_module_entry intl_module_entry;
         includedirs = {"in/php-src/ext/pdo_mysql"},
         callback = function (sourcefile, sources, depend)
         local output = "out/php/ext/pdo_mysql/mysql_sql_parser.c"
+        local tool = "in/php-sdk/usr/bin/re2c.exe"
+        os.mkdir(path.directory(output))
+        os.vrunv(tool, {"--no-generation-date", "-W", "-b", "-o", output, sourcefile})
+        sources[1] = output
+        table.insert(depend.files, tool)
+    end})
+    add_files("in/php-src/ext/pdo_pgsql/*.c")
+    add_files("in/php-src/ext/pdo_pgsql/pgsql_sql_parser.re", {
+        includedirs = {"in/php-src/ext/pdo_pgsql"},
+        callback = function (sourcefile, sources, depend)
+        local output = "out/php/ext/pdo_pgsql/pgsql_sql_parser.c"
         local tool = "in/php-sdk/usr/bin/re2c.exe"
         os.mkdir(path.directory(output))
         os.vrunv(tool, {"--no-generation-date", "-W", "-b", "-o", output, sourcefile})
