@@ -1857,6 +1857,7 @@ target("php")
     )
     add_deps("minilua", "gen_ir_fold_hash", {links = false})
     add_deps(
+        "brotli",
         "bzip2",
         "libcurl",
         "libffi",
@@ -1865,9 +1866,12 @@ target("php")
         "libsodium",
         "libuv",
         "mpir",
+        "nghttp2",
+        "openssl",
         "sqlite3",
         "wineditline",
-        "zlib"
+        "zlib",
+        "zstd"
     )
 
     set_configdir("out/php")
@@ -1898,6 +1902,7 @@ target("php")
         pattern = "@([%u_]+)@",
         variables = {
             EXT_INCLUDE_CODE = [[#include "ext/async/php_async.h"
+#include "ext/http_server/php_true_async_server.h"
 #include "ext/bcmath/php_bcmath.h"
 #include "ext/bz2/php_bz2.h"
 #include "ext/calendar/php_calendar.h"
@@ -1933,6 +1938,7 @@ target("php")
 #include "ext/opcache/zend_accelerator_module.h"
 #include "ext/uri/php_uri.h"]],
             EXT_MODULE_PTRS = [[	phpext_async_ptr,
+	phpext_true_async_server_ptr,
 	phpext_bcmath_ptr,
 	phpext_bz2_ptr,
 	phpext_calendar_ptr,
@@ -1983,13 +1989,22 @@ target("php")
     add_includedirs(
         "in/php-src/ext/date/lib",
         "in/php-src/ext/hash/sha3/generic64lc",
+        "in/php-src/ext/http_server",
+        "in/php-src/ext/http_server/include",
+        "in/php-src/ext/http_server/include/compression",
+        "in/php-src/ext/http_server/include/static",
+        "in/php-src/ext/http_server/src",
+        "in/php-src/ext/http_server/src/core",
+        "in/php-src/ext/http_server/deps/llhttp/include",
+        "in/php-src/ext/http_server/deps/concurrentqueue",
         "in/php-src/ext/json",
         "in/php-src/ext/lexbor",
         "in/php-src/ext/opcache",
         "in/php-src/ext/opcache/jit",
         "in/php-src/ext/opcache/jit/ir",
         "in/php-src/ext/pcre/pcre2lib",
-        "in/php-src/ext/uri/uriparser/include"
+        "in/php-src/ext/uri/uriparser/include",
+        "in/deps/openssl/include"
     )
 
     add_defines(
@@ -2019,7 +2034,11 @@ target("php")
         "PCRE2_CODE_UNIT_WIDTH=8",
         "PCRE2_STATIC",
         "PHP_ASYNC",
-        "ASYNC_EXPORTS"
+        "ASYNC_EXPORTS",
+        "HTTP_SERVER_EXPORTS",
+        "HAVE_LLHTTP=1",
+        "BROTLI_STATIC_DEFINE",
+        "ZSTD_STATIC_LINKING_ONLY"
     )
     add_syslinks(
         "kernel32",
@@ -2128,6 +2147,26 @@ target("php")
         "in/php-src/ext/async/internal/allocator.c",
         "in/php-src/ext/async/internal/circular_buffer.c"
     )
+    add_files(
+        "in/php-src/ext/http_server/src/*.c",
+        "in/php-src/ext/http_server/src/grpc/*.c",
+        "in/php-src/ext/http_server/src/core/*.c",
+        "in/php-src/ext/http_server/src/http1/*.c",
+        "in/php-src/ext/http_server/src/formats/*.c",
+        "in/php-src/ext/http_server/src/log/*.c",
+        "in/php-src/ext/http_server/src/static/*.c",
+        "in/php-src/ext/http_server/deps/llhttp/*.c",
+        "in/php-src/ext/http_server/src/http2/*.c",
+        "in/php-src/ext/http_server/src/compression/*.c",
+        {
+            defines = {"_CRT_SECURE_NO_WARNINGS"},
+            cxflags = {"/W4", "/GS", "/sdl", "/guard:cf", "/wd4701", "/wd4703", "/std:c11"}
+        }
+    )
+    add_files("in/php-src/ext/http_server/src/core/thread_queue.cc", {
+        defines = {"_CRT_SECURE_NO_WARNINGS"},
+        cxflags = {"/W4", "/GS", "/sdl", "/guard:cf", "/wd4701", "/wd4703", "/EHsc", "/Zc:__cplusplus"}
+    })
     add_files("in/php-src/ext/bcmath/*.c", "in/php-src/ext/bcmath/libbcmath/src/*.c")
     add_files("in/php-src/ext/bz2/*.c")
     add_files("in/php-src/ext/calendar/*.c")
