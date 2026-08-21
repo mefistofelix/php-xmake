@@ -34,7 +34,8 @@ Last updated: 2026-08-21
 - [x] Add `ctype` as the first optional builtin extension checkpoint; continue one extension at a time.
 - [x] Add `calendar` as the next dependency-free builtin extension checkpoint.
 - [x] Add `tokenizer` as the next dependency-free builtin extension checkpoint.
-- [ ] Add builtin `filter` using the already integrated PCRE implementation.
+- [x] Add builtin `filter` using the already integrated PCRE implementation.
+- [ ] Add builtin `session` using the already integrated date module.
 - [x] Convert all former target-level codegen participants to file-owned `add_files`/`depend` materialization; there is no shared codegen adapter or project-owned incremental marker left.
 - [x] Use the patched Xmake bundle's lazy Windows IDL implementation; remove the project's local `platform.windows.idl` shadow now that the bundle itself fixes the premature `target:sourcebatches()` expansion.
 - [x] Validate the patched lazy-source timing: synchronous selected-target `on_prepare` and post-callback `add_files` materialization both work without `memcache.clear()`, `target:_invalidate("files")`, or dynamic target file insertion.
@@ -353,6 +354,7 @@ Every library must receive its own static target. Integrate and validate them on
 - [x] Add and minimally validate builtin `ctype` in the shared PHP target.
 - [x] Add and minimally validate builtin `calendar` in the shared PHP target.
 - [x] Add and minimally validate builtin `tokenizer` in the shared PHP target.
+- [x] Add and minimally validate builtin `filter` in the shared PHP target.
 - [x] Select the upstream-compatible dynamically linked multithreaded MSVC CRT globally with `set_runtimes("MD")`.
 - [x] Configure every PHP core, SAPI, and future extension artifact as ZTS/thread-safe independently of the `/MD` CRT selection.
 - [x] Complete the direct per-source minimal ZTS core and CLI baseline build; revisit unity only after every target works.
@@ -361,6 +363,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [x] Run CLI, builtin-module, ZTS/TrueAsync, Opcache/JIT, x64, `/MD`, and export-surface validation for the minimal checkpoint.
 
 ## Validation Log
+
+- 2026-08-21 — builtin `filter` checkpoint: added the exact four-source Windows manifest and `phpext_filter_ptr`; its only extension dependency, bundled PCRE, was already present. The incremental build linked successfully and the ZTS CLI started with `filter` and all prior modules loaded.
 
 - 2026-08-21 — builtin `tokenizer` checkpoint: added the exact two-source Windows manifest and `phpext_tokenizer_ptr`. The incremental build compiled the two extension sources and linked successfully; the ZTS CLI started with `tokenizer`, `calendar`, and the prior modules loaded.
 
