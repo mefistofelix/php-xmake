@@ -1,0 +1,36 @@
+#ifndef CONFIG_W32_H
+#define CONFIG_W32_H
+
+#include "config.w32.base.h"
+
+#define PHP_BUILD_SYSTEM "Microsoft Windows"
+#define CONFIGURE_COMMAND ".\\xmake.exe build php-cli"
+#define PHP_BUILD_COMPILER "Microsoft Visual C++"
+#define PHP_COMPILER_ID "VS18"
+#define PHP_BUILD_ARCH "@PHP_BUILD_ARCH@"
+#define PHP_LINKER_MAJOR @PHP_LINKER_MAJOR@
+#define PHP_LINKER_MINOR @PHP_LINKER_MINOR@
+
+#define HAVE_STRNLEN 1
+#define ZEND_CHECK_STACK_LIMIT 1
+#define HAVE_GAI_STRERROR 1
+#define HAVE_IPV6 1
+#define __SSE__ 1
+#define __SSE2__ 1
+#define HAVE_TIMELIB_CONFIG_H 1
+#define HAVE_LEXBOR 1
+#define HAVE_BUNDLED_PCRE 1
+#define PCRE2_CODE_UNIT_WIDTH 8
+#define PCRE2_STATIC 1
+#define HAVE_PCRE_JIT_SUPPORT 1
+#define PHP_CONFIG_FILE_SCAN_DIR ""
+#define PHP_USE_PHP_CRYPT_R 1
+#define HAVE_JIT 1
+#define URI_ENABLE_ANSI 1
+#define URI_NO_UNICODE 1
+
+#if __has_include("main/config.pickle.h")
+# include "main/config.pickle.h"
+#endif
+
+#endif /* CONFIG_W32_H */

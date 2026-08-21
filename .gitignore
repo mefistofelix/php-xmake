@@ -1,6 +1,7 @@
 /*
 !/.gitignore
 !/README.md
+!/php-config.w32.h.in
 !/xmake.exe
 !/xmake.lua
 !/AGENTS.md

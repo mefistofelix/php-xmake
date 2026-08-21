@@ -1,6 +1,6 @@
 # Build Roadmap
 
-Last updated: 2026-08-20
+Last updated: 2026-08-21
 
 ## Unity Validation
 
@@ -28,7 +28,8 @@ Last updated: 2026-08-20
 - [x] Remove empty and placeholder callbacks; only targets with real codegen/configuration work attach the shared `codegen` rule.
 - [x] Follow upstream Windows PHP and select the dynamic multithreaded MSVC CRT globally with `set_runtimes("MD")` for loadable-extension compatibility.
 - [x] Verify a forced zstd build uses `/MD` in every MSVC compile command.
-- [ ] Replace the object-only `php` prototype incrementally; JIT helper builds and header generation are now automatic and incremental through dependency targets plus file-owned `build_callback` jobs, while PHP configuration/Bison/RE2C/resource generation remains. A direct `xmake build php` reaches normal compilation and currently stops at the pre-existing missing `zend_config.h` work.
+- [x] Replace the object-only `php` prototype with the first ZTS shared-core checkpoint: `php8ts.dll` + `php-cli`/`php.exe`, mandatory builtin modules, and always-included Opcache/JIT.
+- [ ] Add the thin ZTS `php-win`/`php-win.exe` and `php-cgi`/`php-cgi.exe` SAPI targets as separate validated checkpoints.
 - [x] Convert all former target-level codegen participants to file-owned `add_files`/`depend` materialization; there is no shared codegen adapter or project-owned incremental marker left.
 - [x] Use the patched Xmake bundle's lazy Windows IDL implementation; remove the project's local `platform.windows.idl` shadow now that the bundle itself fixes the premature `target:sourcebatches()` expansion.
 - [x] Validate the patched lazy-source timing: synchronous selected-target `on_prepare` and post-callback `add_files` materialization both work without `memcache.clear()`, `target:_invalidate("files")`, or dynamic target file insertion.
@@ -332,26 +333,28 @@ Every library must receive its own static target. Integrate and validate them on
 ## PHP Code Generation
 
 - [x] Confirm Bison 3.3.2 and RE2C 1.1.1 are already supplied by the prepared PHP SDK and satisfy this PHP tree's minimum versions.
-- [ ] Generate the Zend, PHPDBG, and JSON parsers with Bison in PHP's `codegen` callback.
-- [ ] Generate all inventoried scanners with RE2C in PHP's `codegen` callback.
-- [ ] Generate Windows message resources with the configured SDK `mc` in PHP's `codegen` callback.
+- [x] Generate the minimal core's Zend and JSON parsers with Bison through input-owned callbacks; PHPDBG remains scoped to its future SAPI target.
+- [x] Generate the minimal core's Zend, JSON, and ext/standard scanners with RE2C through input-owned callbacks.
+- [x] Generate the Windows syslog message resource with the configured SDK `mc` through an input-owned callback.
 - [x] Build `minilua` automatically as a non-linking PHP dependency and invoke DynASM from the `ir_emit.c` build callback after that target finishes.
 - [x] Build `gen_ir_fold_hash` automatically as a non-linking PHP dependency with `IR_TARGET_X64` and invoke it from the `ir.c` build callback with redirected input/output.
-- [ ] Generate PHP Windows configuration headers/defines using Xmake detection APIs.
-- [ ] Keep remaining PHP generation in compact, input-owned `add_configfiles`, `callback`, or `build_callback` declarations; do not recreate a target-level `codegen` hook or manual helper build barrier.
+- [x] Generate the minimal PHP Windows configuration and builtin-module table with `add_configfiles`, using Xmake queries for architecture and linker version.
+- [x] Keep minimal-core PHP generation in compact, input-owned `add_configfiles`, `callback`, or `build_callback` declarations; there is no target-level `codegen` hook or manual helper build barrier.
 
 ## PHP Target and Final Link
 
-- [ ] Add broad Zend, main, TSRM, SAPI, extension, and selected external source patterns.
-- [ ] Keep PHP extensions inside the PHP target rather than creating extension targets.
+- [x] Add broad Zend, main, TSRM, win32, CLI SAPI, and mandatory builtin-extension source patterns with native-manifest exclusions.
+- [x] Keep the mandatory PHP extensions and Opcache/JIT inside the shared PHP target rather than creating extension targets.
 - [x] Select the upstream-compatible dynamically linked multithreaded MSVC CRT globally with `set_runtimes("MD")`.
-- [ ] Decide and configure PHP ZTS versus NTS independently of the MSVC CRT selection.
-- [ ] Complete a direct per-source PHP baseline build; revisit unity only after every target works.
+- [x] Configure every PHP core, SAPI, and future extension artifact as ZTS/thread-safe independently of the `/MD` CRT selection.
+- [x] Complete the direct per-source minimal ZTS core and CLI baseline build; revisit unity only after every target works.
 - [ ] Connect all dependency targets in correct link order.
 - [ ] Produce the final PHP executable/library artifacts.
-- [ ] Run a basic CLI smoke test and record the resulting PHP version and enabled modules.
+- [x] Run CLI, builtin-module, ZTS/TrueAsync, Opcache/JIT, x64, `/MD`, and export-surface validation for the minimal checkpoint.
 
 ## Validation Log
+
+- 2026-08-21 — minimal ZTS TrueAsync PHP CLI checkpoint: `xmake build php-cli` produced `out/php8ts.dll`, its import library, and `out/php.exe`; an unchanged fresh-bundle repeat completed in 0.578s with stable generated-header timestamps and no compile or link work. The CLI reports PHP 8.6.0-dev, ZTS, x64, TrueAsync ABI v0.24.0, and builtin Core/date/hash/json/lexbor/pcre/random/Reflection/SPL/standard/uri/Opcache modules. Opcache enables successfully and upstream `ext/opcache/tests/jit/add_001.phpt` passes with tracing JIT. Comparison against the equivalent native Windows build found identical functional `config.w32.h` macros and all 4,493/4,493 DLL exports, including all 68 bundled-PCRE definitions. The DLL and representative objects are x64, select `VCRUNTIME140`/UCRT and `MSVCRT`, and contain no static-CRT directive. Two low-level mismatches independently reproduced JIT-startup heap corruption: omitting PHP's upstream MSVC flag set, and losing `IR_TARGET_X64`/`IR_PHP` when the narrow `ir.c`/`ir_emit.c` callback declarations replaced their broad file configuration. The final build keeps the native compiler flags and repeats both IR defines on those two declarations. Header-absence regeneration was validated using the bundled `xmake.exe` from a fresh `TEMP`/`TMP`, avoiding its shared-version stale extraction cache.
 
 - 2026-08-20 — full default-stack rebuild after simplification: a forced `-r -j8` run using the replaced bundle from a fresh `TEMP` completed with exit code 0, produced all 34/34 expected static archives, and reported 276.375s Xmake / 281.194s measured wall time. `ngtcp2` compiled all 48 sources independently and archived successfully after removing its invalid Unity rule. Two immediate unchanged builds with one shared fresh extraction performed no compile/archive actions: 4.687s Xmake / 9.567s wall including first extraction/configuration, then 3.125s Xmake / 4.478s wall. The remaining messages were established upstream baseline warnings, not build failures.
 

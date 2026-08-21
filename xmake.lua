@@ -1777,35 +1777,401 @@ target("php")
     before_config(function ()
         os.vrunv("in/hx.exe", {"-delpathseg", "1", "github://php/php-sdk-binary-tools", "in/php-sdk"})
         os.vrunv("in/hx.exe", {"github://true-async/php-src?ref=true-async-stable", "in/php-src"})
-        os.vrunv("in/hx.exe", {"github://true-async/php-async", "in/php-src/ext/async"})
-        os.vrunv("in/hx.exe", {"github://true-async/server", "in/php-src/ext/http_server"})
     end)
     set_enabled(true)
     set_default(false)
-    set_kind("object")
+    set_kind("shared")
+    set_basename("php8ts")
     set_targetdir(get_config("builddir"))
+    set_optimize("fastest")
+    add_cflags(
+        "/Zc:inline",
+        "/Zc:__cplusplus",
+        "/d2FuncCache1",
+        "/Zc:preprocessor",
+        "/Zc:wchar_t",
+        "/GF",
+        "/Ox",
+        "/wd4995",
+        "/wd4996",
+        {force = true}
+    )
     add_deps("minilua", "gen_ir_fold_hash", {links = false})
-    add_includedirs("in/php-src/ext/opcache/jit/ir")
-    add_files("in/php-src/ext/opcache/jit/ir/ir_emit.c", {build_callback = function (target, _, _, depend)
-        local ir = "in/php-src/ext/opcache/jit/ir"
-        local source = path.join(ir, "ir_x86.dasc")
-        local output = path.join(ir, "ir_emit_x86.h")
-        table.insert(depend.files, source)
-        for _, file in ipairs(os.files(path.join(ir, "dynasm/**/*.lua"))) do table.insert(depend.files, file) end
-        os.vrunv(assert(target:dep("minilua")):targetfile(),
-            {path.join(ir, "dynasm/dynasm.lua"), "-D", "X64=1", "-D", "X64WIN=1", "-D", "WIN=1", "-o", output, source})
-        table.insert(depend.files, output)
+
+    set_configdir("out/php")
+    add_configfiles("in/php-src/win32/build/config.w32.h.in", {
+        filename = "config.w32.base.h",
+        prefixdir = "main",
+        pattern = "@([%u%d_]+)@",
+        variables = {PREFIX = [[C:\\php]]}
+    })
+    add_configfiles("php-config.w32.h.in", {
+        filename = "config.w32.h",
+        prefixdir = "main",
+        pattern = "@([%u%d_]+)@",
+        variables = {
+            PHP_BUILD_ARCH = get_config("arch"),
+            PHP_LINKER_MAJOR = get_config("vs_toolset"):match("^(%d+)"),
+            PHP_LINKER_MINOR = get_config("vs_toolset"):match("^%d+%.(%d+)")
+        }
+    })
+    add_configfiles("in/php-src/main/internal_functions.c.in", {
+        filename = "internal_functions.c",
+        prefixdir = "main",
+        pattern = "@([%u_]+)@",
+        variables = {
+            EXT_INCLUDE_CODE = [[#include "ext/date/php_date.h"
+#include "ext/hash/php_hash.h"
+#include "ext/json/php_json.h"
+#include "ext/lexbor/php_lexbor.h"
+#include "ext/pcre/php_pcre.h"
+#include "ext/random/php_random.h"
+#include "ext/reflection/php_reflection.h"
+#include "ext/spl/php_spl.h"
+#include "ext/standard/php_standard.h"
+#include "ext/opcache/zend_accelerator_module.h"
+#include "ext/uri/php_uri.h"]],
+            EXT_MODULE_PTRS = [[	phpext_date_ptr,
+	phpext_hash_ptr,
+	phpext_json_ptr,
+	phpext_lexbor_ptr,
+	phpext_pcre_ptr,
+	phpext_random_ptr,
+	phpext_reflection_ptr,
+	phpext_spl_ptr,
+	phpext_standard_ptr,
+	phpext_opcache_ptr,
+	phpext_uri_ptr,]]
+        }
+    })
+
+    add_includedirs(
+        "out/php/Zend",
+        "out/php/main",
+        "out/php/win32",
+        "out/php",
+        "in/php-src",
+        "in/php-src/main",
+        "in/php-src/Zend",
+        "in/php-src/TSRM",
+        "in/php-src/ext",
+        {public = true}
+    )
+    add_includedirs(
+        "in/php-src/ext/date/lib",
+        "in/php-src/ext/hash/sha3/generic64lc",
+        "in/php-src/ext/json",
+        "in/php-src/ext/lexbor",
+        "in/php-src/ext/opcache",
+        "in/php-src/ext/opcache/jit",
+        "in/php-src/ext/opcache/jit/ir",
+        "in/php-src/ext/pcre/pcre2lib",
+        "in/php-src/ext/uri/uriparser/include"
+    )
+
+    add_defines(
+        "ZTS=1",
+        "FD_SETSIZE=256",
+        "_WINDOWS",
+        "WINDOWS=1",
+        "ZEND_WIN32=1",
+        "PHP_WIN32=1",
+        "WIN32",
+        "_MBCS",
+        "_USE_MATH_DEFINES",
+        "ENABLE_INTSAFE_SIGNED_FUNCTIONS",
+        {public = true}
+    )
+    add_defines(
+        "NDEBUG",
+        "ZEND_DEBUG=0",
+        "ZEND_ENABLE_STATIC_TSRMLS_CACHE=1",
+        "_USRDLL",
+        "PHP_EXPORTS",
+        "LIBZEND_EXPORTS",
+        "TSRM_EXPORTS",
+        "SAPI_EXPORTS",
+        "WINVER=0x0602",
+        "HAVE_TIMELIB_CONFIG_H=1",
+        "PCRE2_CODE_UNIT_WIDTH=8",
+        "PCRE2_STATIC"
+    )
+    add_syslinks(
+        "kernel32",
+        "ole32",
+        "user32",
+        "advapi32",
+        "shell32",
+        "ws2_32",
+        "Dnsapi",
+        "psapi",
+        "bcrypt",
+        "Pathcch",
+        "Mswsock",
+        "iphlpapi"
+    )
+    add_files("in/php-src/ext/pcre/php_pcre.def")
+
+    add_files(
+        "in/php-src/Zend/*.c",
+        "in/php-src/Zend/Optimizer/*.c",
+        "in/php-src/main/*.c",
+        "in/php-src/main/io/*.c",
+        "in/php-src/main/poll/*.c",
+        "in/php-src/main/streams/*.c",
+        "in/php-src/win32/*.c",
+        "in/php-src/TSRM/*.c"
+    )
+    remove_files(
+        "in/php-src/Zend/Optimizer/ssa_integrity.c",
+        "in/php-src/Zend/zend_dtrace.c",
+        "in/php-src/Zend/zend_gdb.c",
+        "in/php-src/Zend/zend_ini_parser.c",
+        "in/php-src/Zend/zend_ini_scanner.c",
+        "in/php-src/Zend/zend_language_parser.c",
+        "in/php-src/Zend/zend_language_scanner.c",
+        "in/php-src/Zend/zend_max_execution_timer.c",
+        "in/php-src/Zend/zend_signal.c",
+        "in/php-src/main/debug_gdb_scripts.c",
+        "in/php-src/main/explicit_bzero.c",
+        "in/php-src/main/fastcgi.c",
+        "in/php-src/main/internal_functions.c",
+        "in/php-src/main/io/php_io_copy_freebsd.c",
+        "in/php-src/main/io/php_io_copy_linux.c",
+        "in/php-src/main/io/php_io_copy_macos.c",
+        "in/php-src/main/io/php_io_copy_solaris.c",
+        "in/php-src/main/poll/poll_backend_epoll.c",
+        "in/php-src/main/poll/poll_backend_eventport.c",
+        "in/php-src/main/poll/poll_backend_kqueue.c",
+        "in/php-src/main/poll/poll_backend_poll.c",
+        "in/php-src/win32/cp_enc_map.c",
+        "in/php-src/win32/cp_enc_map_gen.c"
+    )
+    add_files("in/php-src/main/internal_functions.c.in", {callback = function (_, sources)
+        sources[1] = "out/php/main/internal_functions.c"
     end})
-    add_files("in/php-src/ext/opcache/jit/ir/ir.c", {build_callback = function (target, _, _, depend)
-        local ir = "in/php-src/ext/opcache/jit/ir"
-        local source = path.join(ir, "ir_fold.h")
-        local output = path.join(ir, "ir_fold_hash.h")
-        table.insert(depend.files, source)
-        table.insert(depend.files, path.join(ir, "ir.h"))
-        os.vrunv(assert(target:dep("gen_ir_fold_hash")):targetfile(), {}, {stdin = source, stdout = output})
-        table.insert(depend.files, output)
+
+    add_files("in/php-src/Zend/zend_ini_parser.y", {callback = function (sourcefile, sources, depend)
+        local output = "out/php/Zend/zend_ini_parser.c"
+        local header = "out/php/Zend/zend_ini_parser.h"
+        local tool = "in/php-sdk/usr/bin/bison.exe"
+        os.mkdir(path.directory(output))
+        os.vrunv(tool, {"--no-lines", "--verbose", "--defines=" .. header, "--output=" .. output, sourcefile})
+        sources[1] = output
+        table.insert(depend.files, tool)
+        table.insert(depend.files, header)
     end})
-    add_files("in/php-src/Zend/zend.c")
+    add_files("in/php-src/Zend/zend_language_parser.y", {callback = function (sourcefile, sources, depend)
+        local output = "out/php/Zend/zend_language_parser.c"
+        local header = "out/php/Zend/zend_language_parser.h"
+        local tool = "in/php-sdk/usr/bin/bison.exe"
+        os.mkdir(path.directory(output))
+        os.vrunv(tool, {"--no-lines", "--verbose", "--defines=" .. header, "--output=" .. output, sourcefile})
+        for _, file in ipairs({output, header}) do
+            local content = io.readfile(file):gsub("int zendparse%(", "ZEND_API int zendparse(")
+            io.writefile(file, content)
+        end
+        sources[1] = output
+        table.insert(depend.files, tool)
+        table.insert(depend.files, header)
+    end})
+    add_files("in/php-src/Zend/zend_ini_scanner.l", {callback = function (sourcefile, sources, depend)
+        local output = "out/php/Zend/zend_ini_scanner.c"
+        local header = "out/php/Zend/zend_ini_scanner_defs.h"
+        local tool = "in/php-sdk/usr/bin/re2c.exe"
+        os.mkdir(path.directory(output))
+        os.vrunv(tool, {"--no-generation-date", "-W", "--case-inverted", "-cbdFt", header, "-o", output, sourcefile})
+        sources[1] = output
+        table.insert(depend.files, tool)
+        table.insert(depend.files, header)
+        table.insert(depend.files, "out/php/Zend/zend_ini_parser.h")
+    end})
+    add_files("in/php-src/Zend/zend_language_scanner.l", {callback = function (sourcefile, sources, depend)
+        local output = "out/php/Zend/zend_language_scanner.c"
+        local header = "out/php/Zend/zend_language_scanner_defs.h"
+        local tool = "in/php-sdk/usr/bin/re2c.exe"
+        os.mkdir(path.directory(output))
+        os.vrunv(tool, {"--no-generation-date", "-W", "--case-inverted", "-cbdFt", header, "-o", output, sourcefile})
+        sources[1] = output
+        table.insert(depend.files, tool)
+        table.insert(depend.files, header)
+        table.insert(depend.files, "out/php/Zend/zend_language_parser.h")
+    end})
+
+    add_files("in/php-src/ext/date/*.c", "in/php-src/ext/date/lib/*.c")
+    add_files("in/php-src/ext/hash/*.c", "in/php-src/ext/hash/murmur/*.c", "in/php-src/ext/hash/sha3/generic64lc/*.c", {
+        defines = {"KeccakP200_excluded", "KeccakP400_excluded", "KeccakP800_excluded"}
+    })
+
+    add_files("in/php-src/ext/json/json.c", "in/php-src/ext/json/json_encoder.c")
+    add_files("in/php-src/ext/json/json_parser.y", {callback = function (sourcefile, sources, depend)
+        local output = "out/php/ext/json/json_parser.tab.c"
+        local header = "out/php/ext/json/json_parser.tab.h"
+        local tool = "in/php-sdk/usr/bin/bison.exe"
+        os.mkdir(path.directory(output))
+        os.vrunv(tool, {"--no-lines", "--defines=" .. header, "--output=" .. output, sourcefile})
+        sources[1] = output
+        table.insert(depend.files, tool)
+        table.insert(depend.files, header)
+    end})
+    add_files("in/php-src/ext/json/json_scanner.re", {callback = function (sourcefile, sources, depend)
+        local output = "out/php/ext/json/json_scanner.c"
+        local header = "out/php/ext/json/php_json_scanner_defs.h"
+        local tool = "in/php-sdk/usr/bin/re2c.exe"
+        os.mkdir(path.directory(output))
+        os.vrunv(tool, {"--no-generation-date", "-W", "-t", header, "-bci", "-o", output, sourcefile})
+        sources[1] = output
+        table.insert(depend.files, tool)
+        table.insert(depend.files, header)
+        table.insert(depend.files, "out/php/ext/json/json_parser.tab.h")
+    end})
+
+    add_files("in/php-src/ext/lexbor/*.c", "in/php-src/ext/lexbor/**/*.c", {defines = {"LEXBOR_BUILDING"}, cxflags = {"/utf-8"}})
+    remove_files(
+        "in/php-src/ext/lexbor/lexbor/core/bst_map.c",
+        "in/php-src/ext/lexbor/lexbor/core/in.c",
+        "in/php-src/ext/lexbor/lexbor/core/utils.c",
+        "in/php-src/ext/lexbor/lexbor/dom/collection.c",
+        "in/php-src/ext/lexbor/lexbor/dom/exception.c",
+        "in/php-src/ext/lexbor/lexbor/dom/interfaces/event_target.c",
+        "in/php-src/ext/lexbor/lexbor/html/node.c",
+        "in/php-src/ext/lexbor/lexbor/html/tree/template_insertion.c",
+        "in/php-src/ext/lexbor/lexbor/ports/posix/lexbor/core/memory.c"
+    )
+
+    add_files("in/php-src/ext/pcre/*.c", "in/php-src/ext/pcre/pcre2lib/*.c", {defines = {"HAVE_CONFIG_H", "HAVE_MEMMOVE"}})
+    remove_files(
+        "in/php-src/ext/pcre/pcre2lib/pcre2_jit_match.c",
+        "in/php-src/ext/pcre/pcre2lib/pcre2_jit_misc.c",
+        "in/php-src/ext/pcre/pcre2lib/pcre2_printint.c",
+        "in/php-src/ext/pcre/pcre2lib/pcre2_ucptables.c"
+    )
+    add_files("in/php-src/ext/random/*.c")
+    add_files("in/php-src/ext/reflection/*.c")
+    add_files("in/php-src/ext/spl/*.c")
+
+    add_files("in/php-src/ext/standard/*.c", "in/php-src/ext/standard/libavifinfo/*.c")
+    remove_files("in/php-src/ext/standard/url_scanner_ex.c", "in/php-src/ext/standard/var_unserializer.c")
+    add_files("in/php-src/ext/standard/url_scanner_ex.re", {
+        includedirs = {"in/php-src/ext/standard"},
+        callback = function (sourcefile, sources, depend)
+        local output = "out/php/ext/standard/url_scanner_ex.c"
+        local tool = "in/php-sdk/usr/bin/re2c.exe"
+        os.mkdir(path.directory(output))
+        os.vrunv(tool, {"--no-generation-date", "-W", "-b", "-o", output, sourcefile})
+        sources[1] = output
+        table.insert(depend.files, tool)
+    end})
+    add_files("in/php-src/ext/standard/var_unserializer.re", {
+        includedirs = {"in/php-src/ext/standard"},
+        callback = function (sourcefile, sources, depend)
+        local output = "out/php/ext/standard/var_unserializer.c"
+        local tool = "in/php-sdk/usr/bin/re2c.exe"
+        os.mkdir(path.directory(output))
+        os.vrunv(tool, {"--no-generation-date", "-W", "-b", "-o", output, sourcefile})
+        sources[1] = output
+        table.insert(depend.files, tool)
+    end})
+
+    add_files("in/php-src/ext/uri/*.c", "in/php-src/ext/uri/uriparser/src/*.c", {defines = {"URI_STATIC_BUILD", "LEXBOR_STATIC"}})
+
+    add_files("in/php-src/ext/opcache/*.c", "in/php-src/ext/opcache/jit/*.c", "in/php-src/ext/opcache/jit/tls/*.c", "in/php-src/ext/opcache/jit/ir/*.c", {
+        defines = {"IR_TARGET_X64", "IR_PHP"}
+    })
+    remove_files(
+        "in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c",
+        "in/php-src/ext/opcache/jit/ir/ir_disasm.c",
+        "in/php-src/ext/opcache/jit/ir/ir_gdb.c",
+        "in/php-src/ext/opcache/jit/ir/ir_perf.c",
+        "in/php-src/ext/opcache/jit/tls/zend_jit_tls_aarch64.c",
+        "in/php-src/ext/opcache/jit/tls/zend_jit_tls_darwin.c",
+        "in/php-src/ext/opcache/jit/tls/zend_jit_tls_x86.c",
+        "in/php-src/ext/opcache/jit/tls/zend_jit_tls_x86_64.c",
+        "in/php-src/ext/opcache/jit/zend_jit_helpers.c",
+        "in/php-src/ext/opcache/jit/zend_jit_ir.c",
+        "in/php-src/ext/opcache/jit/zend_jit_trace.c",
+        "in/php-src/ext/opcache/shared_alloc_mmap.c",
+        "in/php-src/ext/opcache/shared_alloc_posix.c",
+        "in/php-src/ext/opcache/shared_alloc_shm.c"
+    )
+    add_files("in/php-src/ext/opcache/jit/ir/ir_emit.c", {
+        defines = {"IR_TARGET_X64", "IR_PHP"},
+        build_callback = function (target, _, _, depend)
+            local ir = "in/php-src/ext/opcache/jit/ir"
+            local source = "in/php-src/ext/opcache/jit/ir/ir_x86.dasc"
+            local output = "in/php-src/ext/opcache/jit/ir/ir_emit_x86.h"
+            table.insert(depend.files, source)
+            for _, file in ipairs(os.files(path.join(ir, "dynasm/**/*.lua"))) do table.insert(depend.files, file) end
+            os.vrunv(assert(target:dep("minilua")):targetfile(),
+                {"in/php-src/ext/opcache/jit/ir/dynasm/dynasm.lua", "-D", "X64=1", "-D", "X64WIN=1", "-D", "WIN=1", "-o", output, source})
+            table.insert(depend.files, output)
+        end
+    })
+    add_files("in/php-src/ext/opcache/jit/ir/ir.c", {
+        defines = {"IR_TARGET_X64", "IR_PHP"},
+        build_callback = function (target, _, _, depend)
+            local ir = "in/php-src/ext/opcache/jit/ir"
+            local source = path.join(ir, "ir_fold.h")
+            local output = path.join(ir, "ir_fold_hash.h")
+            table.insert(depend.files, source)
+            table.insert(depend.files, path.join(ir, "ir.h"))
+            os.vrunv(assert(target:dep("gen_ir_fold_hash")):targetfile(), {}, {stdin = source, stdout = output})
+            table.insert(depend.files, output)
+        end
+    })
 
     add_asflags("/DBOOST_CONTEXT_EXPORT=EXPORT", {force = true})
-    add_files("in/php-src/Zend/asm/*_xmm_x86_64_ms_masm.asm")
+    add_files("in/php-src/Zend/asm/*x86_64_ms*.asm")
+
+    add_files("in/php-src/win32/build/wsyslog.mc", {
+        callback = function (_, sources, depend)
+            sources[1] = "out/php/win32/wsyslog.rc"
+            table.insert(depend.files, "out/php/win32/wsyslog.h")
+            table.insert(depend.files, "out/php/win32/MSG00001.bin")
+        end,
+        build_callback = function (target, sourcefile, _, depend)
+            local outputdir = "out/php/win32"
+            local vcvars = assert(target:toolchain("msvc")):config("vcvars")
+            local tool = path.join(assert(vcvars.WindowsSdkVerBinPath), target:arch(), "mc.exe")
+            os.mkdir(outputdir)
+            os.vrunv(tool, {"-h", outputdir, "-r", outputdir, "-x", outputdir, sourcefile})
+            table.insert(depend.files, tool)
+        end
+    })
+    add_files("in/php-src/win32/build/template.rc", {defines = {
+        [[FILE_DESCRIPTION="PHP Script Interpreter"]],
+        [[FILE_NAME="php8ts.dll"]],
+        [[INTERNAL_NAME="PHP Script Interpreter"]]
+    }})
+
+target("php-cli")
+    set_enabled(true)
+    set_default(false)
+    set_kind("binary")
+    set_basename("php")
+    set_targetdir(get_config("builddir"))
+    set_optimize("fastest")
+    add_cflags(
+        "/Zc:inline",
+        "/Zc:__cplusplus",
+        "/d2FuncCache1",
+        "/Zc:preprocessor",
+        "/Zc:wchar_t",
+        "/GF",
+        "/Ox",
+        "/wd4995",
+        "/wd4996",
+        {force = true}
+    )
+    add_deps("php")
+    add_defines("NDEBUG", "ZEND_DEBUG=0", "ZEND_ENABLE_STATIC_TSRMLS_CACHE=1")
+    add_syslinks("ws2_32", "shell32")
+    add_ldflags("/stack:67108864", {force = true})
+    add_files("in/php-src/sapi/cli/*.c")
+    remove_files("in/php-src/sapi/cli/cli_win32.c")
+    add_files("in/php-src/win32/build/template.rc", {defines = {
+        [[FILE_DESCRIPTION="PHP Command Line Interface"]],
+        [[FILE_NAME="php.exe"]],
+        [[INTERNAL_NAME="CLI SAPI"]],
+        "WANT_LOGO"
+    }})

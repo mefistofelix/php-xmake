@@ -1,6 +1,6 @@
 # php-xmake
 
-Windows-only work in progress for building PHP with a compact `xmake.lua`, static third-party libraries, and the dynamic multithreaded MSVC runtime (`/MD`). The complete default dependency stack currently builds 34 static archives; PHP source integration is still in progress.
+Windows-only work in progress for building TrueAsync PHP with a compact `xmake.lua`, static third-party libraries, and the dynamic multithreaded MSVC runtime (`/MD`). The first PHP checkpoint builds a ZTS `php8ts.dll` and `php.exe` with the mandatory builtin modules plus Opcache/JIT; optional extensions and the `php-win`/`php-cgi` SAPIs will be added incrementally.
 
 The required patched Xmake bundle is included as `xmake.exe` in the repository root. Its source, tests, and detailed patch documentation are maintained in [mefistofelix/xmake-patched](https://github.com/mefistofelix/xmake-patched).
 
@@ -17,10 +17,11 @@ Build the default dependency stack from PowerShell:
 .\xmake.exe
 ```
 
-The non-default PHP prototype can be selected with:
+Build the minimal ZTS CLI and its shared PHP core with:
 
 ```powershell
-.\xmake.exe build php
+.\xmake.exe build php-cli
+.\out\php.exe -n -v
 ```
 
 See [AGENTS.md](AGENTS.md) for build policy and target details, [TODO.md](TODO.md) for current progress, and [unitybuild.md](unitybuild.md) for Unity Build validation results.
