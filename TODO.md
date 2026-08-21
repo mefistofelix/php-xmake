@@ -31,7 +31,8 @@ Last updated: 2026-08-21
 - [x] Replace the object-only `php` prototype with the first ZTS shared-core checkpoint: `php8ts.dll` + `php-cli`/`php.exe`, mandatory builtin modules, and always-included Opcache/JIT.
 - [x] Add and validate the thin ZTS `php-win`/`php-win.exe` console-less SAPI target.
 - [x] Add and validate the thin ZTS `php-cgi`/`php-cgi.exe` CGI/FastCGI SAPI target.
-- [ ] Add `ctype` as the first optional builtin extension checkpoint, then continue one extension at a time.
+- [x] Add `ctype` as the first optional builtin extension checkpoint; continue one extension at a time.
+- [ ] Add `calendar` as the next dependency-free builtin extension checkpoint.
 - [x] Convert all former target-level codegen participants to file-owned `add_files`/`depend` materialization; there is no shared codegen adapter or project-owned incremental marker left.
 - [x] Use the patched Xmake bundle's lazy Windows IDL implementation; remove the project's local `platform.windows.idl` shadow now that the bundle itself fixes the premature `target:sourcebatches()` expansion.
 - [x] Validate the patched lazy-source timing: synchronous selected-target `on_prepare` and post-callback `add_files` materialization both work without `memcache.clear()`, `target:_invalidate("files")`, or dynamic target file insertion.
@@ -347,6 +348,7 @@ Every library must receive its own static target. Integrate and validate them on
 
 - [x] Add broad Zend, main, TSRM, win32, CLI SAPI, and mandatory builtin-extension source patterns with native-manifest exclusions.
 - [x] Keep the mandatory PHP extensions and Opcache/JIT inside the shared PHP target rather than creating extension targets.
+- [x] Add and minimally validate builtin `ctype` in the shared PHP target.
 - [x] Select the upstream-compatible dynamically linked multithreaded MSVC CRT globally with `set_runtimes("MD")`.
 - [x] Configure every PHP core, SAPI, and future extension artifact as ZTS/thread-safe independently of the `/MD` CRT selection.
 - [x] Complete the direct per-source minimal ZTS core and CLI baseline build; revisit unity only after every target works.
@@ -355,6 +357,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [x] Run CLI, builtin-module, ZTS/TrueAsync, Opcache/JIT, x64, `/MD`, and export-surface validation for the minimal checkpoint.
 
 ## Validation Log
+
+- 2026-08-21 — builtin `ctype` checkpoint: added upstream's single `ctype.c` source, `HAVE_CTYPE`, and `phpext_ctype_ptr` to the shared ZTS runtime. The full build passed; CLI, CGI, and console-less CLI loaded `ctype` without crashing, basic predicates passed, and tracing JIT remained active. An unchanged rebuild performed no compilation or linking.
 
 - 2026-08-21 — ZTS CGI/FastCGI checkpoint: `xmake build php-cgi` produced `out/php-cgi.exe` from the exact two-source `sapi/cgi/config.w32` manifest and linked it to the existing `php8ts.dll`. The executable is PE x64 with Windows CUI subsystem, a 64 MiB stack reserve, `VCRUNTIME140`/UCRT imports, `/DEFAULTLIB:MSVCRT`, and the expected direct `ws2_32`, `kernel32`, and `advapi32` dependencies. `php-cgi -n -v` reports PHP 8.6.0-dev, `cgi-fcgi`, ZTS, Microsoft Visual C++ x64, TrueAsync ABI v0.24.0, and Opcache. A real script run under the CGI SAPI completed a typed hot loop, returned the complete mandatory module set, and reported tracing JIT active. An immediate unchanged build performed no compilation or linking and completed in 0.813s.
 

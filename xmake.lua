@@ -1820,7 +1820,8 @@ target("php")
         prefixdir = "main",
         pattern = "@([%u_]+)@",
         variables = {
-            EXT_INCLUDE_CODE = [[#include "ext/date/php_date.h"
+            EXT_INCLUDE_CODE = [[#include "ext/ctype/php_ctype.h"
+#include "ext/date/php_date.h"
 #include "ext/hash/php_hash.h"
 #include "ext/json/php_json.h"
 #include "ext/lexbor/php_lexbor.h"
@@ -1831,7 +1832,8 @@ target("php")
 #include "ext/standard/php_standard.h"
 #include "ext/opcache/zend_accelerator_module.h"
 #include "ext/uri/php_uri.h"]],
-            EXT_MODULE_PTRS = [[	phpext_date_ptr,
+            EXT_MODULE_PTRS = [[	phpext_ctype_ptr,
+	phpext_date_ptr,
 	phpext_hash_ptr,
 	phpext_json_ptr,
 	phpext_lexbor_ptr,
@@ -1998,6 +2000,7 @@ target("php")
         table.insert(depend.files, "out/php/Zend/zend_language_parser.h")
     end})
 
+    add_files("in/php-src/ext/ctype/*.c")
     add_files("in/php-src/ext/date/*.c", "in/php-src/ext/date/lib/*.c")
     add_files("in/php-src/ext/hash/*.c", "in/php-src/ext/hash/murmur/*.c", "in/php-src/ext/hash/sha3/generic64lc/*.c", {
         defines = {"KeccakP200_excluded", "KeccakP400_excluded", "KeccakP800_excluded"}
