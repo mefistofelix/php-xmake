@@ -1929,6 +1929,7 @@ target("php")
 #include "ext/date/php_date.h"
 #include "ext/exif/php_exif.h"
 #include "ext/ffi/php_ffi.h"
+#include "ext/fileinfo/php_fileinfo.h"
 #include "ext/filter/php_filter.h"
 #include "ext/ftp/php_ftp.h"
 #define HAVE_LIBINTL 1
@@ -1946,17 +1947,22 @@ extern zend_module_entry intl_module_entry;
 #include "ext/mbstring/mbstring.h"
 #include "ext/mysqlnd/php_mysqlnd.h"
 #include "ext/mysqli/php_mysqli.h"
+#include "ext/odbc/php_odbc.h"
 #include "ext/openssl/php_openssl.h"
 #include "ext/pcre/php_pcre.h"
+#include "ext/phar/php_phar.h"
 #include "ext/pgsql/php_pgsql.h"
 #include "ext/random/php_random.h"
 #include "ext/readline/php_readline.h"
 #include "ext/reflection/php_reflection.h"
 #include "ext/session/php_session.h"
+#include "ext/shmop/php_shmop.h"
+#include "ext/soap/php_soap.h"
 #include "ext/spl/php_spl.h"
 #include "ext/simplexml/php_simplexml.h"
 #include "ext/pdo/php_pdo.h"
 #include "ext/pdo_mysql/php_pdo_mysql.h"
+#include "ext/pdo_odbc/php_pdo_odbc.h"
 #include "ext/pdo_pgsql/php_pdo_pgsql.h"
 #include "ext/pdo_sqlite/php_pdo_sqlite.h"
 #include "ext/sodium/php_libsodium.h"
@@ -1996,17 +2002,23 @@ extern zend_module_entry intl_module_entry;
 	phpext_mbstring_ptr,
 	phpext_mysqlnd_ptr,
 	phpext_mysqli_ptr,
+	phpext_odbc_ptr,
 	phpext_openssl_ptr,
 	phpext_pcre_ptr,
+	phpext_fileinfo_ptr,
 	phpext_pgsql_ptr,
 	phpext_random_ptr,
 	phpext_readline_ptr,
 	phpext_reflection_ptr,
 	phpext_session_ptr,
+	phpext_shmop_ptr,
+	phpext_soap_ptr,
 	phpext_spl_ptr,
+	phpext_phar_ptr,
 	phpext_simplexml_ptr,
 	phpext_pdo_ptr,
 	phpext_pdo_mysql_ptr,
+	phpext_pdo_odbc_ptr,
 	phpext_pdo_pgsql_ptr,
 	phpext_pdo_sqlite_ptr,
 	phpext_sodium_ptr,
@@ -2038,6 +2050,8 @@ extern zend_module_entry intl_module_entry;
     )
     add_includedirs(
         "in/php-src/ext/date/lib",
+        "in/php-src/ext/fileinfo",
+        "in/php-src/ext/fileinfo/libmagic",
         "in/php-src/ext/hash/sha3/generic64lc",
         "in/php-src/ext/http_server",
         "in/php-src/ext/http_server/include",
@@ -2107,7 +2121,9 @@ extern zend_module_entry intl_module_entry;
         "bcrypt",
         "Pathcch",
         "Mswsock",
-        "iphlpapi"
+        "iphlpapi",
+        "odbc32",
+        "odbccp32"
     )
     add_files("in/php-src/ext/pcre/php_pcre.def")
 
@@ -2230,6 +2246,8 @@ extern zend_module_entry intl_module_entry;
     add_files("in/php-src/ext/date/*.c", "in/php-src/ext/date/lib/*.c")
     add_files("in/php-src/ext/exif/*.c")
     add_files("in/php-src/ext/ffi/*.c")
+    add_files("in/php-src/ext/fileinfo/fileinfo.c", "in/php-src/ext/fileinfo/php_libmagic.c", "in/php-src/ext/fileinfo/libmagic/*.c")
+    remove_files("in/php-src/ext/fileinfo/libmagic/strcasestr.c")
     add_files("in/php-src/ext/filter/*.c")
     add_files("in/php-src/ext/ftp/*.c")
     add_files("in/php-src/ext/gettext/*.c", {defines = {
@@ -2325,7 +2343,21 @@ extern zend_module_entry intl_module_entry;
 
     add_files("in/php-src/ext/mysqlnd/*.c")
     add_files("in/php-src/ext/mysqli/*.c")
+    add_files("in/php-src/ext/odbc/*.c")
     add_files("in/php-src/ext/openssl/*.c")
+
+    add_files("in/php-src/ext/phar/*.c")
+    add_files("in/php-src/ext/phar/phar_path_check.re", {
+        includedirs = {"in/php-src/ext/phar"},
+        callback = function (sourcefile, sources, depend)
+        local output = "out/php/ext/phar/phar_path_check.c"
+        local tool = "in/php-sdk/usr/bin/re2c.exe"
+        os.mkdir(path.directory(output))
+        os.vrunv(tool, {"--no-generation-date", "-W", "-b", "-o", output, sourcefile})
+        sources[1] = output
+        table.insert(depend.files, tool)
+        table.insert(depend.files, "xmake.lua")
+    end})
 
     add_files("in/php-src/ext/pdo/*.c")
     add_files("in/php-src/ext/pdo/pdo_sql_parser.re", {
@@ -2349,6 +2381,7 @@ extern zend_module_entry intl_module_entry;
         sources[1] = output
         table.insert(depend.files, tool)
     end})
+    add_files("in/php-src/ext/pdo_odbc/*.c")
     add_files("in/php-src/ext/pdo_pgsql/*.c")
     add_files("in/php-src/ext/pdo_pgsql/pgsql_sql_parser.re", {
         includedirs = {"in/php-src/ext/pdo_pgsql"},
@@ -2372,6 +2405,8 @@ extern zend_module_entry intl_module_entry;
         table.insert(depend.files, tool)
     end})
     add_files("in/php-src/ext/sodium/*.c")
+    add_files("in/php-src/ext/shmop/*.c")
+    add_files("in/php-src/ext/soap/*.c", {defines = {"LIBXML_STATIC"}})
     add_files("in/php-src/ext/sockets/*.c", {defines = {"PHP_SOCKETS_EXPORTS=1"}})
     add_files("in/php-src/ext/sqlite3/*.c")
 

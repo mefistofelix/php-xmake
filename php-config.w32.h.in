@@ -26,6 +26,7 @@
 #define HAVE_EXIF 1
 #define HAVE_FFI 1
 #define HAVE_FFI_VECTORCALL_PARTIAL 1
+#define HAVE_SHMOP 1
 #define HAVE_FTP 1
 #define HAVE_FTP_SSL 1
 #define HAVE_ICONV 1
@@ -53,6 +54,9 @@
 #define HAVE_PG_RESULT_MEMORY_SIZE 1
 #define HAVE_PGSQL 1
 #define HAVE_PDO_PGSQL 1
+#define HAVE_SOAP 1
+#define HAVE_SQL_H 1
+#define HAVE_SQLEXT_H 1
 #define HAVE_SOCKETS 1
 #define HAVE_SQLITE3 1
 #define HAVE_SQLITE3_EXPANDED_SQL 1
@@ -73,6 +77,7 @@
 #define HAVE_XMLWRITER 1
 #define HAVE_XSL 1
 #define HAVE_XSL_EXSLT 1
+#define HAVE_UODBC 1
 #define ICONV_ALIASED_LIBICONV 1
 #define PHP_ICONV_IMPL "libiconv"
 #define HAVE_PHP_SESSION 1
@@ -86,6 +91,7 @@
 #define PHP_CONFIG_FILE_SCAN_DIR ""
 #define PHP_USE_PHP_CRYPT_R 1
 #define HAVE_JIT 1
+#define PHAR_HAVE_OPENSSL 1
 #define URI_ENABLE_ANSI 1
 #define URI_NO_UNICODE 1
 

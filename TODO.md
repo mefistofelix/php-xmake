@@ -12,7 +12,8 @@ Last updated: 2026-08-21
 
 ## Current State
 
-- [ ] Integrate the next builtin batch after PostgreSQL/LDAP.
+- [ ] Integrate the next builtin batch after the utility/ODBC checkpoint.
+- [x] Integrate the utility/ODBC batch: `phar`, `fileinfo`, `soap`, `odbc`, `pdo_odbc`, and `shmop`.
 - [x] Integrate the database/directory batch: `pgsql`, `pdo_pgsql`, and `ldap` against the validated libpq/OpenLDAP targets.
 - [x] Integrate the XML batch: `libxml`, `dom`, `simplexml`, `xml`, `xmlreader`, `xmlwriter`, and `xsl` against the validated libxml2/libxslt targets.
 - [x] Integrate the international-text batch: `mbstring` against Oniguruma and `intl` against ICU.
@@ -377,6 +378,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [x] Run CLI, builtin-module, ZTS/TrueAsync, Opcache/JIT, x64, `/MD`, and export-surface validation for the minimal checkpoint.
 
 ## Validation Log
+
+- 2026-08-21 — utility/ODBC PHP batch: added builtin Phar, Fileinfo, SOAP, ODBC, PDO ODBC, and shmop from their exact Windows manifests. Phar's path checker is materialized into `out` with RE2C, Fileinfo compiles the 19-source bundled libmagic manifest while retaining `data_file.c` only as an include, and both ODBC layers use the Windows SDK libraries. The complete ZTS CLI build and link passed; all six modules appeared in `php.exe -n -m`, Fileinfo identified a memory buffer as `text/plain`, Phar exposed OpenSSL signatures, SOAP instantiated a non-WSDL client without I/O, PDO listed `odbc`, and the ODBC/shmop entry points were registered.
 
 - 2026-08-21 — PostgreSQL/LDAP PHP batch: added builtin `pgsql`, `pdo_pgsql`, and `ldap` from five committed C sources plus the RE2C-materialized PDO PostgreSQL parser. The single-static-image link exposed WinLDAP import thunks in both libpq and libcurl that duplicate static OpenLDAP's undecorated API. Libpq's optional LDAP service-file lookup and libcurl's LDAP/LDAPS protocols are therefore disabled while PHP's complete OpenLDAP/SASL/TLS extension remains enabled. The ZTS CLI build and link passed; all three new modules appeared in `php.exe -n -m`, PDO listed `mysql`, `pgsql`, and `sqlite`, libpq reported 16.14, HTTP/HTTPS remained in cURL, and `ldap_connect()` created an `LDAP\Connection` without contacting a server.
 
