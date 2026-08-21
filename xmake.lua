@@ -6,7 +6,7 @@ set_config("sdk", path.join(os.scriptdir(),[[in\msvc]]))
 set_config("vs_toolset", "14.50.35717")
 set_config("vs_sdkver", "10.0.28000.0")
 
-set_config("builddir", "out")
+set_config("builddir", "build")
 
 on_toolchain_prepare(function (toolchain)
     if toolchain:name() ~= "msvc" then return end
@@ -21,7 +21,7 @@ target("minilua")
     set_enabled(true)
     set_default(false)
     set_kind("binary")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     add_files("in/php-src/ext/opcache/jit/ir/dynasm/minilua.c")
 
 target("gen_ir_fold_hash")
@@ -29,7 +29,7 @@ target("gen_ir_fold_hash")
     set_enabled(true)
     set_default(false)
     set_kind("binary")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     add_files("in/php-src/ext/opcache/jit/ir/gen_ir_fold_hash.c")
     add_defines("IR_TARGET_X64")
 
@@ -37,7 +37,7 @@ target("zlib")
     before_config(function () os.vrunv("in/hx.exe", {"github://madler/zlib?ref=v1.3.2", "in/deps/zlib"}) end)
     set_enabled(true)
     set_kind("static")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     add_includedirs("in/deps/zlib", {public = true})
     add_defines("ZLIB_BUILD", "NO_FSEEKO", "_CRT_SECURE_NO_DEPRECATE", "_CRT_NONSTDC_NO_DEPRECATE")
     add_files("in/deps/zlib/*.c")
@@ -46,7 +46,7 @@ target("brotli")
     before_config(function () os.vrunv("in/hx.exe", {"github://google/brotli?ref=v1.2.0", "in/deps/brotli"}) end)
     set_enabled(true)
     set_kind("static")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     add_includedirs("in/deps/brotli/c/include", {public = true})
     add_defines("_CRT_SECURE_NO_WARNINGS")
     add_files("in/deps/brotli/c/common/*.c", "in/deps/brotli/c/dec/*.c", "in/deps/brotli/c/enc/*.c")
@@ -55,7 +55,7 @@ target("zstd")
     before_config(function () os.vrunv("in/hx.exe", {"github://facebook/zstd?ref=v1.5.7", "in/deps/zstd"}) end)
     set_enabled(true)
     set_kind("static")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     add_includedirs("in/deps/zstd/lib", {public = true})
     add_defines("ZSTD_MULTITHREAD", "ZSTD_LEGACY_SUPPORT=5", "ZSTD_DISABLE_ASM", "ZSTD_HEAPMODE=0", "_CRT_SECURE_NO_WARNINGS")
     add_files("in/deps/zstd/lib/common/*.c", "in/deps/zstd/lib/compress/*.c",
@@ -65,7 +65,7 @@ target("bzip2")
     before_config(function () os.vrunv("in/hx.exe", {"-delpathseg", "1", "https://sourceware.org/pub/bzip2/bzip2-1.0.8.tar.gz", "in/deps/bzip2"}) end)
     set_enabled(true)
     set_kind("static")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     set_optimize("fastest")
     add_includedirs("in/deps/bzip2", {public = true})
     add_defines("WIN32", "_FILE_OFFSET_BITS=64")
@@ -78,7 +78,7 @@ target("liblzma")
     before_config(function () os.vrunv("in/hx.exe", {"github://tukaani-project/xz?ref=v5.8.3", "in/deps/xz"}) end)
     set_enabled(true)
     set_kind("static")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     set_optimize("fastest")
     add_includedirs("in/deps/xz/src/liblzma/api", {public = true})
     add_includedirs("in/deps/xz/src/liblzma/common", "in/deps/xz/src/liblzma/check",
@@ -110,7 +110,7 @@ target("libssh2")
     before_config(function () os.vrunv("in/hx.exe", {"github://libssh2/libssh2?ref=libssh2-1.11.1", "in/deps/libssh2"}) end)
     set_enabled(true)
     set_kind("static")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     set_optimize("fastest")
     add_includedirs("in/deps/libssh2/include", {public = true})
     add_includedirs(
@@ -135,7 +135,7 @@ target("nghttp2")
     before_config(function () os.vrunv("in/hx.exe", {"github://nghttp2/nghttp2?ref=v1.69.0", "in/deps/nghttp2"}) end)
     set_enabled(true)
     set_kind("static")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     set_optimize("fastest")
     set_configdir("out/nghttp2/include/nghttp2")
     add_configfiles("in/deps/nghttp2/lib/includes/nghttp2/nghttp2ver.h.in",
@@ -154,7 +154,7 @@ target("nghttp3")
     before_config(function () os.vrunv("in/hx.exe", {"--recursive", "github://ngtcp2/nghttp3?ref=dbfc24286138cb0b6490160e7ca87fe1ce6722a0", "in/deps/nghttp3"}) end)
     set_enabled(true)
     set_kind("static")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     set_optimize("fastest")
     set_languages("c11")
     set_configdir("out/nghttp3/include/nghttp3")
@@ -172,7 +172,7 @@ target("ngtcp2")
     before_config(function () os.vrunv("in/hx.exe", {"github://ngtcp2/ngtcp2?ref=v1.25.0", "in/deps/ngtcp2"}) end)
     set_enabled(true)
     set_kind("static")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     set_optimize("fastest")
     set_languages("c11")
     add_deps("openssl")
@@ -211,7 +211,7 @@ target("libcurl")
     before_config(function () os.vrunv("in/hx.exe", {"github://curl/curl?ref=curl-8_21_0", "in/deps/libcurl"}) end)
     set_enabled(true)
     set_kind("static")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     set_optimize("fastest")
     add_deps(
         "brotli",
@@ -261,7 +261,7 @@ target("libsodium")
     before_config(function () os.vrunv("in/hx.exe", {"github://jedisct1/libsodium?ref=1.0.22", "in/deps/libsodium"}) end)
     set_enabled(true)
     set_kind("static")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     set_optimize("fastest")
     set_configdir("out/libsodium/include/sodium")
     add_configfiles("in/deps/libsodium/builds/msvc/version.h", {onlycopy = true})
@@ -287,7 +287,7 @@ target("libuv")
     before_config(function () os.vrunv("in/hx.exe", {"github://libuv/libuv?ref=v1.52.1", "in/deps/libuv"}) end)
     set_enabled(true)
     set_kind("static")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     set_optimize("fastest")
     add_includedirs("in/deps/libuv/include", {public = true})
     add_includedirs("in/deps/libuv/src")
@@ -322,7 +322,7 @@ target("icu")
     end)
     set_enabled(true)
     set_kind("static")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     set_optimize("fastest")
     set_languages("cxx17")
     set_exceptions("no-cxx")
@@ -364,7 +364,7 @@ target("libiconv")
     before_config(function () os.vrunv("in/hx.exe", {"-delpathseg", "1", "https://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.19.tar.gz", "in/deps/libiconv"}) end)
     set_enabled(true)
     set_kind("static")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     set_optimize("fastest")
     add_files("in/deps/libiconv/lib/config.h.in", {callback = function (_, sources, depend)
         local output = "in/deps/libiconv/lib/config.h"
@@ -401,7 +401,7 @@ target("libintl")
     before_config(function () os.vrunv("in/hx.exe", {"-delpathseg", "1", "https://ftp.gnu.org/pub/gnu/gettext/gettext-1.0.tar.gz", "in/deps/libintl"}) end)
     set_enabled(true)
     set_kind("static")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     set_optimize("fastest")
     add_files("in/deps/libintl/gettext-runtime/intl/config.h.in", {callback = function (sourcefile, sources, depend)
         local output = "in/deps/libintl/gettext-runtime/intl/config.h"
@@ -526,7 +526,7 @@ target("libxml2")
     before_config(function () os.vrunv("in/hx.exe", {"github://winlibs/libxml2?ref=libxml2-2.11.9-7", "in/deps/libxml2"}) end)
     set_enabled(true)
     set_kind("static")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     set_optimize("fastest")
     set_configdir("out/libxml2")
     add_configfiles("in/deps/libxml2/include/win32config.h", {filename = "config.h", onlycopy = true})
@@ -569,7 +569,7 @@ target("libxslt")
     before_config(function () os.vrunv("in/hx.exe", {"github://winlibs/libxslt?ref=libxslt-1.1.43-2", "in/deps/libxslt"}) end)
     set_enabled(true)
     set_kind("static")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     set_optimize("fastest")
     set_configdir("out/libxslt")
     add_configfiles("in/deps/libxslt/libxslt/xsltconfig.h.in", {prefixdir = "libxslt", pattern = "@([%u%d_]+)@", variables = {
@@ -606,7 +606,7 @@ target("oniguruma")
     before_config(function () os.vrunv("in/hx.exe", {"github://kkos/oniguruma?ref=v6.9.10", "in/deps/libonig"}) end)
     set_enabled(true)
     set_kind("static")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     set_optimize("fastest")
     set_configdir("out/oniguruma")
     add_configfiles("in/deps/libonig/src/config.h.win64", {filename = "config.h", onlycopy = true})
@@ -633,7 +633,7 @@ target("sqlite3")
     before_config(function () os.vrunv("in/hx.exe", {"-delpathseg", "1", "https://www.sqlite.org/2026/sqlite-amalgamation-3530200.zip", "in/deps/sqlite3"}) end)
     set_enabled(true)
     set_kind("static")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     set_optimize("fastest")
     add_includedirs("in/deps/sqlite3", {public = true})
     add_defines(
@@ -649,7 +649,7 @@ target("libpng")
     before_config(function () os.vrunv("in/hx.exe", {"github://pnggroup/libpng?ref=v1.6.58", "in/deps/libpng"}) end)
     set_enabled(true)
     set_kind("static")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     set_optimize("fastest")
     add_deps("zlib")
     add_files("in/deps/libpng/scripts/pnglibconf.h.prebuilt", {callback = function (sourcefile, sources, depend)
@@ -676,7 +676,7 @@ target("libjpeg")
     end)
     set_enabled(true)
     set_kind("static")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     set_optimize("fastest")
     set_toolset("as", "nasm@$(projectdir)/in/perl/c/bin/nasm.exe")
     add_files("in/deps/libjpeg-turbo/src/jconfig.h.in", {callback = function (sourcefile, sources, depend)
@@ -775,7 +775,7 @@ target("freetype")
     before_config(function () os.vrunv("in/hx.exe", {"github://freetype/freetype?ref=VER-2-14-3", "in/deps/freetype"}) end)
     set_enabled(true)
     set_kind("static")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     set_optimize("fastest")
     set_configdir("out/freetype/include/freetype/config")
     add_configfiles("in/deps/freetype/include/freetype/config/ftoption.h", {
@@ -835,7 +835,7 @@ target("libwebp")
     before_config(function () os.vrunv("in/hx.exe", {"github://webmproject/libwebp?ref=v1.6.0", "in/deps/libwebp"}) end)
     set_enabled(true)
     set_kind("static")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     set_optimize("fastest")
     add_includedirs("in/deps/libwebp/src", {public = true})
     add_includedirs("in/deps/libwebp")
@@ -855,7 +855,7 @@ target("libtiff")
     before_config(function () os.vrunv("in/hx.exe", {"https://download.osgeo.org/libtiff/tiff-4.7.2.tar.xz", "in/deps/libtiff"}) end)
     set_enabled(true)
     set_kind("static")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     set_optimize("fastest")
     add_deps("zlib", "libjpeg", "liblzma", "zstd", "libwebp")
     add_files("in/deps/libtiff/tiff-4.7.2/libtiff/tiffconf.h.cmake.in", {callback = function (sourcefile, sources, depend)
@@ -950,7 +950,7 @@ target("libjxl")
     end)
     set_enabled(true)
     set_kind("static")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     set_languages("cxx17")
     set_optimize("fastest")
     add_deps("brotli")
@@ -1004,7 +1004,7 @@ target("avif")
     end)
     set_enabled(true)
     set_kind("static")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     set_languages("c11", "cxx20")
     set_optimize("fastest")
     set_toolset("as", "nasm@$(projectdir)/in/perl/c/bin/nasm.exe")
@@ -1208,7 +1208,7 @@ target("libsasl")
     before_config(function () os.vrunv("in/hx.exe", {"github://cyrusimap/cyrus-sasl?ref=cyrus-sasl-2.1.28", "in/deps/libsasl"}) end)
     set_enabled(true)
     set_kind("static")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     set_optimize("fastest")
     add_files("in/deps/libsasl/include/*.h", {callback = function (sourcefile, sources, depend)
         local name = path.filename(sourcefile)
@@ -1258,7 +1258,7 @@ target("openldap")
     end)
     set_enabled(true)
     set_kind("static")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     set_optimize("fastest")
     add_deps("openssl", "libsasl")
     add_files("in/deps/openldap/include/portable.hin", "in/deps/openldap/include/lber_types.hin", "in/deps/openldap/include/ldap_features.hin", {callback = function (sourcefile, sources, depend)
@@ -1343,7 +1343,7 @@ target("libpq")
     before_config(function () os.vrunv("in/hx.exe", {"github://postgres/postgres?ref=REL_16_14", "in/deps/libpq"}) end)
     set_enabled(true)
     set_kind("static")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     set_optimize("fastest")
     add_deps("openssl")
     add_files("in/deps/libpq/src/include/pg_config.h.in", "in/deps/libpq/src/include/pg_config_ext.h.in", {callback = function (sourcefile, sources, depend)
@@ -1405,7 +1405,7 @@ target("libffi")
     before_config(function () os.vrunv("in/hx.exe", {"github://winlibs/libffi?ref=libffi-3.6.0", "in/deps/libffi"}) end)
     set_enabled(true)
     set_kind("static")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     set_optimize("fastest")
     add_files("in/deps/libffi/src/x86/win64_intel.S", {callback = function (sourcefile, sources, depend)
         local output = "out/libffi/win64.asm"
@@ -1427,7 +1427,7 @@ target("wineditline")
     before_config(function () os.vrunv("in/hx.exe", {"github://ptosco/wineditline?ref=wineditline-2.208", "in/deps/wineditline"}) end)
     set_enabled(true)
     set_kind("static")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     set_optimize("fastest")
     add_includedirs("in/deps/wineditline/src", {public = true})
     add_rules("c.unity_build")
@@ -1438,7 +1438,7 @@ target("libzip")
     before_config(function () os.vrunv("in/hx.exe", {"github://nih-at/libzip?ref=v1.11.4", "in/deps/libzip"}) end)
     set_enabled(true)
     set_kind("static")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     set_optimize("fastest")
     add_deps("zlib", "bzip2", "liblzma")
     add_files("in/deps/libzip/CMakeLists.txt", {callback = function (_, sources, depend)
@@ -1560,7 +1560,7 @@ target("mpir")
     before_config(function () os.vrunv("in/hx.exe", {"github://winlibs/mpir?ref=mpir-3.0.0-2", "in/deps/mpir"}) end)
     set_enabled(true)
     set_kind("static")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     set_optimize("fastest")
     add_files("in/deps/mpir/build.vc/cfg.h", {callback = function (sourcefile, sources, depend)
         local output = "out/mpir/include/mpir/config.h"
@@ -1630,7 +1630,7 @@ target("openssl")
     end)
     set_enabled(true)
     set_kind("static")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     set_toolset("as", "nasm@$(projectdir)/in/perl/c/bin/nasm.exe")
     -- add_rules("c.unity_build")
     add_files("in/deps/openssl/Configure", {callback = function (sourcefile, sources, depend)
@@ -1842,7 +1842,7 @@ target("php")
     set_default(false)
     set_kind("shared")
     set_basename("php8ts")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     set_optimize("fastest")
     add_cflags(
         "/Zc:inline",
@@ -1856,7 +1856,6 @@ target("php")
         "/wd4996",
         {force = true}
     )
-    add_cxflags("/FIconfig.w32.h", {force = true, public = true})
     add_deps("minilua", "gen_ir_fold_hash", {links = false})
     add_deps(
         "avif",
@@ -1890,23 +1889,146 @@ target("php")
         "zstd"
     )
 
-    set_configdir("out/php")
-    add_configfiles("in/php-src/win32/build/config.w32.h.in", {
-        filename = "config.w32.base.h",
-        prefixdir = "main",
-        pattern = "@([%u%d_]+)@",
-        variables = {PREFIX = [[C:\\php]]}
-    })
-    add_configfiles("php-config.w32.h.in", {
-        filename = "config.w32.h",
-        prefixdir = "main",
-        pattern = "@([%u%d_]+)@",
-        variables = {
-            PHP_BUILD_ARCH = get_config("arch"),
-            PHP_LINKER_MAJOR = (get_config("vs_toolset") or "14.50.35717"):match("^(%d+)"),
-            PHP_LINKER_MINOR = (get_config("vs_toolset") or "14.50.35717"):match("^%d+%.(%d+)")
-        }
-    })
+    set_configdir("in/php-src")
+    add_files("in/php-src/win32/build/config.w32.h.in", {callback = function (sourcefile, sources, depend)
+        local output = path.translate("in/php-src/main/config.w32.h")
+        local toolset = get_config("vs_toolset") or "14.50.35717"
+        local config = io.readfile(sourcefile):gsub("@PREFIX@", [[C:\\php]])
+        config = [[#ifndef CONFIG_W32_H
+#define CONFIG_W32_H
+
+]] .. config .. [[
+
+#define PHP_BUILD_SYSTEM "Microsoft Windows"
+#define CONFIGURE_COMMAND ".\\xmake.exe build php-cli"
+#define PHP_BUILD_COMPILER "Microsoft Visual C++"
+#define PHP_COMPILER_ID "VS18"
+#define PHP_BUILD_ARCH "@PHP_BUILD_ARCH@"
+#define PHP_LINKER_MAJOR @PHP_LINKER_MAJOR@
+#define PHP_LINKER_MINOR @PHP_LINKER_MINOR@
+
+#define HAVE_STRNLEN 1
+#define ZEND_CHECK_STACK_LIMIT 1
+#define HAVE_GAI_STRERROR 1
+#define HAVE_IPV6 1
+#define __SSE__ 1
+#define __SSE2__ 1
+#define HAVE_BCMATH 1
+#define HAVE_BZ2 1
+#define HAVE_CALENDAR 1
+#define HAVE_CTYPE 1
+#define HAVE_CURL 1
+#define HAVE_COM_DOTNET 1
+#define HAVE_DOM 1
+#define HAVE_GD_BUNDLED 1
+#define HAVE_GD_PNG_GET_VERSION_STRING 1
+#define HAVE_GD_PNG 1
+#define HAVE_GD_JPG 1
+#define HAVE_GD_FREETYPE 1
+#define HAVE_GD_WEBP 1
+#define HAVE_GD_AVIF 1
+#define HAVE_GD_HEIF 1
+#define HAVE_GD_JXL 1
+#define HAVE_GD_TIFF 1
+#define HAVE_GD_GET_INTERPOLATION 1
+#define HAVE_EXIF 1
+#define HAVE_FFI 1
+#define HAVE_FFI_VECTORCALL_PARTIAL 1
+#define HAVE_SHMOP 1
+#define HAVE_SYSVSHM 1
+#define HAVE_FTP 1
+#define HAVE_FTP_SSL 1
+#define HAVE_ICONV 1
+#define HAVE_ICONV_H 1
+#define HAVE_GMP 1
+#define HAVE_LDAP 1
+#define HAVE_LDAP_PARSE_RESULT 1
+#define HAVE_LDAP_PARSE_REFERENCE 1
+#define HAVE_LDAP_START_TLS_S 1
+#define HAVE_LDAP_SASL 1
+#define HAVE_LDAP_CONTROL_FIND 1
+#define HAVE_LDAP_PARSE_EXTENDED_RESULT 1
+#define HAVE_LDAP_EXTENDED_OPERATION_S 1
+#define HAVE_LDAP_PASSWD 1
+#define HAVE_LDAP_WHOAMI_S 1
+#define HAVE_LDAP_REFRESH_S 1
+#define HAVE_3ARG_SETREBINDPROC 1
+#define HAVE_OPENSSL 1
+#define HAVE_OPENSSL_EXT 1
+#define HAVE_HTTP2 1
+#define HAVE_HTTP_COMPRESSION 1
+#define HAVE_HTTP_BROTLI 1
+#define HAVE_HTTP_ZSTD 1
+#define HAVE_MBSTRING 1
+#define HAVE_MBREGEX 1
+#define HAVE_PG_RESULT_MEMORY_SIZE 1
+#define HAVE_PGSQL 1
+#define HAVE_PDO_PGSQL 1
+#define HAVE_SOAP 1
+#define HAVE_SQL_H 1
+#define HAVE_SQLEXT_H 1
+#define HAVE_SOCKETS 1
+#define HAVE_SQLITE3 1
+#define HAVE_SQLITE3_EXPANDED_SQL 1
+#define HAVE_SQLITE3_COLUMN_TABLE_NAME 1
+#define HAVE_HISTORY_LIST 1
+#define HAVE_LIBEDIT 1
+#define HAVE_LIBAVIF 1
+#define HAVE_LIBFREETYPE 1
+#define HAVE_LIBICONV 1
+#define HAVE_LIBJPEG 1
+#define HAVE_LIBJXL 1
+#define HAVE_LIBPNG 1
+#define HAVE_LIBTIFF 1
+#define HAVE_LIBWEBP 1
+#define HAVE_LIBHEIF 1
+#define HAVE_LIBXML 1
+#define HAVE_LIBSODIUMLIB 1
+#define HAVE_RL_COMPLETION_MATCHES 1
+#define MYSQLND_COMPRESSION_ENABLED 1
+#define MYSQLND_SSL_SUPPORTED 1
+#define MYSQLND_HAVE_SSL 1
+#define PDO_USE_MYSQLND 1
+#define HAVE_ZIP 1
+#define HAVE_XML 1
+#define HAVE_XMLREADER 1
+#define HAVE_XMLWRITER 1
+#define HAVE_XSL 1
+#define HAVE_XSL_EXSLT 1
+#define HAVE_ZLIB 1
+#define HAVE_UODBC 1
+#define ICONV_ALIASED_LIBICONV 1
+#define PHP_ICONV_IMPL "libiconv"
+#define HAVE_PHP_SESSION 1
+#define HAVE_SIMPLEXML 1
+#define HAVE_TIMELIB_CONFIG_H 1
+#define HAVE_LEXBOR 1
+#define HAVE_BUNDLED_PCRE 1
+#define PCRE2_CODE_UNIT_WIDTH 8
+#define PCRE2_STATIC 1
+#define HAVE_PCRE_JIT_SUPPORT 1
+#define PHP_CONFIG_FILE_SCAN_DIR ""
+#define PHP_USE_PHP_CRYPT_R 1
+#define HAVE_JIT 1
+#define PHAR_HAVE_OPENSSL 1
+#define URI_ENABLE_ANSI 1
+#define URI_NO_UNICODE 1
+
+#if __has_include("main/config.pickle.h")
+# include "main/config.pickle.h"
+#endif
+
+#endif /* CONFIG_W32_H */
+]]
+        config = config
+            :gsub("@PHP_BUILD_ARCH@", get_config("arch"))
+            :gsub("@PHP_LINKER_MAJOR@", toolset:match("^(%d+)"))
+            :gsub("@PHP_LINKER_MINOR@", toolset:match("^%d+%.(%d+)"))
+        io.writefile(output, config)
+        table.insert(depend.files, output)
+        table.insert(depend.files, "xmake.lua")
+        table.remove(sources, 1)
+    end})
     add_configfiles("in/deps/libuv/include/uv.h", {
         filename = "uv.h",
         prefixdir = "libuv",
@@ -2053,10 +2175,6 @@ extern zend_module_entry intl_module_entry;
     })
 
     add_includedirs(
-        "out/php/Zend",
-        "out/php/main",
-        "out/php/win32",
-        "out/php",
         "in/php-src",
         "in/php-src/main",
         "in/php-src/Zend",
@@ -2079,7 +2197,6 @@ extern zend_module_entry intl_module_entry;
         "in/php-src/ext/http_server/deps/llhttp/include",
         "in/php-src/ext/http_server/deps/concurrentqueue",
         "in/php-src/ext/intl",
-        "out/php/ext/mbstring",
         "in/php-src/ext/mbstring",
         "in/php-src/ext/mbstring/libmbfl",
         "in/php-src/ext/mbstring/libmbfl/mbfl",
@@ -2147,9 +2264,9 @@ extern zend_module_entry intl_module_entry;
     add_files("in/php-src/ext/pcre/php_pcre.def")
 
     add_files(
-        "in/php-src/Zend/*.c",
+        "in/php-src/Zend/*.c|zend_ini_parser.c|zend_ini_scanner.c|zend_language_parser.c|zend_language_scanner.c",
         "in/php-src/Zend/Optimizer/*.c",
-        "in/php-src/main/*.c",
+        "in/php-src/main/*.c|internal_functions.c",
         "in/php-src/main/io/*.c",
         "in/php-src/main/poll/*.c",
         "in/php-src/main/streams/*.c",
@@ -2160,16 +2277,11 @@ extern zend_module_entry intl_module_entry;
         "in/php-src/Zend/Optimizer/ssa_integrity.c",
         "in/php-src/Zend/zend_dtrace.c",
         "in/php-src/Zend/zend_gdb.c",
-        "in/php-src/Zend/zend_ini_parser.c",
-        "in/php-src/Zend/zend_ini_scanner.c",
-        "in/php-src/Zend/zend_language_parser.c",
-        "in/php-src/Zend/zend_language_scanner.c",
         "in/php-src/Zend/zend_max_execution_timer.c",
         "in/php-src/Zend/zend_signal.c",
         "in/php-src/main/debug_gdb_scripts.c",
         "in/php-src/main/explicit_bzero.c",
         "in/php-src/main/fastcgi.c",
-        "in/php-src/main/internal_functions.c",
         "in/php-src/main/io/php_io_copy_freebsd.c",
         "in/php-src/main/io/php_io_copy_linux.c",
         "in/php-src/main/io/php_io_copy_macos.c",
@@ -2181,13 +2293,13 @@ extern zend_module_entry intl_module_entry;
         "in/php-src/win32/cp_enc_map.c",
         "in/php-src/win32/cp_enc_map_gen.c"
     )
-    add_files("in/php-src/main/internal_functions.c.in", {callback = function (_, sources)
-        sources[1] = "out/php/main/internal_functions.c"
+    add_files("in/php-src/main/internal_functions.c.in", {callback = function (sourcefile, sources)
+        sources[1] = sourcefile:gsub("%.in$", "")
     end})
 
     add_files("in/php-src/Zend/zend_ini_parser.y", {callback = function (sourcefile, sources, depend)
-        local output = "out/php/Zend/zend_ini_parser.c"
-        local header = "out/php/Zend/zend_ini_parser.h"
+        local output = sourcefile:gsub("%.y$", ".c")
+        local header = sourcefile:gsub("%.y$", ".h")
         local tool = "in/php-sdk/usr/bin/bison.exe"
         os.mkdir(path.directory(output))
         os.vrunv(tool, {"--no-lines", "--verbose", "--defines=" .. header, "--output=" .. output, sourcefile})
@@ -2196,8 +2308,8 @@ extern zend_module_entry intl_module_entry;
         table.insert(depend.files, header)
     end})
     add_files("in/php-src/Zend/zend_language_parser.y", {callback = function (sourcefile, sources, depend)
-        local output = "out/php/Zend/zend_language_parser.c"
-        local header = "out/php/Zend/zend_language_parser.h"
+        local output = sourcefile:gsub("%.y$", ".c")
+        local header = sourcefile:gsub("%.y$", ".h")
         local tool = "in/php-sdk/usr/bin/bison.exe"
         os.mkdir(path.directory(output))
         os.vrunv(tool, {"--no-lines", "--verbose", "--defines=" .. header, "--output=" .. output, sourcefile})
@@ -2210,26 +2322,26 @@ extern zend_module_entry intl_module_entry;
         table.insert(depend.files, header)
     end})
     add_files("in/php-src/Zend/zend_ini_scanner.l", {callback = function (sourcefile, sources, depend)
-        local output = "out/php/Zend/zend_ini_scanner.c"
-        local header = "out/php/Zend/zend_ini_scanner_defs.h"
+        local output = sourcefile:gsub("%.l$", ".c")
+        local header = sourcefile:gsub("%.l$", "_defs.h")
         local tool = "in/php-sdk/usr/bin/re2c.exe"
         os.mkdir(path.directory(output))
         os.vrunv(tool, {"--no-generation-date", "-W", "--case-inverted", "-cbdFt", header, "-o", output, sourcefile})
         sources[1] = output
         table.insert(depend.files, tool)
         table.insert(depend.files, header)
-        table.insert(depend.files, "out/php/Zend/zend_ini_parser.h")
+        table.insert(depend.files, "in/php-src/Zend/zend_ini_parser.h")
     end})
     add_files("in/php-src/Zend/zend_language_scanner.l", {callback = function (sourcefile, sources, depend)
-        local output = "out/php/Zend/zend_language_scanner.c"
-        local header = "out/php/Zend/zend_language_scanner_defs.h"
+        local output = sourcefile:gsub("%.l$", ".c")
+        local header = sourcefile:gsub("%.l$", "_defs.h")
         local tool = "in/php-sdk/usr/bin/re2c.exe"
         os.mkdir(path.directory(output))
         os.vrunv(tool, {"--no-generation-date", "-W", "--case-inverted", "-cbdFt", header, "-o", output, sourcefile})
         sources[1] = output
         table.insert(depend.files, tool)
         table.insert(depend.files, header)
-        table.insert(depend.files, "out/php/Zend/zend_language_parser.h")
+        table.insert(depend.files, "in/php-src/Zend/zend_language_parser.h")
     end})
 
     add_files(
@@ -2310,8 +2422,8 @@ extern zend_module_entry intl_module_entry;
 
     add_files("in/php-src/ext/json/json.c", "in/php-src/ext/json/json_encoder.c")
     add_files("in/php-src/ext/json/json_parser.y", {callback = function (sourcefile, sources, depend)
-        local output = "out/php/ext/json/json_parser.tab.c"
-        local header = "out/php/ext/json/json_parser.tab.h"
+        local output = sourcefile:gsub("json_parser%.y$", "json_parser.tab.c")
+        local header = sourcefile:gsub("json_parser%.y$", "json_parser.tab.h")
         local tool = "in/php-sdk/usr/bin/bison.exe"
         os.mkdir(path.directory(output))
         os.vrunv(tool, {"--no-lines", "--defines=" .. header, "--output=" .. output, sourcefile})
@@ -2320,15 +2432,15 @@ extern zend_module_entry intl_module_entry;
         table.insert(depend.files, header)
     end})
     add_files("in/php-src/ext/json/json_scanner.re", {callback = function (sourcefile, sources, depend)
-        local output = "out/php/ext/json/json_scanner.c"
-        local header = "out/php/ext/json/php_json_scanner_defs.h"
+        local output = sourcefile:gsub("%.re$", ".c")
+        local header = sourcefile:gsub("json_scanner%.re$", "php_json_scanner_defs.h")
         local tool = "in/php-sdk/usr/bin/re2c.exe"
         os.mkdir(path.directory(output))
         os.vrunv(tool, {"--no-generation-date", "-W", "-t", header, "-bci", "-o", output, sourcefile})
         sources[1] = output
         table.insert(depend.files, tool)
         table.insert(depend.files, header)
-        table.insert(depend.files, "out/php/ext/json/json_parser.tab.h")
+        table.insert(depend.files, "in/php-src/ext/json/json_parser.tab.h")
     end})
 
     add_files("in/php-src/ext/lexbor/*.c", "in/php-src/ext/lexbor/**/*.c", {defines = {"LEXBOR_BUILDING"}, cxflags = {"/utf-8"}})
@@ -2383,11 +2495,11 @@ extern zend_module_entry intl_module_entry;
     add_files("in/php-src/ext/odbc/*.c")
     add_files("in/php-src/ext/openssl/*.c")
 
-    add_files("in/php-src/ext/phar/*.c")
+    add_files("in/php-src/ext/phar/*.c|phar_path_check.c")
     add_files("in/php-src/ext/phar/phar_path_check.re", {
         includedirs = {"in/php-src/ext/phar"},
         callback = function (sourcefile, sources, depend)
-        local output = "out/php/ext/phar/phar_path_check.c"
+        local output = sourcefile:gsub("%.re$", ".c")
         local tool = "in/php-sdk/usr/bin/re2c.exe"
         os.mkdir(path.directory(output))
         os.vrunv(tool, {"--no-generation-date", "-W", "-b", "-o", output, sourcefile})
@@ -2396,22 +2508,22 @@ extern zend_module_entry intl_module_entry;
         table.insert(depend.files, "xmake.lua")
     end})
 
-    add_files("in/php-src/ext/pdo/*.c")
+    add_files("in/php-src/ext/pdo/*.c|pdo_sql_parser.c")
     add_files("in/php-src/ext/pdo/pdo_sql_parser.re", {
         includedirs = {"in/php-src/ext/pdo"},
         callback = function (sourcefile, sources, depend)
-        local output = "out/php/ext/pdo/pdo_sql_parser.c"
+        local output = sourcefile:gsub("%.re$", ".c")
         local tool = "in/php-sdk/usr/bin/re2c.exe"
         os.mkdir(path.directory(output))
         os.vrunv(tool, {"--no-generation-date", "-W", "-b", "-o", output, sourcefile})
         sources[1] = output
         table.insert(depend.files, tool)
     end})
-    add_files("in/php-src/ext/pdo_mysql/*.c")
+    add_files("in/php-src/ext/pdo_mysql/*.c|mysql_sql_parser.c")
     add_files("in/php-src/ext/pdo_mysql/mysql_sql_parser.re", {
         includedirs = {"in/php-src/ext/pdo_mysql"},
         callback = function (sourcefile, sources, depend)
-        local output = "out/php/ext/pdo_mysql/mysql_sql_parser.c"
+        local output = sourcefile:gsub("%.re$", ".c")
         local tool = "in/php-sdk/usr/bin/re2c.exe"
         os.mkdir(path.directory(output))
         os.vrunv(tool, {"--no-generation-date", "-W", "-b", "-o", output, sourcefile})
@@ -2419,22 +2531,22 @@ extern zend_module_entry intl_module_entry;
         table.insert(depend.files, tool)
     end})
     add_files("in/php-src/ext/pdo_odbc/*.c")
-    add_files("in/php-src/ext/pdo_pgsql/*.c")
+    add_files("in/php-src/ext/pdo_pgsql/*.c|pgsql_sql_parser.c")
     add_files("in/php-src/ext/pdo_pgsql/pgsql_sql_parser.re", {
         includedirs = {"in/php-src/ext/pdo_pgsql"},
         callback = function (sourcefile, sources, depend)
-        local output = "out/php/ext/pdo_pgsql/pgsql_sql_parser.c"
+        local output = sourcefile:gsub("%.re$", ".c")
         local tool = "in/php-sdk/usr/bin/re2c.exe"
         os.mkdir(path.directory(output))
         os.vrunv(tool, {"--no-generation-date", "-W", "-b", "-o", output, sourcefile})
         sources[1] = output
         table.insert(depend.files, tool)
     end})
-    add_files("in/php-src/ext/pdo_sqlite/*.c")
+    add_files("in/php-src/ext/pdo_sqlite/*.c|sqlite_sql_parser.c")
     add_files("in/php-src/ext/pdo_sqlite/sqlite_sql_parser.re", {
         includedirs = {"in/php-src/ext/pdo_sqlite"},
         callback = function (sourcefile, sources, depend)
-        local output = "out/php/ext/pdo_sqlite/sqlite_sql_parser.c"
+        local output = sourcefile:gsub("%.re$", ".c")
         local tool = "in/php-sdk/usr/bin/re2c.exe"
         os.mkdir(path.directory(output))
         os.vrunv(tool, {"--no-generation-date", "-W", "-b", "-o", output, sourcefile})
@@ -2448,7 +2560,7 @@ extern zend_module_entry intl_module_entry;
     add_files("in/php-src/ext/sockets/*.c", {defines = {"PHP_SOCKETS_EXPORTS=1"}})
     add_files("in/php-src/ext/sqlite3/*.c")
 
-    add_files("in/php-src/ext/standard/*.c", "in/php-src/ext/standard/libavifinfo/*.c")
+    add_files("in/php-src/ext/standard/*.c|url_scanner_ex.c|var_unserializer.c", "in/php-src/ext/standard/libavifinfo/*.c")
     add_files("in/php-src/ext/tokenizer/*.c")
     add_files("in/php-src/ext/xml/*.c")
     add_files("in/php-src/ext/xmlreader/*.c")
@@ -2459,11 +2571,10 @@ extern zend_module_entry intl_module_entry;
     })
     add_files("in/php-src/ext/zlib/*.c")
     add_files("in/php-src/ext/zlib/php_zlib.def")
-    remove_files("in/php-src/ext/standard/url_scanner_ex.c", "in/php-src/ext/standard/var_unserializer.c")
     add_files("in/php-src/ext/standard/url_scanner_ex.re", {
         includedirs = {"in/php-src/ext/standard"},
         callback = function (sourcefile, sources, depend)
-        local output = "out/php/ext/standard/url_scanner_ex.c"
+        local output = sourcefile:gsub("%.re$", ".c")
         local tool = "in/php-sdk/usr/bin/re2c.exe"
         os.mkdir(path.directory(output))
         os.vrunv(tool, {"--no-generation-date", "-W", "-b", "-o", output, sourcefile})
@@ -2473,7 +2584,7 @@ extern zend_module_entry intl_module_entry;
     add_files("in/php-src/ext/standard/var_unserializer.re", {
         includedirs = {"in/php-src/ext/standard"},
         callback = function (sourcefile, sources, depend)
-        local output = "out/php/ext/standard/var_unserializer.c"
+        local output = sourcefile:gsub("%.re$", ".c")
         local tool = "in/php-sdk/usr/bin/re2c.exe"
         os.mkdir(path.directory(output))
         os.vrunv(tool, {"--no-generation-date", "-W", "-b", "-o", output, sourcefile})
@@ -2507,7 +2618,7 @@ extern zend_module_entry intl_module_entry;
         build_callback = function (target, _, _, depend)
             local ir = "in/php-src/ext/opcache/jit/ir"
             local source = "in/php-src/ext/opcache/jit/ir/ir_x86.dasc"
-            local output = "in/php-src/ext/opcache/jit/ir/ir_emit_x86.h"
+            local output = path.translate("in/php-src/ext/opcache/jit/ir/ir_emit_x86.h")
             table.insert(depend.files, source)
             for _, file in ipairs(os.files(path.join(ir, "dynasm/**/*.lua"))) do table.insert(depend.files, file) end
             os.vrunv(assert(target:dep("minilua")):targetfile(),
@@ -2533,12 +2644,12 @@ extern zend_module_entry intl_module_entry;
 
     add_files("in/php-src/win32/build/wsyslog.mc", {
         callback = function (_, sources, depend)
-            sources[1] = "out/php/win32/wsyslog.rc"
-            table.insert(depend.files, "out/php/win32/wsyslog.h")
-            table.insert(depend.files, "out/php/win32/MSG00001.bin")
+            sources[1] = path.translate("in/php-src/win32/wsyslog.rc")
+            table.insert(depend.files, "in/php-src/win32/wsyslog.h")
+            table.insert(depend.files, "in/php-src/win32/MSG00001.bin")
         end,
         build_callback = function (target, sourcefile, _, depend)
-            local outputdir = "out/php/win32"
+            local outputdir = "in/php-src/win32"
             local vcvars = assert(target:toolchain("msvc")):config("vcvars")
             local tool = path.join(assert(vcvars.WindowsSdkVerBinPath), target:arch(), "mc.exe")
             os.mkdir(outputdir)
@@ -2557,7 +2668,7 @@ target("php-cli")
     set_default(false)
     set_kind("binary")
     set_basename("php")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     set_optimize("fastest")
     add_cflags(
         "/Zc:inline",
@@ -2588,7 +2699,7 @@ target("php-win")
     set_enabled(true)
     set_default(false)
     set_kind("binary")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     set_optimize("fastest")
     add_cflags(
         "/Zc:inline",
@@ -2622,7 +2733,7 @@ target("php-cgi")
     set_enabled(true)
     set_default(false)
     set_kind("binary")
-    set_targetdir(get_config("builddir"))
+    set_targetdir("out")
     set_optimize("fastest")
     add_cflags(
         "/Zc:inline",

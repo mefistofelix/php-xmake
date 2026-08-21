@@ -13,6 +13,9 @@ Last updated: 2026-08-21
 ## Current State
 
 - [ ] Integrate the next selected builtin extension batch.
+- [ ] Move remaining legacy dependency configuration/code-generation outputs out of `out/` and into each owning upstream tree, then validate that `out/` contains target artifacts only.
+- [x] Move Xmake's internal object, dependency, and incremental state to `build/` while keeping target outputs in `out/`; complete rebuilds of `php-cli`, `php-win`, and `php-cgi` passed.
+- [x] Restore PHP configuration and code generation to their upstream-expected locations under `in/php-src`, with no project-level `.generated` directory, duplicate root configuration template, or forced include.
 - [x] Integrate GD and its already validated static codec closure.
 - [x] Integrate the Windows-runtime batch: `com_dotnet`, `sysvshm`, and `zlib`.
 - [x] Integrate the utility/ODBC batch: `phar`, `fileinfo`, `soap`, `odbc`, `pdo_odbc`, and `shmop`.
@@ -381,7 +384,7 @@ Every library must receive its own static target. Integrate and validate them on
 
 ## Validation Log
 
-- 2026-08-21 — bundled GD PHP checkpoint: added the exact 69-translation-unit Windows manifest and linked the validated static PNG, JPEG, FreeType, WebP, AVIF/HEIF, JPEG XL, TIFF, iconv, and zlib closure. The tracked root `php-config.w32.h.in` owns every GD feature macro and generates `out/php/main/config.w32.h`; `/FIconfig.w32.h` makes that generated configuration authoritative for every PHP C/C++ unit despite the fetched tree's fallback `main/config.w32.h`, without modifying `in/`. The complete ZTS rebuild produced `php8ts.dll` and all three SAPIs. CLI listed `gd`, reported bundled GD 2.4.0-compatible with FreeType/JPEG/PNG/WebP/AVIF support, and round-tripped 3x2 PNG, JPEG, WebP, and AVIF images. CGI listed `gd`, and the console-less CLI completed a ZTS/GD script with exit 0.
+- 2026-08-21 — bundled GD and source-local generation checkpoint: added the exact 69-translation-unit Windows manifest and linked the validated static PNG, JPEG, FreeType, WebP, AVIF/HEIF, JPEG XL, TIFF, iconv, and zlib closure. The authoritative upstream `win32/build/config.w32.h.in` now materializes `main/config.w32.h` inside `in/php-src`; the remaining PHP configuration and generated C inputs likewise stay in their upstream-expected directories. Xmake's internal state moved to `build/`, while the complete ZTS rebuild produced `php8ts.dll` and all three SAPIs in `out/`. CLI listed 58 PHP modules, reported ZTS, Opcache, JIT, and GD, and encoded PNG/JPEG/WebP/AVIF in memory. CGI listed the same builtin closure, and the console-less CLI exited cleanly.
 
 - 2026-08-21 — Windows-runtime PHP batch: added builtin `com_dotnet`, `sysvshm`, and `zlib` from their exact 16-source Windows closure. COM links only `oleaut32`; the optional legacy .NET hosting class remains disabled because the bootstrapped MSVC/Windows SDK has no `mscoree.h`, while COM and VARIANT remain complete. Zlib uses the existing static target and builtin export definition; SysV shared memory uses PHP's Windows IPC compatibility layer. The complete ZTS CLI build and link passed, all three modules appeared in `php.exe -n -m`, VARIANT construction worked, the SysV entry point was registered, and zlib compression round-tripped.
 
