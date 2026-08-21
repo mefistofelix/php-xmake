@@ -38,7 +38,8 @@ Last updated: 2026-08-21
 - [x] Add builtin `session` using the already integrated date module.
 - [x] Add the dependency-light builtin batch: `bcmath`, `PDO`, and `exif`.
 - [x] Add the first static-library-backed extension batch: `bz2`, `gettext`, and `iconv`.
-- [ ] Prepare the next extension batch from already validated static dependencies.
+- [x] Add the second static-library-backed batch: `FFI`, `gmp`, `readline`, and `sodium`.
+- [ ] Prepare the next database/archive extension batch.
 - [x] Convert all former target-level codegen participants to file-owned `add_files`/`depend` materialization; there is no shared codegen adapter or project-owned incremental marker left.
 - [x] Use the patched Xmake bundle's lazy Windows IDL implementation; remove the project's local `platform.windows.idl` shadow now that the bundle itself fixes the premature `target:sourcebatches()` expansion.
 - [x] Validate the patched lazy-source timing: synchronous selected-target `on_prepare` and post-callback `add_files` materialization both work without `memcache.clear()`, `target:_invalidate("files")`, or dynamic target file insertion.
@@ -360,6 +361,7 @@ Every library must receive its own static target. Integrate and validate them on
 - [x] Add and minimally validate builtin `filter` in the shared PHP target.
 - [x] Build and list `session`, `bcmath`, `PDO`, and `exif` from `out/php.exe -n -m`.
 - [x] Build and list `bz2`, `gettext`, and `iconv` from `out/php.exe -n -m`.
+- [x] Build and list `FFI`, `gmp`, `readline`, and `sodium` from `out/php.exe -n -m`.
 - [x] Select the upstream-compatible dynamically linked multithreaded MSVC CRT globally with `set_runtimes("MD")`.
 - [x] Configure every PHP core, SAPI, and future extension artifact as ZTS/thread-safe independently of the `/MD` CRT selection.
 - [x] Complete the direct per-source minimal ZTS core and CLI baseline build; revisit unity only after every target works.
@@ -368,6 +370,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [x] Run CLI, builtin-module, ZTS/TrueAsync, Opcache/JIT, x64, `/MD`, and export-surface validation for the minimal checkpoint.
 
 ## Validation Log
+
+- 2026-08-21 — second static-library-backed PHP extension batch: linked builtin `FFI`, `gmp`, `readline`, and `sodium` against the validated `libffi`, `mpir`, `wineditline`, and `libsodium` targets with their upstream Windows feature defines. The full build passed and `out/php.exe -n -m` exited normally with all four new modules and every prior module listed.
 
 - 2026-08-21 — first static-library-backed PHP extension batch: linked builtin `bz2`, `gettext`, and `iconv` against the existing `bzip2`, `libintl`, and `libiconv` targets. After making `HAVE_LIBINTL` visible to the builtin table as well as `gettext.c`, the incremental build passed and `out/php.exe -n -m` exited normally with all three modules listed.
 

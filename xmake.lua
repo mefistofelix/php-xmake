@@ -1797,7 +1797,7 @@ target("php")
         {force = true}
     )
     add_deps("minilua", "gen_ir_fold_hash", {links = false})
-    add_deps("bzip2", "libiconv", "libintl")
+    add_deps("bzip2", "libffi", "libiconv", "libintl", "libsodium", "mpir", "wineditline")
 
     set_configdir("out/php")
     add_configfiles("in/php-src/win32/build/config.w32.h.in", {
@@ -1827,20 +1827,24 @@ target("php")
 #include "ext/ctype/php_ctype.h"
 #include "ext/date/php_date.h"
 #include "ext/exif/php_exif.h"
+#include "ext/ffi/php_ffi.h"
 #include "ext/filter/php_filter.h"
 #define HAVE_LIBINTL 1
 #include "ext/gettext/php_gettext.h"
 #undef HAVE_LIBINTL
+#include "ext/gmp/php_gmp.h"
 #include "ext/hash/php_hash.h"
 #include "ext/iconv/php_iconv.h"
 #include "ext/json/php_json.h"
 #include "ext/lexbor/php_lexbor.h"
 #include "ext/pcre/php_pcre.h"
 #include "ext/random/php_random.h"
+#include "ext/readline/php_readline.h"
 #include "ext/reflection/php_reflection.h"
 #include "ext/session/php_session.h"
 #include "ext/spl/php_spl.h"
 #include "ext/pdo/php_pdo.h"
+#include "ext/sodium/php_libsodium.h"
 #include "ext/standard/php_standard.h"
 #include "ext/tokenizer/php_tokenizer.h"
 #include "ext/opcache/zend_accelerator_module.h"
@@ -1851,18 +1855,22 @@ target("php")
 	phpext_ctype_ptr,
 	phpext_date_ptr,
 	phpext_exif_ptr,
+	phpext_ffi_ptr,
 	phpext_filter_ptr,
 	phpext_gettext_ptr,
+	phpext_gmp_ptr,
 	phpext_hash_ptr,
 	phpext_iconv_ptr,
 	phpext_json_ptr,
 	phpext_lexbor_ptr,
 	phpext_pcre_ptr,
 	phpext_random_ptr,
+	phpext_readline_ptr,
 	phpext_reflection_ptr,
 	phpext_session_ptr,
 	phpext_spl_ptr,
 	phpext_pdo_ptr,
+	phpext_sodium_ptr,
 	phpext_standard_ptr,
 	phpext_tokenizer_ptr,
 	phpext_opcache_ptr,
@@ -2029,10 +2037,12 @@ target("php")
     add_files("in/php-src/ext/ctype/*.c")
     add_files("in/php-src/ext/date/*.c", "in/php-src/ext/date/lib/*.c")
     add_files("in/php-src/ext/exif/*.c")
+    add_files("in/php-src/ext/ffi/*.c")
     add_files("in/php-src/ext/filter/*.c")
     add_files("in/php-src/ext/gettext/*.c", {defines = {
         "HAVE_BIND_TEXTDOMAIN_CODESET=1", "HAVE_DNGETTEXT=1", "HAVE_NGETTEXT=1", "HAVE_LIBINTL=1", "HAVE_DCNGETTEXT=1"
     }})
+    add_files("in/php-src/ext/gmp/*.c")
     add_files("in/php-src/ext/hash/*.c", "in/php-src/ext/hash/murmur/*.c", "in/php-src/ext/hash/sha3/generic64lc/*.c", {
         defines = {"KeccakP200_excluded", "KeccakP400_excluded", "KeccakP800_excluded"}
     })
@@ -2083,6 +2093,7 @@ target("php")
         "in/php-src/ext/pcre/pcre2lib/pcre2_ucptables.c"
     )
     add_files("in/php-src/ext/random/*.c")
+    add_files("in/php-src/ext/readline/*.c")
     add_files("in/php-src/ext/reflection/*.c")
     add_files("in/php-src/ext/session/*.c")
     remove_files("in/php-src/ext/session/mod_mm.c")
@@ -2099,6 +2110,7 @@ target("php")
         sources[1] = output
         table.insert(depend.files, tool)
     end})
+    add_files("in/php-src/ext/sodium/*.c")
 
     add_files("in/php-src/ext/standard/*.c", "in/php-src/ext/standard/libavifinfo/*.c")
     add_files("in/php-src/ext/tokenizer/*.c")
