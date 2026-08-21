@@ -18,9 +18,14 @@
 #define __SSE__ 1
 #define __SSE2__ 1
 #define HAVE_BCMATH 1
+#define HAVE_BZ2 1
 #define HAVE_CALENDAR 1
 #define HAVE_CTYPE 1
 #define HAVE_EXIF 1
+#define HAVE_ICONV 1
+#define HAVE_LIBICONV 1
+#define ICONV_ALIASED_LIBICONV 1
+#define PHP_ICONV_IMPL "libiconv"
 #define HAVE_PHP_SESSION 1
 #define HAVE_TIMELIB_CONFIG_H 1
 #define HAVE_LEXBOR 1

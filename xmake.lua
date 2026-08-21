@@ -1797,6 +1797,7 @@ target("php")
         {force = true}
     )
     add_deps("minilua", "gen_ir_fold_hash", {links = false})
+    add_deps("bzip2", "libiconv", "libintl")
 
     set_configdir("out/php")
     add_configfiles("in/php-src/win32/build/config.w32.h.in", {
@@ -1821,12 +1822,17 @@ target("php")
         pattern = "@([%u_]+)@",
         variables = {
             EXT_INCLUDE_CODE = [[#include "ext/bcmath/php_bcmath.h"
+#include "ext/bz2/php_bz2.h"
 #include "ext/calendar/php_calendar.h"
 #include "ext/ctype/php_ctype.h"
 #include "ext/date/php_date.h"
 #include "ext/exif/php_exif.h"
 #include "ext/filter/php_filter.h"
+#define HAVE_LIBINTL 1
+#include "ext/gettext/php_gettext.h"
+#undef HAVE_LIBINTL
 #include "ext/hash/php_hash.h"
+#include "ext/iconv/php_iconv.h"
 #include "ext/json/php_json.h"
 #include "ext/lexbor/php_lexbor.h"
 #include "ext/pcre/php_pcre.h"
@@ -1840,12 +1846,15 @@ target("php")
 #include "ext/opcache/zend_accelerator_module.h"
 #include "ext/uri/php_uri.h"]],
             EXT_MODULE_PTRS = [[	phpext_bcmath_ptr,
+	phpext_bz2_ptr,
 	phpext_calendar_ptr,
 	phpext_ctype_ptr,
 	phpext_date_ptr,
 	phpext_exif_ptr,
 	phpext_filter_ptr,
+	phpext_gettext_ptr,
 	phpext_hash_ptr,
+	phpext_iconv_ptr,
 	phpext_json_ptr,
 	phpext_lexbor_ptr,
 	phpext_pcre_ptr,
@@ -2015,14 +2024,20 @@ target("php")
     end})
 
     add_files("in/php-src/ext/bcmath/*.c", "in/php-src/ext/bcmath/libbcmath/src/*.c")
+    add_files("in/php-src/ext/bz2/*.c")
     add_files("in/php-src/ext/calendar/*.c")
     add_files("in/php-src/ext/ctype/*.c")
     add_files("in/php-src/ext/date/*.c", "in/php-src/ext/date/lib/*.c")
     add_files("in/php-src/ext/exif/*.c")
     add_files("in/php-src/ext/filter/*.c")
+    add_files("in/php-src/ext/gettext/*.c", {defines = {
+        "HAVE_BIND_TEXTDOMAIN_CODESET=1", "HAVE_DNGETTEXT=1", "HAVE_NGETTEXT=1", "HAVE_LIBINTL=1", "HAVE_DCNGETTEXT=1"
+    }})
     add_files("in/php-src/ext/hash/*.c", "in/php-src/ext/hash/murmur/*.c", "in/php-src/ext/hash/sha3/generic64lc/*.c", {
         defines = {"KeccakP200_excluded", "KeccakP400_excluded", "KeccakP800_excluded"}
     })
+    add_files("in/php-src/ext/iconv/*.c", {defines = {"PHP_ICONV_EXPORTS"}})
+    add_files("in/php-src/ext/iconv/php_iconv.def")
 
     add_files("in/php-src/ext/json/json.c", "in/php-src/ext/json/json_encoder.c")
     add_files("in/php-src/ext/json/json_parser.y", {callback = function (sourcefile, sources, depend)
