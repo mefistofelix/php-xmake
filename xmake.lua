@@ -1831,6 +1831,7 @@ target("php")
 #include "ext/reflection/php_reflection.h"
 #include "ext/spl/php_spl.h"
 #include "ext/standard/php_standard.h"
+#include "ext/tokenizer/php_tokenizer.h"
 #include "ext/opcache/zend_accelerator_module.h"
 #include "ext/uri/php_uri.h"]],
             EXT_MODULE_PTRS = [[	phpext_calendar_ptr,
@@ -1844,6 +1845,7 @@ target("php")
 	phpext_reflection_ptr,
 	phpext_spl_ptr,
 	phpext_standard_ptr,
+	phpext_tokenizer_ptr,
 	phpext_opcache_ptr,
 	phpext_uri_ptr,]]
         }
@@ -2057,6 +2059,7 @@ target("php")
     add_files("in/php-src/ext/spl/*.c")
 
     add_files("in/php-src/ext/standard/*.c", "in/php-src/ext/standard/libavifinfo/*.c")
+    add_files("in/php-src/ext/tokenizer/*.c")
     remove_files("in/php-src/ext/standard/url_scanner_ex.c", "in/php-src/ext/standard/var_unserializer.c")
     add_files("in/php-src/ext/standard/url_scanner_ex.re", {
         includedirs = {"in/php-src/ext/standard"},
