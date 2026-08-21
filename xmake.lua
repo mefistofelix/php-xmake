@@ -1856,16 +1856,24 @@ target("php")
         "/wd4996",
         {force = true}
     )
+    add_cxflags("/FIconfig.w32.h", {force = true, public = true})
     add_deps("minilua", "gen_ir_fold_hash", {links = false})
     add_deps(
+        "avif",
         "brotli",
         "bzip2",
+        "freetype",
         "icu",
         "libcurl",
         "libffi",
         "libiconv",
         "libintl",
+        "libjpeg",
+        "libjxl",
+        "libpng",
         "libpq",
+        "libtiff",
+        "libwebp",
         "libxml2",
         "libxslt",
         "libzip",
@@ -1933,6 +1941,7 @@ target("php")
 #include "ext/fileinfo/php_fileinfo.h"
 #include "ext/filter/php_filter.h"
 #include "ext/ftp/php_ftp.h"
+#include "ext/gd/php_gd.h"
 #define HAVE_LIBINTL 1
 #include "ext/gettext/php_gettext.h"
 #undef HAVE_LIBINTL
@@ -1993,6 +2002,7 @@ extern zend_module_entry intl_module_entry;
 	phpext_ffi_ptr,
 	phpext_filter_ptr,
 	phpext_ftp_ptr,
+	phpext_gd_ptr,
 	phpext_gettext_ptr,
 	phpext_gmp_ptr,
 	phpext_hash_ptr,
@@ -2058,6 +2068,7 @@ extern zend_module_entry intl_module_entry;
         "in/php-src/ext/date/lib",
         "in/php-src/ext/fileinfo",
         "in/php-src/ext/fileinfo/libmagic",
+        "in/php-src/ext/gd/libgd",
         "in/php-src/ext/hash/sha3/generic64lc",
         "in/php-src/ext/http_server",
         "in/php-src/ext/http_server/include",
@@ -2119,6 +2130,7 @@ extern zend_module_entry intl_module_entry;
         "kernel32",
         "ole32",
         "user32",
+        "gdi32",
         "advapi32",
         "shell32",
         "ws2_32",
@@ -2258,6 +2270,23 @@ extern zend_module_entry intl_module_entry;
     remove_files("in/php-src/ext/fileinfo/libmagic/strcasestr.c")
     add_files("in/php-src/ext/filter/*.c")
     add_files("in/php-src/ext/ftp/*.c")
+    add_files("in/php-src/ext/gd/gd.c", "in/php-src/ext/gd/libgd/*.c", "in/php-src/ext/gd/libgd/ftraster/*.c", {
+        defines = {"HAVE_GD_BUNDLED=1", "PHP_GD_EXPORTS=1"}
+    })
+    remove_files(
+        "in/php-src/ext/gd/libgd/gd2time.c",
+        "in/php-src/ext/gd/libgd/gd2topng.c",
+        "in/php-src/ext/gd/libgd/gddemo.c",
+        "in/php-src/ext/gd/libgd/gdfx.c",
+        "in/php-src/ext/gd/libgd/gdparttopng.c",
+        "in/php-src/ext/gd/libgd/gdtest.c",
+        "in/php-src/ext/gd/libgd/gdtestft.c",
+        "in/php-src/ext/gd/libgd/gdtopng.c",
+        "in/php-src/ext/gd/libgd/pngtogd.c",
+        "in/php-src/ext/gd/libgd/pngtogd2.c",
+        "in/php-src/ext/gd/libgd/testac.c",
+        "in/php-src/ext/gd/libgd/webpng.c"
+    )
     add_files("in/php-src/ext/gettext/*.c", {defines = {
         "HAVE_BIND_TEXTDOMAIN_CODESET=1", "HAVE_DNGETTEXT=1", "HAVE_NGETTEXT=1", "HAVE_LIBINTL=1", "HAVE_DCNGETTEXT=1"
     }})
