@@ -1926,6 +1926,7 @@ target("php")
 #include "ext/calendar/php_calendar.h"
 #include "ext/ctype/php_ctype.h"
 #include "ext/curl/php_curl.h"
+#include "ext/com_dotnet/php_com_dotnet.h"
 #include "ext/date/php_date.h"
 #include "ext/exif/php_exif.h"
 #include "ext/ffi/php_ffi.h"
@@ -1957,6 +1958,7 @@ extern zend_module_entry intl_module_entry;
 #include "ext/reflection/php_reflection.h"
 #include "ext/session/php_session.h"
 #include "ext/shmop/php_shmop.h"
+#include "ext/sysvshm/php_sysvshm.h"
 #include "ext/soap/php_soap.h"
 #include "ext/spl/php_spl.h"
 #include "ext/simplexml/php_simplexml.h"
@@ -1976,6 +1978,7 @@ extern zend_module_entry intl_module_entry;
 #include "ext/xmlwriter/php_xmlwriter.h"
 #include "ext/xsl/php_xsl.h"
 #include "ext/zip/php_zip.h"
+#include "ext/zlib/php_zlib.h"
 #include "ext/uri/php_uri.h"]],
             EXT_MODULE_PTRS = [[	phpext_async_ptr,
 	phpext_true_async_server_ptr,
@@ -1984,6 +1987,7 @@ extern zend_module_entry intl_module_entry;
 	phpext_calendar_ptr,
 	phpext_ctype_ptr,
 	phpext_curl_ptr,
+	phpext_com_dotnet_ptr,
 	phpext_date_ptr,
 	phpext_exif_ptr,
 	phpext_ffi_ptr,
@@ -2012,6 +2016,7 @@ extern zend_module_entry intl_module_entry;
 	phpext_reflection_ptr,
 	phpext_session_ptr,
 	phpext_shmop_ptr,
+	phpext_sysvshm_ptr,
 	phpext_soap_ptr,
 	phpext_spl_ptr,
 	phpext_phar_ptr,
@@ -2032,6 +2037,7 @@ extern zend_module_entry intl_module_entry;
 	phpext_xmlwriter_ptr,
 	phpext_xsl_ptr,
 	phpext_zip_ptr,
+	phpext_zlib_ptr,
 	phpext_uri_ptr,]]
         }
     })
@@ -2123,7 +2129,8 @@ extern zend_module_entry intl_module_entry;
         "Mswsock",
         "iphlpapi",
         "odbc32",
-        "odbccp32"
+        "odbccp32",
+        "oleaut32"
     )
     add_files("in/php-src/ext/pcre/php_pcre.def")
 
@@ -2243,6 +2250,7 @@ extern zend_module_entry intl_module_entry;
     add_files("in/php-src/ext/calendar/*.c")
     add_files("in/php-src/ext/ctype/*.c")
     add_files("in/php-src/ext/curl/*.c", {defines = {"PHP_CURL_EXPORTS=1", "CURL_STATICLIB"}})
+    add_files("in/php-src/ext/com_dotnet/*.c")
     add_files("in/php-src/ext/date/*.c", "in/php-src/ext/date/lib/*.c")
     add_files("in/php-src/ext/exif/*.c")
     add_files("in/php-src/ext/ffi/*.c")
@@ -2406,6 +2414,7 @@ extern zend_module_entry intl_module_entry;
     end})
     add_files("in/php-src/ext/sodium/*.c")
     add_files("in/php-src/ext/shmop/*.c")
+    add_files("in/php-src/ext/sysvshm/*.c")
     add_files("in/php-src/ext/soap/*.c", {defines = {"LIBXML_STATIC"}})
     add_files("in/php-src/ext/sockets/*.c", {defines = {"PHP_SOCKETS_EXPORTS=1"}})
     add_files("in/php-src/ext/sqlite3/*.c")
@@ -2419,6 +2428,8 @@ extern zend_module_entry intl_module_entry;
     add_files("in/php-src/ext/zip/*.c", {
         defines = {"ZIP_STATIC", "HAVE_ENCRYPTION", "HAVE_LIBZIP_VERSION", "HAVE_PROGRESS_CALLBACK", "HAVE_CANCEL_CALLBACK", "HAVE_METHOD_SUPPORTED", "LZMA_API_STATIC"}
     })
+    add_files("in/php-src/ext/zlib/*.c")
+    add_files("in/php-src/ext/zlib/php_zlib.def")
     remove_files("in/php-src/ext/standard/url_scanner_ex.c", "in/php-src/ext/standard/var_unserializer.c")
     add_files("in/php-src/ext/standard/url_scanner_ex.re", {
         includedirs = {"in/php-src/ext/standard"},

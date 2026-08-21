@@ -12,7 +12,8 @@ Last updated: 2026-08-21
 
 ## Current State
 
-- [ ] Integrate the next builtin batch after the utility/ODBC checkpoint.
+- [ ] Integrate GD and its already validated static codec closure.
+- [x] Integrate the Windows-runtime batch: `com_dotnet`, `sysvshm`, and `zlib`.
 - [x] Integrate the utility/ODBC batch: `phar`, `fileinfo`, `soap`, `odbc`, `pdo_odbc`, and `shmop`.
 - [x] Integrate the database/directory batch: `pgsql`, `pdo_pgsql`, and `ldap` against the validated libpq/OpenLDAP targets.
 - [x] Integrate the XML batch: `libxml`, `dom`, `simplexml`, `xml`, `xmlreader`, `xmlwriter`, and `xsl` against the validated libxml2/libxslt targets.
@@ -378,6 +379,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [x] Run CLI, builtin-module, ZTS/TrueAsync, Opcache/JIT, x64, `/MD`, and export-surface validation for the minimal checkpoint.
 
 ## Validation Log
+
+- 2026-08-21 — Windows-runtime PHP batch: added builtin `com_dotnet`, `sysvshm`, and `zlib` from their exact 16-source Windows closure. COM links only `oleaut32`; the optional legacy .NET hosting class remains disabled because the bootstrapped MSVC/Windows SDK has no `mscoree.h`, while COM and VARIANT remain complete. Zlib uses the existing static target and builtin export definition; SysV shared memory uses PHP's Windows IPC compatibility layer. The complete ZTS CLI build and link passed, all three modules appeared in `php.exe -n -m`, VARIANT construction worked, the SysV entry point was registered, and zlib compression round-tripped.
 
 - 2026-08-21 — utility/ODBC PHP batch: added builtin Phar, Fileinfo, SOAP, ODBC, PDO ODBC, and shmop from their exact Windows manifests. Phar's path checker is materialized into `out` with RE2C, Fileinfo compiles the 19-source bundled libmagic manifest while retaining `data_file.c` only as an include, and both ODBC layers use the Windows SDK libraries. The complete ZTS CLI build and link passed; all six modules appeared in `php.exe -n -m`, Fileinfo identified a memory buffer as `text/plain`, Phar exposed OpenSSL signatures, SOAP instantiated a non-WSDL client without I/O, PDO listed `odbc`, and the ODBC/shmop entry points were registered.
 

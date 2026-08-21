@@ -22,11 +22,13 @@
 #define HAVE_CALENDAR 1
 #define HAVE_CTYPE 1
 #define HAVE_CURL 1
+#define HAVE_COM_DOTNET 1
 #define HAVE_DOM 1
 #define HAVE_EXIF 1
 #define HAVE_FFI 1
 #define HAVE_FFI_VECTORCALL_PARTIAL 1
 #define HAVE_SHMOP 1
+#define HAVE_SYSVSHM 1
 #define HAVE_FTP 1
 #define HAVE_FTP_SSL 1
 #define HAVE_ICONV 1
@@ -77,6 +79,7 @@
 #define HAVE_XMLWRITER 1
 #define HAVE_XSL 1
 #define HAVE_XSL_EXSLT 1
+#define HAVE_ZLIB 1
 #define HAVE_UODBC 1
 #define ICONV_ALIASED_LIBICONV 1
 #define PHP_ICONV_IMPL "libiconv"
