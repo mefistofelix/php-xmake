@@ -17,6 +17,7 @@
 #define HAVE_IPV6 1
 #define __SSE__ 1
 #define __SSE2__ 1
+#define HAVE_CALENDAR 1
 #define HAVE_CTYPE 1
 #define HAVE_TIMELIB_CONFIG_H 1
 #define HAVE_LEXBOR 1
