@@ -1502,7 +1502,6 @@ target("libzip")
             #define HAVE_LOCALTIME_S
             #define HAVE_MEMCPY_S
             #define HAVE_SNPRINTF
-            #define HAVE_SNPRINTF_S
             #define HAVE_STDBOOL_H
             #define HAVE_STRERROR_S
             #define HAVE_STRNCPY_S
@@ -1517,6 +1516,7 @@ target("libzip")
         ]])
         table.insert(depend.files, zipconf)
         table.insert(depend.files, config)
+        table.insert(depend.files, "xmake.lua")
         table.remove(sources, 1)
     end})
     add_includedirs("out/libzip", "in/deps/libzip/lib", {public = true})
@@ -1863,6 +1863,7 @@ target("php")
         "libffi",
         "libiconv",
         "libintl",
+        "libzip",
         "libsodium",
         "libuv",
         "mpir",
@@ -1896,6 +1897,11 @@ target("php")
         prefixdir = "libuv",
         onlycopy = true
     })
+    add_configfiles("in/deps/openssl/ms/applink.c", {
+        filename = "applink.c",
+        prefixdir = "openssl",
+        onlycopy = true
+    })
     add_configfiles("in/php-src/main/internal_functions.c.in", {
         filename = "internal_functions.c",
         prefixdir = "main",
@@ -1912,6 +1918,7 @@ target("php")
 #include "ext/exif/php_exif.h"
 #include "ext/ffi/php_ffi.h"
 #include "ext/filter/php_filter.h"
+#include "ext/ftp/php_ftp.h"
 #define HAVE_LIBINTL 1
 #include "ext/gettext/php_gettext.h"
 #undef HAVE_LIBINTL
@@ -1922,6 +1929,7 @@ target("php")
 #include "ext/lexbor/php_lexbor.h"
 #include "ext/mysqlnd/php_mysqlnd.h"
 #include "ext/mysqli/php_mysqli.h"
+#include "ext/openssl/php_openssl.h"
 #include "ext/pcre/php_pcre.h"
 #include "ext/random/php_random.h"
 #include "ext/readline/php_readline.h"
@@ -1932,10 +1940,12 @@ target("php")
 #include "ext/pdo_mysql/php_pdo_mysql.h"
 #include "ext/pdo_sqlite/php_pdo_sqlite.h"
 #include "ext/sodium/php_libsodium.h"
+#include "ext/sockets/php_sockets.h"
 #include "ext/sqlite3/php_sqlite3.h"
 #include "ext/standard/php_standard.h"
 #include "ext/tokenizer/php_tokenizer.h"
 #include "ext/opcache/zend_accelerator_module.h"
+#include "ext/zip/php_zip.h"
 #include "ext/uri/php_uri.h"]],
             EXT_MODULE_PTRS = [[	phpext_async_ptr,
 	phpext_true_async_server_ptr,
@@ -1948,6 +1958,7 @@ target("php")
 	phpext_exif_ptr,
 	phpext_ffi_ptr,
 	phpext_filter_ptr,
+	phpext_ftp_ptr,
 	phpext_gettext_ptr,
 	phpext_gmp_ptr,
 	phpext_hash_ptr,
@@ -1956,6 +1967,7 @@ target("php")
 	phpext_lexbor_ptr,
 	phpext_mysqlnd_ptr,
 	phpext_mysqli_ptr,
+	phpext_openssl_ptr,
 	phpext_pcre_ptr,
 	phpext_random_ptr,
 	phpext_readline_ptr,
@@ -1966,10 +1978,12 @@ target("php")
 	phpext_pdo_mysql_ptr,
 	phpext_pdo_sqlite_ptr,
 	phpext_sodium_ptr,
+	phpext_sockets_ptr,
 	phpext_sqlite3_ptr,
 	phpext_standard_ptr,
 	phpext_tokenizer_ptr,
 	phpext_opcache_ptr,
+	phpext_zip_ptr,
 	phpext_uri_ptr,]]
         }
     })
@@ -2176,6 +2190,7 @@ target("php")
     add_files("in/php-src/ext/exif/*.c")
     add_files("in/php-src/ext/ffi/*.c")
     add_files("in/php-src/ext/filter/*.c")
+    add_files("in/php-src/ext/ftp/*.c")
     add_files("in/php-src/ext/gettext/*.c", {defines = {
         "HAVE_BIND_TEXTDOMAIN_CODESET=1", "HAVE_DNGETTEXT=1", "HAVE_NGETTEXT=1", "HAVE_LIBINTL=1", "HAVE_DCNGETTEXT=1"
     }})
@@ -2238,6 +2253,7 @@ target("php")
 
     add_files("in/php-src/ext/mysqlnd/*.c")
     add_files("in/php-src/ext/mysqli/*.c")
+    add_files("in/php-src/ext/openssl/*.c")
 
     add_files("in/php-src/ext/pdo/*.c")
     add_files("in/php-src/ext/pdo/pdo_sql_parser.re", {
@@ -2273,10 +2289,14 @@ target("php")
         table.insert(depend.files, tool)
     end})
     add_files("in/php-src/ext/sodium/*.c")
+    add_files("in/php-src/ext/sockets/*.c", {defines = {"PHP_SOCKETS_EXPORTS=1"}})
     add_files("in/php-src/ext/sqlite3/*.c")
 
     add_files("in/php-src/ext/standard/*.c", "in/php-src/ext/standard/libavifinfo/*.c")
     add_files("in/php-src/ext/tokenizer/*.c")
+    add_files("in/php-src/ext/zip/*.c", {
+        defines = {"ZIP_STATIC", "HAVE_ENCRYPTION", "HAVE_LIBZIP_VERSION", "HAVE_PROGRESS_CALLBACK", "HAVE_CANCEL_CALLBACK", "HAVE_METHOD_SUPPORTED", "LZMA_API_STATIC"}
+    })
     remove_files("in/php-src/ext/standard/url_scanner_ex.c", "in/php-src/ext/standard/var_unserializer.c")
     add_files("in/php-src/ext/standard/url_scanner_ex.re", {
         includedirs = {"in/php-src/ext/standard"},

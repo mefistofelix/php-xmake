@@ -12,7 +12,8 @@ Last updated: 2026-08-21
 
 ## Current State
 
-- [ ] Select and integrate the next coherent builtin batch after the requested async/network/MySQL/SQLite/server baseline.
+- [ ] Integrate the next international-text batch: `mbstring` against oniguruma and `intl` against ICU, following their Windows manifests and generated-source requirements.
+- [x] Integrate the security/network/archive builtin batch: OpenSSL, sockets, SSL-enabled FTP, and ZIP.
 - [x] Integrate and validate the separate TrueAsync HTTP server source closure with its upstream-default TLS, HTTP/2, and compression layers.
 - [x] Integrate and validate the priority network/database batch in `php`: TrueAsync, cURL, mysqlnd/MySQLi/PDO MySQL, and SQLite3/PDO SQLite.
 - [ ] Full-target Unity survey in progress. Natural passes so far: `wineditline`, `bzip2`, `libssh2`, `libcurl`. Single-TU/N/A: `sqlite3`. Failures so far: `nghttp3`, `ngtcp2`, `zlib`, `brotli`, `zstd`, `liblzma`, `nghttp2`, `libuv`, `libsodium`, `oniguruma`, `libpng`, `libjpeg`, `libtiff`; exact translation-unit collisions and possible natural partitions are documented in `unitybuild.md`. Failed targets are restored to their validated non-Unity configuration before continuing.
@@ -373,6 +374,8 @@ Every library must receive its own static target. Integrate and validate them on
 - [x] Run CLI, builtin-module, ZTS/TrueAsync, Opcache/JIT, x64, `/MD`, and export-surface validation for the minimal checkpoint.
 
 ## Validation Log
+
+- 2026-08-21 — security/network/archive PHP batch: added builtin `openssl`, `sockets`, SSL-enabled `ftp`, and `zip` from 16 total extension sources. OpenSSL's required Windows SAPI `applink.c` is copied declaratively into the generated include tree. The first final consumer link exposed a stale libzip probe that incorrectly declared nonexistent `snprintf_s`; its generated configuration now retains the valid MSVC `_snprintf_s` probe only and tracks the Xmake recipe. The complete build passed, all four modules appeared in `php.exe -n -m`, a socket object was created and closed, `ZipArchive` instantiated, FTP functions were present, and the module reported OpenSSL 3.5.7.
 
 - 2026-08-21 — TrueAsync HTTP server checkpoint: integrated the exact 68-source Windows-default closure as builtin `true_async_server`, including the C++ inter-thread queue, bundled llhttp, HTTP/2, TLS, and gzip/Brotli/zstd compression. The complete `php-cli` build passed; `out/php.exe -n -m` exited normally with the module listed, reported extension version 0.10.1, and registered the `TrueAsync\\HttpServer`, `HttpServerConfig`, `HttpRequest`, and `HttpResponse` classes. HTTP/3 remains intentionally disabled at this upstream-default checkpoint.
 
